@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b40101">
+  <meta name="description" content="A task-first workspace concept for Keller Williams Leading Edge agents.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="KW Leading Edge Agent Portal">
+  <meta property="og:description" content="A task-first workspace concept for Keller Williams Leading Edge agents.">
+  <meta property="og:url" content="https://joepine.com/KWPortal/">
+  <meta property="og:image" content="https://joepine.com/KWPortal/images/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="KW Leading Edge Agent Portal social preview">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="KW Leading Edge Agent Portal">
+  <meta name="twitter:description" content="A task-first workspace concept for Keller Williams Leading Edge agents.">
+  <meta name="twitter:image" content="https://joepine.com/KWPortal/images/social-preview.png">
+  <meta name="twitter:image:alt" content="KW Leading Edge Agent Portal social preview">
+  <title>KW Leading Edge Agent Portal</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="shortcut icon" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="portal-protected" data-portal-lock-label="Agent Portal">
+  <div class="top-rail" aria-hidden="true"></div>
+
+  <div class="site-shell">
+    <div class="portal-frame">
+      <aside class="portal-sidebar">
+        <div class="site-header">
+          <a class="brand-link" href="#overview" aria-label="KW Leading Edge portal home">
+            <div class="brand-lockup">
+              <img src="brand/kw-leading-edge-logo.png" alt="Keller Williams Realty Leading Edge" class="brand-logo">
+            </div>
+            <div class="brand-copy">
+              <strong>Agent Portal</strong>
+            </div>
+          </a>
+
+          <div class="header-time-card" aria-label="Current date and time">
+            <strong data-header-clock>--:-- ET</strong>
+            <span data-header-date>Loading today...</span>
+          </div>
+
+        </div>
+
+        <nav class="section-nav panel" aria-label="Page sections">
+          <a href="#overview" class="section-nav-link is-active" aria-current="page">Overview</a>
+          <a href="#workflows" class="section-nav-link">Workflows</a>
+          <a href="#training" class="section-nav-link">Training</a>
+          <a href="#office" class="section-nav-link">Office</a>
+          <a href="#leadership" class="section-nav-link">Leadership</a>
+          <a href="vendor-row.html" class="section-nav-link section-nav-link--page">Vendor Row</a>
+        </nav>
+
+        <section class="panel sidebar-utility">
+          <p class="eyebrow small">Quick Links</p>
+          <div class="sidebar-link-stack">
+            <a class="button primary sidebar-button" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
+            <a class="button secondary sidebar-button" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
+              <a class="button secondary sidebar-button" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
+            <a class="button secondary sidebar-button" href="https://h3j.mlspin.com/signin.asp?lstpgckhd=1#ath" target="_blank" rel="noreferrer">Mass MLS</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us" target="_blank" rel="noreferrer">KW Answers</a>
+            <a class="button secondary sidebar-button" href="https://www.facebook.com/groups/1202591099776591" target="_blank" rel="noreferrer">KW Facebook Group</a>
+          </div>
+        </section>
+      </aside>
+
+      <div class="mobile-sidebar-menus" aria-label="Mobile portal menus">
+        <details class="mobile-menu-panel">
+          <summary class="mobile-menu-summary">Menu</summary>
+          <div class="mobile-menu-links">
+            <a href="#overview" class="section-nav-link is-active" aria-current="page">Overview</a>
+            <a href="#workflows" class="section-nav-link">Workflows</a>
+            <a href="#training" class="section-nav-link">Training</a>
+            <a href="#office" class="section-nav-link">Office</a>
+            <a href="#leadership" class="section-nav-link">Leadership</a>
+            <a href="vendor-row.html" class="section-nav-link section-nav-link--page">Vendor Row</a>
+          </div>
+        </details>
+
+        <details class="mobile-menu-panel">
+          <summary class="mobile-menu-summary">Quick Links</summary>
+          <div class="mobile-menu-links">
+            <a class="button primary sidebar-button" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
+            <a class="button secondary sidebar-button" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
+                <a class="button secondary sidebar-button" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
+            <a class="button secondary sidebar-button" href="https://h3j.mlspin.com/signin.asp?lstpgckhd=1#ath" target="_blank" rel="noreferrer">Mass MLS</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us" target="_blank" rel="noreferrer">KW Answers</a>
+            <a class="button secondary sidebar-button" href="https://www.facebook.com/groups/1202591099776591" target="_blank" rel="noreferrer">KW Facebook Group</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="portal-content">
+        <section class="content-strip panel" aria-label="Daily tools">
+          <div class="content-strip-row">
+            <div class="content-strip-market content-strip-market--stacked" aria-label="Market snapshots">
+              <div class="content-strip-market-line" aria-label="Mortgage rate snapshot">
+                <div class="content-strip-heading">
+                  <span class="content-strip-kicker">Interest Rates</span>
+                  <strong>Updated <span data-rates-source-date>Loading...</span></strong>
+                </div>
+                <div class="content-strip-rates">
+                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fixed" target="_blank" rel="noreferrer">
+                    <span class="content-rate-label">Conv</span>
+                    <strong class="content-rate-value"><span data-rate-value="conventional">--</span>%</strong>
+                  </a>
+                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fha" target="_blank" rel="noreferrer">
+                    <span class="content-rate-label">FHA</span>
+                    <strong class="content-rate-value"><span data-rate-value="fha">--</span>%</strong>
+                  </a>
+                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-va" target="_blank" rel="noreferrer">
+                    <span class="content-rate-label">VA</span>
+                    <strong class="content-rate-value"><span data-rate-value="va">--</span>%</strong>
+                  </a>
+                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo" target="_blank" rel="noreferrer">
+                    <span class="content-rate-label">Jumbo</span>
+                    <strong class="content-rate-value"><span data-rate-value="jumbo">--</span>%</strong>
+                  </a>
+                </div>
+              </div>
+
+              <div class="content-strip-market-line content-strip-market-line--ri" aria-label="Rhode Island market snapshot">
+                <div class="content-strip-heading content-strip-heading--ri">
+                  <span class="content-strip-kicker">RI Market Trends</span>
+                  <strong><span data-ri-market-period>Loading...</span></strong>
+                </div>
+                <div class="content-strip-stats">
+                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                    <span class="content-stat-label">Median</span>
+                    <strong class="content-stat-value" data-ri-market-value="median">$--</strong>
+                    <span class="content-stat-trend" data-ri-market-trend="median">--</span>
+                  </a>
+                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                    <span class="content-stat-label">Sold</span>
+                    <strong class="content-stat-value" data-ri-market-value="sold">--</strong>
+                    <span class="content-stat-trend" data-ri-market-trend="sold">--</span>
+                  </a>
+                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                    <span class="content-stat-label">Pending</span>
+                    <strong class="content-stat-value" data-ri-market-value="pending">--</strong>
+                    <span class="content-stat-trend" data-ri-market-trend="pending">--</span>
+                  </a>
+                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                    <span class="content-stat-label">Inventory</span>
+                    <strong class="content-stat-value" data-ri-market-value="inventory">--</strong>
+                    <span class="content-stat-trend" data-ri-market-trend="inventory">--</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="content-strip-datetime" aria-label="Current date and time">
+              <strong data-header-clock>--:-- ET</strong>
+              <span data-header-date>Loading today...</span>
+            </div>
+          </div>
+        </section>
+
+        <main class="page-content">
+          <section class="panel dashboard-panel" id="overview">
+            <div class="dashboard-head">
+              <div class="dashboard-lead-column">
+                <div class="dashboard-title-block">
+                  <p class="eyebrow small">Portal Home</p>
+                  <h1>Where Entrepreneurs Thrive!</h1>
+                  <p class="dashboard-summary">A task-first workspace for agents building the business, momentum, and career they actually want.</p>
+                </div>
+
+                <article class="dashboard-status-card dashboard-status-card--actions">
+                  <span class="card-tag">Daily Access</span>
+                  <strong>Open the tools that shape the day</strong>
+                  <div class="dashboard-quick-grid">
+                    <a class="dashboard-mini-link" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
+                    <a class="dashboard-mini-link" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
+                    <a class="dashboard-mini-link" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
+                    <a class="dashboard-mini-link" href="https://h3j.mlspin.com/signin.asp?lstpgckhd=1#ath" target="_blank" rel="noreferrer">Mass MLS</a>
+                  </div>
+                </article>
+              </div>
+              <article class="dashboard-status-card dashboard-status-card--agenda">
+                <span class="card-tag">Office Agenda</span>
+                <strong>What is coming up next in training and office events</strong>
+                <div class="dashboard-agenda-shell">
+                  <div
+                    class="dashboard-agenda-feed"
+                    data-tockify-calendar="leading.edge"
+                    data-tockify-component="mini"
+                    data-tockify-view="agenda"
+                    data-tockify-maxevents="3"
+                    data-tockify-shownavbar="false"
+                    aria-label="Upcoming office training and events"
+                  ></div>
+                </div>
+                <div class="dashboard-agenda-links">
+                  <a class="dashboard-mini-link" href="https://agent.kwleadingedge.com/training-calendar/" target="_blank" rel="noreferrer">Full Calendar</a>
+                  <a class="dashboard-mini-link" href="https://agent.kwleadingedge.com/important_info/" target="_blank" rel="noreferrer">Office Info</a>
+                  <a class="dashboard-mini-link" href="vendor-row.html">Vendor Row</a>
+                  <a class="dashboard-mini-link" href="https://agent.kwleadingedge.com/schedule-an-appointment/" target="_blank" rel="noreferrer">Schedule Support</a>
+                </div>
+              </article>
+            </div>
+
+            <article class="overview-card overview-card-accent dashboard-market-strip" aria-label="Mortgage rate snapshot">
+              <div class="dashboard-market-strip-head">
+                <span class="card-tag">Market Snapshot</span>
+                <strong class="dashboard-market-strip-title">Mortgage rates at a glance</strong>
+                <p class="dashboard-status-meta">Updated <span data-rates-source-date>Loading...</span></p>
+              </div>
+              <div class="dashboard-rate-grid dashboard-rate-grid--strip">
+                <a class="dashboard-rate-chip" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fixed" target="_blank" rel="noreferrer">
+                  <span class="rate-label">Conv</span>
+                  <strong class="rate-value"><span data-rate-value="conventional">--</span>%</strong>
+                </a>
+                <a class="dashboard-rate-chip" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fha" target="_blank" rel="noreferrer">
+                  <span class="rate-label">FHA</span>
+                  <strong class="rate-value"><span data-rate-value="fha">--</span>%</strong>
+                </a>
+                <a class="dashboard-rate-chip" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-va" target="_blank" rel="noreferrer">
+                  <span class="rate-label">VA</span>
+                  <strong class="rate-value"><span data-rate-value="va">--</span>%</strong>
+                </a>
+                <a class="dashboard-rate-chip" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo" target="_blank" rel="noreferrer">
+                  <span class="rate-label">Jumbo</span>
+                  <strong class="rate-value"><span data-rate-value="jumbo">--</span>%</strong>
+                </a>
+              </div>
+            </article>
+
+            <div class="overview-grid">
+              <article class="overview-card">
+                <div class="overview-card-head">
+                  <div>
+                    <p class="eyebrow small">Start Here</p>
+                    <h2>Most-used office paths</h2>
+                  </div>
+                </div>
+                <div class="overview-link-list">
+                  <a class="overview-link" href="https://agent.kwleadingedge.com/important_info/" target="_blank" rel="noreferrer">
+                    <strong>Office Information</strong>
+                    <span>Handbook, vendors, logos, and office references.</span>
+                  </a>
+                  <a class="overview-link" href="https://agent.kwleadingedge.com/training-calendar/" target="_blank" rel="noreferrer">
+                    <strong>Training Calendar</strong>
+                    <span>Classes and office events in one place.</span>
+                  </a>
+                  <a class="overview-link" href="https://agent.kwleadingedge.com/schedule-an-appointment/" target="_blank" rel="noreferrer">
+                    <strong>Schedule Appointment</strong>
+                    <span>Direct leadership support without digging through pages.</span>
+                  </a>
+                  <a class="overview-link" href="vendor-row.html">
+                    <strong>Digital Vendor Row</strong>
+                    <span>Trusted partners organized for quick referrals.</span>
+                  </a>
+                </div>
+              </article>
+
+            </div>
+          </section>
+
+          <section class="panel" id="workflows">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Portal Workflows</p>
+                <h2>Core office actions</h2>
+              </div>
+              <a class="button secondary compact" href="https://agent.kwleadingedge.com/" target="_blank" rel="noreferrer">Current Portal</a>
+            </div>
+
+            <div class="portal-action-grid">
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/important_info/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Office</span>
+                <h3>Office Information</h3>
+                <p>Handbook, vendors, logos, and reference documents.</p>
+              </a>
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/courses/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Learning</span>
+                <h3>Online Learning</h3>
+                <p>Course catalog and skill-building content.</p>
+              </a>
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/training-calendar/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Calendar</span>
+                <h3>Training Calendar</h3>
+                <p>Upcoming classes and office events.</p>
+              </a>
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/book-a-conference-room/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Office Ops</span>
+                <h3>Book a Conference Room</h3>
+                <p>Reserve space without leaving the portal flow.</p>
+              </a>
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/schedule-an-appointment/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Support</span>
+                <h3>Schedule Appointment</h3>
+                <p>Leadership access and office help.</p>
+              </a>
+              <a class="portal-action-card" href="https://agent.kwleadingedge.com/dashboard/" target="_blank" rel="noreferrer">
+                <span class="card-tag">Member</span>
+                <h3>Dashboard</h3>
+                <p>Keep member access tied into the same portal experience.</p>
+              </a>
+              <a class="portal-action-card" href="vendor-row.html">
+                <span class="card-tag">Directory</span>
+                <h3>Digital Vendor Row</h3>
+                <p>Preferred lender, title, insurance, inspection, and service contacts.</p>
+              </a>
+              <a class="portal-action-card" href="downloads/leading-edge-logos.zip" download>
+                <span class="card-tag">Brand</span>
+                <h3>Leading Edge Logos</h3>
+                <p>Download the Keller Williams Leading Edge logo pack directly from the portal.</p>
+              </a>
+            </div>
+          </section>
+
+          <section class="panel" id="training">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Training Hub</p>
+                <h2>Learning paths that belong in the portal</h2>
+              </div>
+              <a class="button secondary compact" href="https://agent.kwleadingedge.com/training-library/" target="_blank" rel="noreferrer">Training Library</a>
+            </div>
+
+            <div class="training-layout">
+              <div class="course-grid">
+                <a class="course-card" href="https://agent.kwleadingedge.com/courses/new-agent-first-30-days/" target="_blank" rel="noreferrer">
+                  <span class="card-tag">Onboarding</span>
+                  <h3>New Agent Launch</h3>
+                  <p>First steps, setup, and structure for a new start.</p>
+                </a>
+                <a class="course-card" href="https://agent.kwleadingedge.com/courses/working-with-buyers/" target="_blank" rel="noreferrer">
+                  <span class="card-tag">Sales</span>
+                  <h3>Working With Buyers</h3>
+                  <p>Practical buyer-side training agents can jump into quickly.</p>
+                </a>
+                <a class="course-card" href="https://agent.kwleadingedge.com/courses/practice-deal-number-1/" target="_blank" rel="noreferrer">
+                  <span class="card-tag">Practice</span>
+                  <h3>Practice Deal Number 1</h3>
+                  <p>Hands-on guided practice for early deals.</p>
+                </a>
+                <a class="course-card" href="https://agent.kwleadingedge.com/courses/open-house-certification/" target="_blank" rel="noreferrer">
+                  <span class="card-tag">Certification</span>
+                  <h3>Open House Certification</h3>
+                  <p>Milestone training that should stay easy to find.</p>
+                </a>
+                <a class="course-card" href="https://agent.kwleadingedge.com/courses/lead-conversion/" target="_blank" rel="noreferrer">
+                  <span class="card-tag">Growth</span>
+                  <h3>Lead Conversion</h3>
+                  <p>Business-building education as part of the portal routine.</p>
+                </a>
+              </div>
+
+              <aside class="training-sidecard">
+                <p class="eyebrow small">Recommended Tracks</p>
+                <div class="info-stack">
+                  <div class="info-row">
+                    <strong>New agents</strong>
+                    <span>First 30 days, practice deal, and open house certification.</span>
+                  </div>
+                  <div class="info-row">
+                    <strong>Production</strong>
+                    <span>Buyer systems, lead conversion, and calendar-based training.</span>
+                  </div>
+                  <div class="info-row">
+                    <strong>Office rhythm</strong>
+                    <span>Use the calendar and library together instead of burying classes on separate pages.</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel" id="office">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Office Hub</p>
+                <h2>Resources, scheduling, and internal support</h2>
+              </div>
+            </div>
+
+            <div class="office-grid">
+              <article class="office-card">
+                <span class="card-tag">Resources</span>
+                <h3>Office reference hub</h3>
+                <p>Keep the handbook, preferred vendors, and office files in one reliable place.</p>
+                <div class="chip-row">
+                  <span class="chip">Sales Associate Handbook</span>
+                  <span class="chip">Preferred Vendors</span>
+                  <a class="chip chip-link" href="https://agent.kwleadingedge.com/important_info/" target="_blank" rel="noreferrer">Open Office Info</a>
+                </div>
+              </article>
+
+              <article class="office-card">
+                <span class="card-tag">Scheduling</span>
+                <h3>Appointments and room booking</h3>
+                <div class="mini-agenda">
+                  <div class="mini-agenda-row">
+                    <span>Training</span>
+                    <strong>Calendar access</strong>
+                  </div>
+                  <div class="mini-agenda-row">
+                    <span>Rooms</span>
+                    <strong>Conference booking</strong>
+                  </div>
+                  <div class="mini-agenda-row">
+                    <span>Support</span>
+                    <strong>Leadership appointment</strong>
+                  </div>
+                </div>
+              </article>
+
+              <article class="office-card office-card-wide">
+                <span class="card-tag">Brand + Files</span>
+                <h3>Grab-and-go office assets</h3>
+                <p>Logos, brand standards, internal references, and vendor access should all be easy to open from one workspace.</p>
+                <div class="chip-row">
+                  <a class="chip chip-link" href="downloads/leading-edge-logos.zip" download>Leading Edge Logos</a>
+                  <a class="chip chip-link" href="https://images.kw.com/shared/mykw/logos/KellerWilliams_QuickReferenceGuide.pdf" target="_blank" rel="noreferrer">Brand Standards</a>
+                  <a class="chip chip-link" href="https://agentstore.com/product-category/kw/keller-williams-business-cards/" target="_blank" rel="noreferrer">Order Business Cards</a>
+                  <a class="chip chip-link" href="vendor-row.html">Vendor Row</a>
+                </div>
+              </article>
+            </div>
+          </section>
+
+      <section class="panel" id="leadership">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow small">Leadership Directory</p>
+            <h2>Office team and agent leadership council</h2>
+          </div>
+          <a class="button secondary compact" href="https://agent.kwleadingedge.com/schedule-an-appointment/" target="_blank" rel="noreferrer">Schedule With Leadership</a>
+        </div>
+
+        <div class="leadership-grid">
+          <article class="leader-card">
+            <img src="team/lou-barrows.jpg" alt="Lou Barrows" class="leader-photo">
+            <div class="leader-copy">
+              <span class="leader-role">Operating Principal</span>
+              <h3>Lou Barrows</h3>
+            </div>
+          </article>
+          <article class="leader-card leader-card-highlight">
+            <img src="team/matt-brown.png" alt="Matt Brown" class="leader-photo">
+            <div class="leader-copy">
+              <span class="leader-role">Team Leader</span>
+              <h3>Matt Brown</h3>
+            </div>
+          </article>
+          <article class="leader-card">
+            <img src="team/kim-barrows.jpg" alt="Kim Barrows" class="leader-photo">
+            <div class="leader-copy">
+              <span class="leader-role">Market Center Operations</span>
+              <h3>Kim Barrows</h3>
+            </div>
+          </article>
+          <article class="leader-card">
+            <img src="team/isis-dacruz.png" alt="Isis Dacruz" class="leader-photo">
+            <div class="leader-copy">
+              <span class="leader-role">Director of First Impressions</span>
+              <h3>Isis Dacruz</h3>
+            </div>
+          </article>
+        </div>
+
+        <div class="council-strip">
+          <div class="council-copy">
+            <p class="eyebrow small">Agent Leadership Council</p>
+            <p>The current leadership council can stay visible here while the rest of the portal shifts toward a more office-focused experience.</p>
+          </div>
+          <div class="council-grid">
+            <article class="council-card">
+              <img src="team/dawn-marano.png" alt="Dawn Marano" class="council-photo">
+              <strong>Dawn Marano</strong>
+            </article>
+            <article class="council-card">
+              <img src="team/dave-nielson.png" alt="Dave Nielson" class="council-photo">
+              <strong>Dave Nielson</strong>
+            </article>
+            <article class="council-card">
+              <img src="team/michael-leboeuf.jpg" alt="Michael Leboeuf" class="council-photo">
+              <strong>Michael Leboeuf</strong>
+            </article>
+            <article class="council-card">
+              <img src="team/peter-dufresne.png" alt="Peter Dufresne" class="council-photo">
+              <strong>Peter Dufresne</strong>
+            </article>
+            <article class="council-card">
+              <img src="team/liz-jimenez.png" alt="Liz Jimenez" class="council-photo">
+              <strong>Liz Jimenez</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+        </main>
+
+        <footer class="site-footer">
+          <p>KW Leading Edge agent portal concept.</p>
+          <p>&copy; <span id="currentYear">2026</span> internal office workspace demo.</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://public.tockify.com/browser/embed.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
