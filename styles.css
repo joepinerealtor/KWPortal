@@ -401,6 +401,7 @@ img {
   letter-spacing: 0.18em;
   text-align: center;
   text-transform: uppercase;
+  -webkit-text-security: disc;
 }
 
 .portal-lock-input::placeholder {
@@ -429,6 +430,21 @@ img {
   margin: 0;
   color: var(--kw-red);
   font-size: 0.9rem;
+}
+
+.portal-lock-help {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.portal-lock-help[hidden] {
+  display: none;
+}
+
+.portal-lock-help-button {
+  width: 100%;
 }
 
 .portal-lock-access-card {

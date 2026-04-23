@@ -72,6 +72,17 @@ const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7
 const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
+const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
+const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
+const PORTAL_ACCESS_SUPPORT_BODY = [
+  "Hi Matt,",
+  "",
+  "I am trying to access the Keller Williams Leading Edge Agent Portal, but I do not remember the office passcode.",
+  "Could you please help me with access when you have a moment?",
+  "",
+  "Thank you,"
+].join("\r\n");
+const PORTAL_ACCESS_SUPPORT_MAILTO = `mailto:${PORTAL_ACCESS_SUPPORT_EMAIL}?subject=${encodeURIComponent(PORTAL_ACCESS_SUPPORT_SUBJECT)}&body=${encodeURIComponent(PORTAL_ACCESS_SUPPORT_BODY)}`;
 const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
@@ -202,10 +213,13 @@ function createPortalGateMarkup() {
             <h2>AUTHORIZED ACCESS</h2>
             <p>For Keller Williams Leading Edge agents and office staff.</p>
           </div>
-          <form class="portal-lock-form">
-            <input class="portal-lock-input" name="passcode" type="password" inputmode="numeric" autocomplete="off" placeholder="Passcode" aria-label="Passcode">
+          <form class="portal-lock-form" autocomplete="off" data-form-type="other">
+            <input class="portal-lock-input" name="portal-access-code" type="text" inputmode="numeric" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" placeholder="Passcode" aria-label="Passcode">
             <button class="button primary portal-lock-button" type="submit">Enter Portal</button>
             <p class="portal-lock-error" aria-live="polite"></p>
+            <div class="portal-lock-help" hidden>
+              <a class="button secondary portal-lock-help-button" href="${PORTAL_ACCESS_SUPPORT_MAILTO}">Email Matt Brown for access</a>
+            </div>
           </form>
         </section>
       </div>
@@ -242,6 +256,12 @@ async function ensurePortalAccess() {
   const form = overlay.querySelector(".portal-lock-form");
   const input = overlay.querySelector(".portal-lock-input");
   const error = overlay.querySelector(".portal-lock-error");
+  const help = overlay.querySelector(".portal-lock-help");
+  let failedAttempts = 0;
+
+  if (help) {
+    help.hidden = true;
+  }
 
   requestAnimationFrame(() => {
     input?.focus();
@@ -260,8 +280,16 @@ async function ensurePortalAccess() {
         return;
       }
 
+      failedAttempts += 1;
+
       if (error) {
-        error.textContent = "Incorrect passcode. Try again.";
+        error.textContent = failedAttempts >= 3
+          ? "Incorrect passcode. Need access help?"
+          : "Incorrect passcode. Try again.";
+      }
+
+      if (help && failedAttempts >= 3) {
+        help.hidden = false;
       }
 
       if (input) {
