@@ -2115,6 +2115,20 @@ img {
   border-style: dashed;
 }
 
+.section-nav-link--primary {
+  background: var(--kw-red);
+  border-color: var(--kw-red);
+  color: var(--kw-white);
+  border-style: solid;
+}
+
+.section-nav-link--primary:hover,
+.section-nav-link--primary:focus-visible {
+  background: var(--kw-red-dark);
+  border-color: var(--kw-red-dark);
+  color: var(--kw-white);
+}
+
 .section-head {
   align-items: flex-start;
   justify-content: space-between;
