@@ -2393,7 +2393,8 @@ img {
 }
 
 .asset-grid,
-.asset-source-grid {
+.asset-source-grid,
+.marketing-tool-grid {
   display: grid;
   gap: 16px;
 }
@@ -2402,7 +2403,8 @@ img {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
-.asset-source-grid {
+.asset-source-grid,
+.marketing-tool-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
@@ -2460,6 +2462,17 @@ img {
   font-size: 1.18rem;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.marketing-tool-card {
+  border-top: 4px solid var(--kw-red);
+  background:
+    radial-gradient(circle at top right, rgba(180, 1, 1, 0.08), transparent 36%),
+    linear-gradient(180deg, #fffefe, #fbf7f2);
+}
+
+.marketing-tool-card .chip-row {
+  margin-top: 4px;
 }
 
 .asset-downloads {

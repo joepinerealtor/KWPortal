@@ -3,6 +3,8 @@ const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
 const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".portal-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
+const mobileSidebarMenus = document.querySelector(".mobile-sidebar-menus");
+const mobileMenuPanels = [...document.querySelectorAll(".mobile-menu-panel")];
 const sectionLinks = [...document.querySelectorAll(".section-nav-link")].filter((link) => {
   const href = link.getAttribute("href") || "";
   return href.startsWith("#");
@@ -647,6 +649,53 @@ function requestActiveSectionUpdate() {
   });
 }
 
+function closeMobileMenus(exceptPanel = null) {
+  mobileMenuPanels.forEach((panel) => {
+    if (panel !== exceptPanel) {
+      panel.open = false;
+    }
+  });
+}
+
+function initializeMobileMenus() {
+  if (!mobileSidebarMenus || !mobileMenuPanels.length) {
+    return;
+  }
+
+  mobileMenuPanels.forEach((panel) => {
+    panel.addEventListener("toggle", () => {
+      if (panel.open) {
+        closeMobileMenus(panel);
+      }
+    });
+
+    panel.querySelectorAll("a[href]").forEach((link) => {
+      link.addEventListener("click", () => {
+        closeMobileMenus();
+      });
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!mobileMenuPanels.some((panel) => panel.open)) {
+      return;
+    }
+
+    const target = event.target;
+    const targetElement = target instanceof Element ? target : target?.parentElement;
+
+    if (!targetElement?.closest(".mobile-menu-panel[open]")) {
+      closeMobileMenus();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMobileMenus();
+    }
+  });
+}
+
 function loadStoredRates() {
   try {
     const stored = window.localStorage.getItem(RATE_STORAGE_KEY);
@@ -1220,6 +1269,7 @@ async function initializePortal() {
 
   updateDateTime();
   setInterval(updateDateTime, 30000);
+  initializeMobileMenus();
   syncContentStripVisibility();
   updateActiveSectionFromScroll();
   if (scrollContainer) {
