@@ -483,6 +483,10 @@ img {
   display: grid;
 }
 
+.site-header .header-time-card--sidebar {
+  display: none;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -565,6 +569,7 @@ img {
 
 .content-strip-row--links {
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .content-strip-heading,
@@ -816,6 +821,19 @@ img {
   flex-wrap: nowrap;
   text-align: right;
   white-space: nowrap;
+}
+
+.content-strip-datetime--topbar {
+  flex-direction: row;
+  align-items: center;
+}
+
+.content-strip-datetime--topbar strong {
+  font-size: 1.05rem;
+}
+
+.content-strip-datetime--topbar span:last-child {
+  font-size: 0.84rem;
 }
 
 .content-strip-update strong {
@@ -2199,6 +2217,10 @@ button.button {
     gap: 2px;
   }
 
+  .site-header .header-time-card--sidebar {
+    display: grid;
+  }
+
   .section-nav {
     grid-area: sections;
     display: grid;
@@ -2324,6 +2346,10 @@ button.button {
     box-shadow: none;
     justify-items: center;
     text-align: center;
+  }
+
+  .site-header .header-time-card--sidebar {
+    display: grid;
   }
 
   .site-header .header-time-card strong {
