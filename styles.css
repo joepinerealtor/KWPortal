@@ -568,7 +568,7 @@ img {
 }
 
 .site-header .header-time-card {
-  display: none;
+  display: grid;
 }
 
 .button {
@@ -623,7 +623,7 @@ img {
   position: relative;
   z-index: 1;
   min-height: 74px;
-  margin-bottom: 22px;
+  margin-bottom: 12px;
   padding: 14px 18px;
   overflow: hidden;
   transition: box-shadow 140ms ease, border-color 140ms ease;
@@ -644,6 +644,15 @@ img {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px 18px;
+}
+
+.content-strip-row--market {
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.content-strip-row--links {
+  align-items: center;
 }
 
 .content-strip-heading,
@@ -692,10 +701,36 @@ img {
   border-top: 1px solid rgba(221, 212, 200, 0.92);
 }
 
+.content-strip-market-line--rates,
+.content-strip-market-line--ri-inline {
+  flex: 1 1 460px;
+}
+
+.content-strip-market-line--ri-inline {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .content-strip-links,
 .content-strip-rates {
   gap: 8px;
   flex-wrap: nowrap;
+}
+
+.content-strip-links {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.content-strip-links::-webkit-scrollbar {
+  height: 8px;
+}
+
+.content-strip-links::-webkit-scrollbar-thumb {
+  background: rgba(180, 1, 1, 0.2);
+  border-radius: 999px;
 }
 
 .content-strip-market-line .content-strip-rates {
@@ -724,6 +759,11 @@ img {
   font-size: 0.84rem;
   letter-spacing: 0.01em;
   text-transform: none;
+}
+
+.content-strip-heading--links {
+  flex: 0 0 auto;
+  min-width: 124px;
 }
 
 .content-strip-link,
@@ -875,6 +915,22 @@ img {
 .content-strip-datetime span:last-child {
   color: var(--kw-gray);
   font-size: 0.8rem;
+}
+
+.content-strip--market {
+  margin-bottom: 10px;
+}
+
+.content-strip--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  margin-bottom: 22px;
+  box-shadow: 0 22px 36px -32px rgba(0, 0, 0, 0.28);
+}
+
+.content-strip--sticky::before {
+  opacity: 1;
 }
 
 .content-strip.is-rates-collapsed .content-strip-market {
@@ -2246,7 +2302,7 @@ button.button {
     letter-spacing: 0.09em;
   }
 
-  .portal-content > .content-strip {
+  .portal-content > .content-strip--market {
     display: none;
   }
 
@@ -2343,7 +2399,8 @@ button.button {
     font-size: 0.78rem;
   }
 
-  .portal-content > .content-strip {
+  .portal-content > .content-strip--market,
+  .portal-content > .content-strip--sticky {
     display: none;
   }
 

@@ -66,17 +66,6 @@
           <a class="button secondary sidebar-button" href="https://agent.kwleadingedge.com/dashboard/" target="_blank" rel="noreferrer">Open Full Dashboard</a>
         </section>
 
-        <section class="panel sidebar-utility">
-          <p class="eyebrow small">Quick Links</p>
-          <div class="sidebar-link-stack">
-            <a class="button primary sidebar-button" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
-            <a class="button secondary sidebar-button" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
-              <a class="button secondary sidebar-button" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
-            <a class="button secondary sidebar-button" href="https://h3j.mlspin.com/signin.asp?lstpgckhd=1#ath" target="_blank" rel="noreferrer">Mass MLS</a>
-            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us" target="_blank" rel="noreferrer">KW Answers</a>
-            <a class="button secondary sidebar-button" href="https://www.facebook.com/groups/1202591099776591" target="_blank" rel="noreferrer">KW Facebook Group</a>
-          </div>
-        </section>
       </aside>
 
       <div class="mobile-sidebar-menus" aria-label="Mobile portal menus">
@@ -108,66 +97,77 @@
       </div>
 
       <div class="portal-content">
-        <section class="content-strip panel" aria-label="Daily tools">
-          <div class="content-strip-row">
-            <div class="content-strip-market content-strip-market--stacked" aria-label="Market snapshots">
-              <div class="content-strip-market-line" aria-label="Mortgage rate snapshot">
-                <div class="content-strip-heading">
-                  <span class="content-strip-kicker">Interest Rates</span>
-                  <strong>Updated <span data-rates-source-date>Loading...</span></strong>
-                </div>
-                <div class="content-strip-rates">
-                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fixed" target="_blank" rel="noreferrer">
-                    <span class="content-rate-label">Conv</span>
-                    <strong class="content-rate-value"><span data-rate-value="conventional">--</span>%</strong>
-                  </a>
-                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fha" target="_blank" rel="noreferrer">
-                    <span class="content-rate-label">FHA</span>
-                    <strong class="content-rate-value"><span data-rate-value="fha">--</span>%</strong>
-                  </a>
-                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-va" target="_blank" rel="noreferrer">
-                    <span class="content-rate-label">VA</span>
-                    <strong class="content-rate-value"><span data-rate-value="va">--</span>%</strong>
-                  </a>
-                  <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo" target="_blank" rel="noreferrer">
-                    <span class="content-rate-label">Jumbo</span>
-                    <strong class="content-rate-value"><span data-rate-value="jumbo">--</span>%</strong>
-                  </a>
-                </div>
+        <section class="content-strip content-strip--market panel" aria-label="Market snapshots">
+          <div class="content-strip-row content-strip-row--market">
+            <div class="content-strip-market-line content-strip-market-line--rates" aria-label="Mortgage rate snapshot">
+              <div class="content-strip-heading">
+                <span class="content-strip-kicker">Interest Rates</span>
+                <strong>Updated <span data-rates-source-date>Loading...</span></strong>
               </div>
-
-              <div class="content-strip-market-line content-strip-market-line--ri" aria-label="Rhode Island market snapshot">
-                <div class="content-strip-heading content-strip-heading--ri">
-                  <span class="content-strip-kicker">RI Market Trends</span>
-                  <strong><span data-ri-market-period>Loading...</span></strong>
-                </div>
-                <div class="content-strip-stats">
-                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
-                    <span class="content-stat-label">Median</span>
-                    <strong class="content-stat-value" data-ri-market-value="median">$--</strong>
-                    <span class="content-stat-trend" data-ri-market-trend="median">--</span>
-                  </a>
-                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
-                    <span class="content-stat-label">Sold</span>
-                    <strong class="content-stat-value" data-ri-market-value="sold">--</strong>
-                    <span class="content-stat-trend" data-ri-market-trend="sold">--</span>
-                  </a>
-                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
-                    <span class="content-stat-label">Pending</span>
-                    <strong class="content-stat-value" data-ri-market-value="pending">--</strong>
-                    <span class="content-stat-trend" data-ri-market-trend="pending">--</span>
-                  </a>
-                  <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
-                    <span class="content-stat-label">Inventory</span>
-                    <strong class="content-stat-value" data-ri-market-value="inventory">--</strong>
-                    <span class="content-stat-trend" data-ri-market-trend="inventory">--</span>
-                  </a>
-                </div>
+              <div class="content-strip-rates">
+                <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fixed" target="_blank" rel="noreferrer">
+                  <span class="content-rate-label">Conv</span>
+                  <strong class="content-rate-value"><span data-rate-value="conventional">--</span>%</strong>
+                </a>
+                <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fha" target="_blank" rel="noreferrer">
+                  <span class="content-rate-label">FHA</span>
+                  <strong class="content-rate-value"><span data-rate-value="fha">--</span>%</strong>
+                </a>
+                <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-va" target="_blank" rel="noreferrer">
+                  <span class="content-rate-label">VA</span>
+                  <strong class="content-rate-value"><span data-rate-value="va">--</span>%</strong>
+                </a>
+                <a class="content-rate-pill" href="https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo" target="_blank" rel="noreferrer">
+                  <span class="content-rate-label">Jumbo</span>
+                  <strong class="content-rate-value"><span data-rate-value="jumbo">--</span>%</strong>
+                </a>
               </div>
             </div>
-            <div class="content-strip-datetime" aria-label="Current date and time">
-              <strong data-header-clock>--:-- ET</strong>
-              <span data-header-date>Loading today...</span>
+
+            <div class="content-strip-market-line content-strip-market-line--ri-inline" aria-label="Rhode Island market snapshot">
+              <div class="content-strip-heading content-strip-heading--ri">
+                <span class="content-strip-kicker">RI Market Trends</span>
+                <strong><span data-ri-market-period>Loading...</span></strong>
+              </div>
+              <div class="content-strip-stats">
+                <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                  <span class="content-stat-label">Median</span>
+                  <strong class="content-stat-value" data-ri-market-value="median">$--</strong>
+                  <span class="content-stat-trend" data-ri-market-trend="median">--</span>
+                </a>
+                <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                  <span class="content-stat-label">Sold</span>
+                  <strong class="content-stat-value" data-ri-market-value="sold">--</strong>
+                  <span class="content-stat-trend" data-ri-market-trend="sold">--</span>
+                </a>
+                <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                  <span class="content-stat-label">Pending</span>
+                  <strong class="content-stat-value" data-ri-market-value="pending">--</strong>
+                  <span class="content-stat-trend" data-ri-market-trend="pending">--</span>
+                </a>
+                <a class="content-stat-pill" href="https://www.rirealtors.org/" target="_blank" rel="noreferrer">
+                  <span class="content-stat-label">Inventory</span>
+                  <strong class="content-stat-value" data-ri-market-value="inventory">--</strong>
+                  <span class="content-stat-trend" data-ri-market-trend="inventory">--</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-strip content-strip--sticky panel" aria-label="Daily quick links">
+          <div class="content-strip-row content-strip-row--links">
+            <div class="content-strip-heading content-strip-heading--links">
+              <span class="content-strip-kicker">Quick Links</span>
+              <strong>Daily Access</strong>
+            </div>
+            <div class="content-strip-links">
+              <a class="content-strip-link content-strip-link-primary" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
+              <a class="content-strip-link" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
+              <a class="content-strip-link" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
+              <a class="content-strip-link" href="https://h3j.mlspin.com/signin.asp?lstpgckhd=1#ath" target="_blank" rel="noreferrer">Mass MLS</a>
+              <a class="content-strip-link" href="https://answers.kw.com/hc/en-us" target="_blank" rel="noreferrer">KW Answers</a>
+              <a class="content-strip-link" href="https://www.facebook.com/groups/1202591099776591" target="_blank" rel="noreferrer">KW Facebook Group</a>
             </div>
           </div>
         </section>
