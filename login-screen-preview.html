@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KW Portal Login Screen Preview</title>
+  <style>
+    :root {
+      --kw-red: #b40101;
+      --kw-red-dark: #940101;
+      --kw-ink: #1a1a1a;
+      --kw-paper: #f7f3ed;
+      --kw-white: #ffffff;
+      --kw-border: #ddd4c8;
+      --kw-shadow: 0 26px 48px -36px rgba(0, 0, 0, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--kw-ink);
+      background:
+        radial-gradient(circle at top right, rgba(180, 1, 1, 0.12), transparent 24%),
+        linear-gradient(180deg, #ebe3d9 0%, #f6f1ea 42%, #f4eee7 100%);
+    }
+
+    .preview-card {
+      width: min(100%, 720px);
+      padding: 32px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--kw-border);
+      box-shadow: var(--kw-shadow);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      line-height: 1;
+    }
+
+    p {
+      margin: 0 0 14px;
+      line-height: 1.6;
+    }
+
+    .preview-links {
+      display: grid;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .preview-link {
+      display: block;
+      padding: 14px 16px;
+      border: 1px solid var(--kw-border);
+      color: var(--kw-ink);
+      text-decoration: none;
+      background: var(--kw-white);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .preview-link:hover,
+    .preview-link:focus-visible {
+      border-color: var(--kw-red);
+      box-shadow: 0 12px 24px -18px rgba(180, 1, 1, 0.55);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .preview-link strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--kw-red-dark);
+    }
+
+    .preview-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-left: 4px solid var(--kw-red);
+      background: rgba(180, 1, 1, 0.06);
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-card">
+    <h1>Login Screen Preview</h1>
+    <p>These links force the passcode screen to appear, even if this browser has already been unlocked before.</p>
+    <div class="preview-links">
+      <a class="preview-link" href="index.html?portalLock=1">
+        <strong>Preview Agent Portal login screen</strong>
+        Open the main portal with the code-entry screen forced on.
+      </a>
+      <a class="preview-link" href="vendor-row.html?portalLock=1">
+        <strong>Preview Vendor Row login screen</strong>
+        Open the Vendor Row page with the same forced code-entry screen.
+      </a>
+    </div>
+    <p class="preview-note">File location: keep this page in the root <code>KWPortal</code> folder and open it anytime you want to see the login screen again.</p>
+  </main>
+</body>
+</html>

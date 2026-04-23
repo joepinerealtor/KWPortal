@@ -69,6 +69,7 @@ let riMarketRefreshInFlight = false;
 
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
+const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
 const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
@@ -154,7 +155,7 @@ function createPortalGateMarkup() {
 }
 
 async function ensurePortalAccess() {
-  if (isPortalUnlocked()) {
+  if (!FORCE_PORTAL_LOCK && isPortalUnlocked()) {
     removePortalGate();
     return;
   }
@@ -415,7 +416,7 @@ function writeRateTrend(programKey, changeValue, direction) {
     }
 
     ref.setAttribute("aria-label", label);
-    ref.title = label;
+    ref.removeAttribute("title");
   });
 }
 
