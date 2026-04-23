@@ -70,6 +70,7 @@ let riMarketRefreshInFlight = false;
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
+const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
@@ -320,15 +321,32 @@ function updateActiveSectionFromScroll() {
     return;
   }
 
-  const activationLine = scrollContainer
-    ? scrollContainer.getBoundingClientRect().top + (contentStrip ? contentStrip.offsetHeight : 0) + 42
-    : Math.max(140, window.innerHeight * 0.28);
+  const stickyOffset = contentStrip ? contentStrip.getBoundingClientRect().height : 0;
+  const viewportTop = scrollContainer
+    ? scrollContainer.getBoundingClientRect().top + stickyOffset + 16
+    : stickyOffset + 16;
+  const viewportBottom = scrollContainer
+    ? scrollContainer.getBoundingClientRect().bottom - 16
+    : window.innerHeight - 16;
+  const viewportCenter = viewportTop + ((viewportBottom - viewportTop) / 2);
   let activeId = sections[0].id;
+  let bestDistance = Number.POSITIVE_INFINITY;
 
   sections.forEach((section) => {
     const rect = section.getBoundingClientRect();
-    if (rect.top <= activationLine) {
+    const sectionCenter = rect.top + (rect.height / 2);
+    const distanceToCenter = Math.abs(sectionCenter - viewportCenter);
+    const containsViewportCenter = rect.top <= viewportCenter && rect.bottom >= viewportCenter;
+
+    if (containsViewportCenter) {
       activeId = section.id;
+      bestDistance = -1;
+      return;
+    }
+
+    if (bestDistance >= 0 && distanceToCenter < bestDistance) {
+      activeId = section.id;
+      bestDistance = distanceToCenter;
     }
   });
 
@@ -931,7 +949,10 @@ async function refreshRiMarket() {
 }
 
 async function initializePortal() {
-  await ensurePortalAccess();
+  if (!IS_PORTAL_PUBLIC_PAGE) {
+    document.body.classList.add("portal-protected");
+    await ensurePortalAccess();
+  }
 
   updateDateTime();
   setInterval(updateDateTime, 30000);
