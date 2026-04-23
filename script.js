@@ -70,6 +70,7 @@ let riMarketRefreshInFlight = false;
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
+const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
@@ -132,23 +133,97 @@ async function hashPasscode(value) {
     .toUpperCase();
 }
 
+function createPortalLockLeadershipMarkup() {
+  const leaders = [
+    {
+      role: "Operating Principal",
+      name: "Lou Barrows",
+      photo: "team/lou-barrows.jpg",
+      email: "louisbarrows@kw.com",
+      phoneHref: "tel:+14016403520",
+      phoneLabel: "401-640-3520"
+    },
+    {
+      role: "Market Center Operations",
+      name: "Kim Barrows",
+      photo: "team/kim-barrows.jpg",
+      email: "klrw715@kw.com",
+      phoneHref: "tel:+14013334900",
+      phoneLabel: "401-333-4900"
+    },
+    {
+      role: "Team Leader",
+      name: "Matt Brown",
+      photo: "team/matt-brown.png",
+      email: "mbrown715@kw.com",
+      phoneHref: "tel:+14014992978",
+      phoneLabel: "401-499-2978"
+    }
+  ];
+
+  return leaders
+    .map((leader) => {
+      return `
+        <article class="leader-card">
+          <img src="${leader.photo}" alt="${leader.name}" class="leader-photo">
+          <div class="leader-copy">
+            <span class="leader-role">${leader.role}</span>
+            <h3>${leader.name}</h3>
+            <div class="leader-contact-list">
+              <a href="mailto:${leader.email}" class="leader-contact-link">${leader.email}</a>
+              <a href="${leader.phoneHref}" class="leader-contact-link">${leader.phoneLabel}</a>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function createPortalGateMarkup() {
   const pageLabel = document.body.dataset.portalLockLabel || "Portal";
   const overlay = document.createElement("div");
   overlay.className = "portal-lock";
   overlay.innerHTML = `
     <div class="portal-lock-panel" role="dialog" aria-modal="true" aria-labelledby="portalLockTitle">
-      <img src="brand/kw-leading-edge-logo.png" alt="Keller Williams Realty Leading Edge" class="portal-lock-logo">
-      <div class="portal-lock-copy">
-        <p class="eyebrow small">Protected Access</p>
-        <h1 id="portalLockTitle">${pageLabel}</h1>
-        <p>Enter the passcode to access the portal.</p>
+      <div class="portal-lock-top">
+        <section class="portal-lock-hero" aria-label="Portal introduction">
+          <img src="brand/kw-leading-edge-logo-white.png" alt="Keller Williams Realty Leading Edge" class="portal-lock-logo">
+          <div class="portal-lock-copy">
+            <p class="eyebrow small">Agent Portal</p>
+            <h1 id="portalLockTitle">WHERE ENTREPRENEURS THRIVE!</h1>
+            <p class="portal-lock-summary">The Keller Williams Leading Edge Agent Portal is a central hub for office resources, training, leadership support, trusted vendors, and the everyday tools our agents and office staff rely on to keep business moving forward.</p>
+          </div>
+        </section>
+
+        <section class="portal-lock-access-card" aria-label="Portal access">
+          <div class="portal-lock-access-head">
+            <h2>AUTHORIZED ACCESS</h2>
+            <p>For Keller Williams Leading Edge agents and office staff.</p>
+          </div>
+          <form class="portal-lock-form">
+            <input class="portal-lock-input" name="passcode" type="password" inputmode="numeric" autocomplete="off" placeholder="Passcode" aria-label="Passcode">
+            <button class="button primary portal-lock-button" type="submit">Enter Portal</button>
+            <p class="portal-lock-error" aria-live="polite"></p>
+          </form>
+        </section>
       </div>
-      <form class="portal-lock-form">
-        <input class="portal-lock-input" name="passcode" type="password" inputmode="numeric" autocomplete="off" placeholder="Passcode" aria-label="Passcode">
-        <button class="button primary portal-lock-button" type="submit">Unlock Portal</button>
-        <p class="portal-lock-error" aria-live="polite"></p>
-      </form>
+
+      <section class="portal-lock-directory" aria-label="Leadership team">
+        <div class="portal-lock-directory-head">
+          <h2>Leadership Team</h2>
+          <p>Meet the leadership team that supports Keller Williams Leading Edge agents and helps keep the office moving forward.</p>
+        </div>
+        <div class="leadership-grid portal-lock-leadership-grid">
+          ${createPortalLockLeadershipMarkup()}
+        </div>
+        <div class="portal-lock-office-bar" aria-label="Office information">
+          <span class="portal-lock-office-name">Keller Williams Leading Edge</span>
+          <a class="portal-lock-office-link" href="https://maps.google.com/?q=28+Thurber+Boulevard+Smithfield+RI+02917" target="_blank" rel="noreferrer">28 Thurber Boulevard, Smithfield, RI 02917</a>
+          <a class="portal-lock-office-link" href="tel:+14013334900">401-333-4900</a>
+          <a class="portal-lock-office-link" href="${PUBLIC_WEBSITE_URL}" target="_blank" rel="noreferrer">www.kwleadingedge.com</a>
+        </div>
+      </section>
     </div>
   `;
   return overlay;
