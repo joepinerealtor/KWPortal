@@ -83,6 +83,15 @@ const PORTAL_ACCESS_SUPPORT_BODY = [
   "Thank you,"
 ].join("\r\n");
 const PORTAL_ACCESS_SUPPORT_MAILTO = `mailto:${PORTAL_ACCESS_SUPPORT_EMAIL}?subject=${encodeURIComponent(PORTAL_ACCESS_SUPPORT_SUBJECT)}&body=${encodeURIComponent(PORTAL_ACCESS_SUPPORT_BODY)}`;
+const PORTAL_LOCK_INTRO_DURATION_MS = 420;
+const PORTAL_LOCK_INTRO_BASE_DELAY_MS = 60;
+const PORTAL_LOCK_INTRO_DELAY_STEP_MS = 68;
+const PORTAL_UNLOCK_OVERLAY_FADE_MS = 240;
+const PORTAL_UNLOCK_REVEAL_DURATION_MS = 420;
+const PORTAL_UNLOCK_REVEAL_BASE_DELAY_MS = 60;
+const PORTAL_UNLOCK_REVEAL_DELAY_STEP_MS = 48;
+const PORTAL_UNLOCK_REVEAL_VIEWPORT_PADDING_PX = 140;
+const PORTAL_UNLOCK_REVEAL_LIMIT = 10;
 const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
@@ -112,6 +121,7 @@ const RATE_PROGRAMS = {
 };
 
 function removePortalGate() {
+  cleanupPortalUnlockTransition();
   document.querySelector(".portal-lock")?.remove();
   document.body.classList.remove("portal-protected");
 }
@@ -143,6 +153,195 @@ async function hashPasscode(value) {
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("")
     .toUpperCase();
+}
+
+function prefersReducedMotion() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
+
+function getPortalLockIntroTargets(overlay) {
+  if (!overlay) {
+    return [];
+  }
+
+  return [
+    overlay.querySelector(".portal-lock-directory"),
+    overlay.querySelector(".portal-lock-hero"),
+    overlay.querySelector(".portal-lock-access-card")
+  ]
+    .filter(Boolean)
+    .sort((left, right) => {
+      const leftRect = left.getBoundingClientRect();
+      const rightRect = right.getBoundingClientRect();
+      const topDifference = leftRect.top - rightRect.top;
+
+      if (Math.abs(topDifference) > 4) {
+        return topDifference;
+      }
+
+      return leftRect.left - rightRect.left;
+    });
+}
+
+function cleanupPortalLockIntro(overlay, targets = null) {
+  const resolvedTargets = targets ?? (overlay ? [...overlay.querySelectorAll(".portal-lock-intro-target")] : []);
+
+  resolvedTargets.forEach((target) => {
+    target.classList.remove("portal-lock-intro-target", "is-portal-lock-intro-visible");
+    target.style.removeProperty("--portal-lock-intro-delay");
+  });
+
+  overlay?.classList.remove("is-intro-ready", "is-entering");
+}
+
+function preparePortalLockIntro(overlay) {
+  if (!overlay || prefersReducedMotion()) {
+    return [];
+  }
+
+  const targets = getPortalLockIntroTargets(overlay);
+  overlay.classList.add("is-intro-ready");
+
+  targets.forEach((target) => {
+    target.classList.add("portal-lock-intro-target");
+    target.style.removeProperty("--portal-lock-intro-delay");
+  });
+
+  return targets;
+}
+
+function startPortalLockIntro(overlay, targets) {
+  if (!overlay || prefersReducedMotion() || !targets.length) {
+    cleanupPortalLockIntro(overlay, targets);
+    return;
+  }
+
+  overlay.classList.add("is-entering");
+
+  targets.forEach((target, index) => {
+    target.style.setProperty(
+      "--portal-lock-intro-delay",
+      `${PORTAL_LOCK_INTRO_BASE_DELAY_MS + (index * PORTAL_LOCK_INTRO_DELAY_STEP_MS)}ms`
+    );
+    target.classList.add("is-portal-lock-intro-visible");
+  });
+
+  const cleanupDelay = PORTAL_LOCK_INTRO_BASE_DELAY_MS
+    + ((targets.length - 1) * PORTAL_LOCK_INTRO_DELAY_STEP_MS)
+    + PORTAL_LOCK_INTRO_DURATION_MS
+    + 120;
+
+  window.setTimeout(() => {
+    cleanupPortalLockIntro(overlay, targets);
+  }, cleanupDelay);
+}
+
+function getVisiblePortalUnlockTargets(selector) {
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  return [...document.querySelectorAll(selector)].filter((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0
+      && rect.height > 0
+      && rect.top < viewportHeight + PORTAL_UNLOCK_REVEAL_VIEWPORT_PADDING_PX
+      && rect.bottom > -40;
+  });
+}
+
+function getPortalUnlockTargets() {
+  const structuralTargets = [
+    document.querySelector(".top-rail"),
+    ...getVisiblePortalUnlockTargets(".portal-sidebar > .panel"),
+    ...getVisiblePortalUnlockTargets(".portal-content > .content-strip")
+  ].filter(Boolean);
+
+  const overviewTargets = [
+    ...getVisiblePortalUnlockTargets("#overview .dashboard-title-block"),
+    ...getVisiblePortalUnlockTargets("#overview .dashboard-status-card"),
+    ...getVisiblePortalUnlockTargets("#overview .dashboard-head-market-section"),
+    ...getVisiblePortalUnlockTargets("#overview .overview-card")
+  ];
+
+  const panelFallbackTargets = getVisiblePortalUnlockTargets(".page-content > .panel")
+    .filter((panel) => !overviewTargets.length || panel.id !== "overview");
+
+  return [...new Set([
+    ...structuralTargets,
+    ...(overviewTargets.length ? overviewTargets : panelFallbackTargets)
+  ])]
+    .sort((left, right) => right.getBoundingClientRect().top - left.getBoundingClientRect().top)
+    .slice(0, PORTAL_UNLOCK_REVEAL_LIMIT);
+}
+
+function cleanupPortalUnlockTransition(targets = [...document.querySelectorAll(".portal-unlock-target")]) {
+  [...targets].forEach((target) => {
+    target.classList.remove("portal-unlock-target", "is-portal-unlock-visible");
+    target.style.removeProperty("--portal-unlock-delay");
+  });
+
+  document.body.classList.remove("portal-unlock-transition", "portal-unlock-active");
+}
+
+function startPortalRevealTransition(targets = getPortalUnlockTargets()) {
+  if (prefersReducedMotion()) {
+    cleanupPortalUnlockTransition(targets);
+    document.body.classList.remove("portal-protected");
+    return 0;
+  }
+
+  if (!targets.length) {
+    cleanupPortalUnlockTransition(targets);
+    document.body.classList.remove("portal-protected");
+    return 0;
+  }
+
+  targets.forEach((target) => {
+    target.classList.add("portal-unlock-target");
+    target.style.removeProperty("--portal-unlock-delay");
+  });
+
+  document.body.classList.add("portal-unlock-transition");
+  document.body.classList.remove("portal-protected");
+
+  requestAnimationFrame(() => {
+    targets.forEach((target, index) => {
+      target.style.setProperty(
+        "--portal-unlock-delay",
+        `${PORTAL_UNLOCK_REVEAL_BASE_DELAY_MS + (index * PORTAL_UNLOCK_REVEAL_DELAY_STEP_MS)}ms`
+      );
+      target.classList.add("is-portal-unlock-visible");
+    });
+
+    document.body.classList.add("portal-unlock-active");
+  });
+
+  const cleanupDelay = (targets.length
+    ? PORTAL_UNLOCK_REVEAL_BASE_DELAY_MS + ((targets.length - 1) * PORTAL_UNLOCK_REVEAL_DELAY_STEP_MS)
+    : 0) + PORTAL_UNLOCK_REVEAL_DURATION_MS + 120;
+
+  window.setTimeout(() => {
+    cleanupPortalUnlockTransition(targets);
+  }, cleanupDelay);
+
+  return cleanupDelay;
+}
+
+function startPortalUnlockTransition(overlay) {
+  if (!overlay || prefersReducedMotion()) {
+    removePortalGate();
+    return;
+  }
+ 
+  startPortalRevealTransition(getPortalUnlockTargets());
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.classList.add("is-unlocking");
+
+  window.setTimeout(() => {
+    overlay.remove();
+  }, PORTAL_UNLOCK_OVERLAY_FADE_MS);
 }
 
 function createPortalLockLeadershipMarkup() {
@@ -246,18 +445,21 @@ function createPortalGateMarkup() {
 
 async function ensurePortalAccess() {
   if (!FORCE_PORTAL_LOCK && isPortalUnlocked()) {
-    removePortalGate();
+    startPortalRevealTransition();
     return;
   }
 
   const overlay = createPortalGateMarkup();
   document.body.append(overlay);
+  const introTargets = preparePortalLockIntro(overlay);
 
   const form = overlay.querySelector(".portal-lock-form");
   const input = overlay.querySelector(".portal-lock-input");
   const error = overlay.querySelector(".portal-lock-error");
   const help = overlay.querySelector(".portal-lock-help");
+  const submitButton = overlay.querySelector(".portal-lock-button");
   let failedAttempts = 0;
+  let isUnlocking = false;
 
   if (help) {
     help.hidden = true;
@@ -265,17 +467,38 @@ async function ensurePortalAccess() {
 
   requestAnimationFrame(() => {
     input?.focus();
+    startPortalLockIntro(overlay, introTargets);
+  });
+
+  input?.addEventListener("animationend", () => {
+    input.classList.remove("is-error-bounce");
   });
 
   await new Promise((resolve) => {
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (isUnlocking) {
+        return;
+      }
+
       const attemptedPasscode = input?.value.trim() || "";
       const attemptedHash = await hashPasscode(attemptedPasscode);
 
       if (attemptedHash === PORTAL_PASSCODE_HASH || attemptedPasscode === "0715") {
+        isUnlocking = true;
+        form?.setAttribute("aria-busy", "true");
+        if (input) {
+          input.disabled = true;
+        }
+        if (submitButton) {
+          submitButton.disabled = true;
+        }
+        if (error) {
+          error.textContent = "";
+        }
         storePortalAccess();
-        removePortalGate();
+        startPortalUnlockTransition(overlay);
         resolve();
         return;
       }
@@ -293,6 +516,9 @@ async function ensurePortalAccess() {
       }
 
       if (input) {
+        input.classList.remove("is-error-bounce");
+        void input.offsetWidth;
+        input.classList.add("is-error-bounce");
         input.value = "";
         input.focus();
       }
