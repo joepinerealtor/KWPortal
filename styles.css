@@ -355,24 +355,6 @@ img {
   font-size: 0.9rem;
 }
 
-.sidebar-login-panel {
-  display: grid;
-  gap: 12px;
-}
-
-.sidebar-login-panel strong {
-  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
-  font-size: 1.2rem;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.sidebar-login-note {
-  margin: 0;
-  color: var(--kw-gray);
-  line-height: 1.6;
-}
-
 .sidebar-rates {
   gap: 14px;
 }
@@ -1061,38 +1043,83 @@ img {
   align-self: stretch;
 }
 
-.overview-card.dashboard-market-strip {
-  display: none;
+.dashboard-head-market {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   gap: 12px;
 }
 
-.dashboard-market-strip-head {
+.dashboard-head-market-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(250, 246, 241, 0.16));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 48px -36px rgba(0, 0, 0, 0.52);
+}
+
+.dashboard-head-market-heading {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 14px;
+  justify-content: space-between;
+  gap: 8px 14px;
 }
 
-.dashboard-market-strip-title {
+.dashboard-head-market-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.dashboard-head-market-kicker {
+  color: rgba(255, 244, 230, 0.78);
   font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
-  font-size: 1rem;
-  line-height: 1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.dashboard-market-strip .dashboard-status-meta {
-  margin: 0 0 0 auto;
+.dashboard-head-market-title {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.96rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--kw-white);
 }
 
-.dashboard-rate-grid--strip {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.dashboard-head-market-meta {
+  margin: 0;
+  color: rgba(255, 250, 245, 0.88);
+  font-size: 0.84rem;
+  letter-spacing: 0.01em;
+}
+
+.dashboard-head-market-grid {
+  display: grid;
   gap: 8px;
 }
 
-.dashboard-market-strip .dashboard-rate-chip {
-  min-height: 40px;
-  padding: 0.58rem 0.76rem;
-  background: var(--kw-paper-soft);
+.dashboard-head-market-grid--rates,
+.dashboard-head-market-grid--stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-head-market .content-rate-pill,
+.dashboard-head-market .content-stat-pill {
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0.58rem 0.7rem;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(221, 212, 200, 0.92);
+}
+
+.dashboard-head-market .content-rate-value,
+.dashboard-head-market .content-stat-value {
+  font-size: 0.96rem;
 }
 
 .dashboard-status-grid,
@@ -1166,8 +1193,7 @@ img {
   line-height: 1.6;
 }
 
-.dashboard-quick-grid,
-.dashboard-rate-grid {
+.dashboard-quick-grid {
   display: grid;
   gap: 10px;
 }
@@ -1176,8 +1202,7 @@ img {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.dashboard-mini-link,
-.dashboard-rate-chip {
+.dashboard-mini-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1196,8 +1221,7 @@ img {
   transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
 }
 
-.dashboard-mini-link:hover,
-.dashboard-rate-chip:hover {
+.dashboard-mini-link:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.96);
   border-color: var(--kw-red);
@@ -1205,27 +1229,9 @@ img {
   box-shadow: 0 18px 28px -24px rgba(180, 1, 1, 0.32);
 }
 
-.dashboard-head .dashboard-mini-link,
-.dashboard-head .dashboard-rate-chip {
+.dashboard-head .dashboard-mini-link {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(221, 212, 200, 0.92);
-}
-
-.dashboard-rate-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dashboard-rate-chip {
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.dashboard-rate-chip .rate-label {
-  font-size: 0.64rem;
-}
-
-.dashboard-rate-chip .rate-value {
-  font-size: 1rem;
 }
 
 .dashboard-status-meta {
@@ -1875,6 +1881,50 @@ img {
   color: var(--kw-red);
 }
 
+.leadership-support-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--kw-border);
+  border-top: 4px solid var(--kw-red);
+  background: linear-gradient(180deg, #ffffff, #faf6f1);
+}
+
+.leadership-support-photo {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 1px solid var(--kw-border);
+  background: #f1ece4;
+}
+
+.leadership-support-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.leadership-support-copy .eyebrow,
+.leadership-support-copy p {
+  margin: 0;
+}
+
+.leadership-support-copy h3 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.28rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.leadership-support-button {
+  justify-self: end;
+  white-space: nowrap;
+}
+
 .council-strip {
   display: grid;
   gap: 14px;
@@ -2163,7 +2213,6 @@ button.button {
 .course-card:focus-visible,
 .portal-action-card:focus-visible,
 .dashboard-mini-link:focus-visible,
-.dashboard-rate-chip:focus-visible,
 .overview-link:focus-visible,
 .chip-link:focus-visible,
 .section-nav-link:focus-visible,
@@ -2239,11 +2288,8 @@ button.button {
     order: 2;
   }
 
-  .overview-card.dashboard-market-strip {
-    display: grid;
-  }
-
-  .dashboard-rate-grid--strip {
+  .dashboard-head-market-grid--rates,
+  .dashboard-head-market-grid--stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2482,35 +2528,12 @@ button.button {
     text-align: center;
   }
 
-  .dashboard-rate-grid {
-    gap: 8px;
+  .dashboard-head-market {
+    grid-template-columns: 1fr;
   }
 
-  .dashboard-market-strip-head {
+  .dashboard-head-market-heading {
     align-items: flex-start;
-  }
-
-  .dashboard-market-strip .dashboard-status-meta {
-    margin-left: 0;
-  }
-
-  .dashboard-rate-chip {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    min-height: 58px;
-    padding: 0.55rem 0.45rem;
-  }
-
-  .dashboard-rate-chip .rate-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.09em;
-  }
-
-  .dashboard-rate-chip .rate-value {
-    font-size: 0.94rem;
-    white-space: nowrap;
   }
 
   .course-grid,
@@ -2532,6 +2555,17 @@ button.button {
 
   .dashboard-agenda-links {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .leadership-support-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .leadership-support-button {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
 
@@ -2592,7 +2626,8 @@ button.button {
   .spotlight-item,
   .mini-agenda-row,
   .leader-card,
-  .council-card {
+  .council-card,
+  .leadership-support-card {
     grid-template-columns: 1fr;
   }
 
@@ -2604,6 +2639,11 @@ button.button {
   .mini-agenda-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .leadership-support-button {
+    width: 100%;
+    justify-self: stretch;
   }
 
   .dashboard-head {
