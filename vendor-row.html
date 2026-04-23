@@ -44,6 +44,14 @@
           <a href="#vendor-notes" class="section-nav-link">Notes</a>
         </nav>
 
+        <section class="panel sidebar-login-panel" aria-label="Member dashboard login">
+          <p class="eyebrow small">Office Dashboard</p>
+          <strong>Need the training dashboard?</strong>
+          <p class="sidebar-login-note">Open the existing KW Leading Edge member login right here while you stay on Vendor Row.</p>
+          <button class="button primary sidebar-button" type="button" data-dashboard-login-open>Dashboard Login</button>
+          <a class="button secondary sidebar-button" href="https://agent.kwleadingedge.com/dashboard/" target="_blank" rel="noreferrer">Open Full Dashboard</a>
+        </section>
+
         <section class="panel sidebar-utility">
           <p class="eyebrow small">Quick Links</p>
           <div class="sidebar-link-stack">
@@ -72,6 +80,8 @@
         <details class="mobile-menu-panel">
           <summary class="mobile-menu-summary">Quick Links</summary>
           <div class="mobile-menu-links">
+            <button class="button primary sidebar-button" type="button" data-dashboard-login-open>Dashboard Login</button>
+            <a class="button secondary sidebar-button" href="https://agent.kwleadingedge.com/dashboard/" target="_blank" rel="noreferrer">Open Full Dashboard</a>
             <a class="button primary sidebar-button" href="https://console.command.kw.com/command" target="_blank" rel="noreferrer">KW Command</a>
             <a class="button secondary sidebar-button" href="https://stwmls.clareityiam.net/idp/login" target="_blank" rel="noreferrer">RI MLS</a>
                 <a class="button secondary sidebar-button" href="https://smartmls-sso.connectmls.com/" target="_blank" rel="noreferrer">CT MLS</a>
@@ -252,6 +262,31 @@
           <p>KW Leading Edge vendor row directory.</p>
           <p>&copy; <span id="currentYear">2026</span> office resource demo.</p>
         </footer>
+      </div>
+    </div>
+  </div>
+
+  <div class="portal-dashboard-modal" data-dashboard-login-modal hidden>
+    <div class="portal-dashboard-modal-backdrop" data-dashboard-login-close></div>
+    <div class="portal-dashboard-modal-panel" role="dialog" aria-modal="true" aria-labelledby="vendorDashboardLoginTitle">
+      <div class="portal-dashboard-modal-head">
+        <div class="portal-dashboard-modal-copy">
+          <p class="eyebrow small">Office Dashboard</p>
+          <h2 id="vendorDashboardLoginTitle">Dashboard Login</h2>
+          <p>Sign in with the existing KW Leading Edge dashboard account below. After login, the dashboard destination will load inside this window.</p>
+        </div>
+        <button class="button secondary compact" type="button" data-dashboard-login-close>Close</button>
+      </div>
+      <div class="portal-dashboard-modal-frame">
+        <iframe
+          src="https://agent.kwleadingedge.com/dashboard/"
+          title="KW Leading Edge Dashboard"
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+      <div class="portal-dashboard-modal-actions">
+        <a class="button secondary compact" href="https://agent.kwleadingedge.com/dashboard/" target="_blank" rel="noreferrer">Open In New Tab</a>
       </div>
     </div>
   </div>
