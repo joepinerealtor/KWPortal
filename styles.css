@@ -565,11 +565,13 @@ img {
 .content-strip-row--market {
   flex-wrap: wrap;
   align-items: stretch;
+  justify-content: center;
 }
 
 .content-strip-row--links {
   align-items: center;
-  flex-wrap: nowrap;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .content-strip-heading,
@@ -607,7 +609,7 @@ img {
 .content-strip-market-line {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 10px 18px;
   flex-wrap: wrap;
   min-width: 0;
@@ -631,13 +633,14 @@ img {
 .content-strip-links,
 .content-strip-rates {
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .content-strip-links {
   min-width: 0;
-  flex: 1 1 auto;
-  overflow-x: auto;
+  flex: 0 1 auto;
+  overflow: visible;
   scrollbar-width: thin;
 }
 
@@ -660,9 +663,10 @@ img {
 
 .content-strip-heading {
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 4px;
+  text-align: center;
 }
 
 .content-strip-heading strong {
@@ -751,11 +755,12 @@ img {
 .content-rate-pill {
   min-width: 116px;
   display: grid;
-  justify-items: start;
+  justify-items: center;
   align-content: center;
   gap: 2px;
   padding: 0.48rem 0.68rem;
   text-transform: none;
+  text-align: center;
 }
 
 .content-strip-stats {
@@ -763,16 +768,18 @@ img {
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
+  justify-content: center;
 }
 
 .content-stat-pill {
   min-width: 116px;
   display: grid;
-  justify-items: start;
+  justify-items: center;
   align-content: center;
   gap: 2px;
   padding: 0.48rem 0.68rem;
   text-transform: none;
+  text-align: center;
 }
 
 .content-stat-label {
@@ -853,11 +860,10 @@ img {
 }
 
 .content-strip-datetime {
-  margin-left: auto;
   flex: 0 0 auto;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: nowrap;
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -2421,11 +2427,12 @@ button.button {
   .content-strip-row,
   .content-strip-market,
   .content-strip-update {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .content-strip-row {
     flex-wrap: wrap;
+    justify-content: center;
   }
 
   .content-strip-market,
@@ -2440,8 +2447,8 @@ button.button {
   }
 
   .content-strip-datetime {
-    justify-content: flex-start;
-    text-align: left;
+    justify-content: center;
+    text-align: center;
   }
 
   .dashboard-rate-grid {
@@ -2539,6 +2546,9 @@ button.button {
   .content-strip-datetime {
     flex-wrap: wrap;
     white-space: normal;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
   }
 
   .content-strip-update,
