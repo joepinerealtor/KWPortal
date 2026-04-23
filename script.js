@@ -56,12 +56,6 @@ const hasRiMarketTargets = [
 let scrollTicking = false;
 let ratesRefreshInFlight = false;
 let riMarketRefreshInFlight = false;
-let lastDashboardLoginTrigger = null;
-
-const dashboardLoginOpenRefs = [...document.querySelectorAll("[data-dashboard-login-open]")];
-const dashboardLoginCloseRefs = [...document.querySelectorAll("[data-dashboard-login-close]")];
-const dashboardLoginModal = document.querySelector("[data-dashboard-login-modal]");
-const dashboardLoginCloseButton = dashboardLoginModal?.querySelector("[data-dashboard-login-close]");
 
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
@@ -92,49 +86,6 @@ const RATE_PROGRAMS = {
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo"
   }
 };
-
-function openDashboardLoginModal(trigger) {
-  if (!dashboardLoginModal) {
-    return;
-  }
-
-  lastDashboardLoginTrigger = trigger || null;
-  dashboardLoginModal.hidden = false;
-  document.body.classList.add("modal-open");
-  dashboardLoginCloseButton?.focus();
-}
-
-function closeDashboardLoginModal() {
-  if (!dashboardLoginModal) {
-    return;
-  }
-
-  dashboardLoginModal.hidden = true;
-  document.body.classList.remove("modal-open");
-  lastDashboardLoginTrigger?.focus();
-}
-
-function initializeDashboardLoginModal() {
-  if (!dashboardLoginModal) {
-    return;
-  }
-
-  dashboardLoginOpenRefs.forEach((trigger) => {
-    trigger.addEventListener("click", () => {
-      openDashboardLoginModal(trigger);
-    });
-  });
-
-  dashboardLoginCloseRefs.forEach((trigger) => {
-    trigger.addEventListener("click", closeDashboardLoginModal);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !dashboardLoginModal.hidden) {
-      closeDashboardLoginModal();
-    }
-  });
-}
 
 function removePortalGate() {
   document.querySelector(".portal-lock")?.remove();
@@ -725,7 +676,6 @@ async function refreshRiMarket() {
 async function initializePortal() {
   await ensurePortalAccess();
 
-  initializeDashboardLoginModal();
   updateDateTime();
   setInterval(updateDateTime, 30000);
   syncContentStripVisibility();
