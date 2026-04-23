@@ -621,9 +621,9 @@ img {
 
 .content-strip {
   position: relative;
-  z-index: 1;
+  z-index: 6;
   min-height: 74px;
-  margin-bottom: 12px;
+  margin-bottom: 22px;
   padding: 14px 18px;
   overflow: hidden;
   transition: box-shadow 140ms ease, border-color 140ms ease;
@@ -917,20 +917,43 @@ img {
   font-size: 0.8rem;
 }
 
-.content-strip--market {
-  margin-bottom: 10px;
-}
-
 .content-strip--sticky {
   position: sticky;
   top: 0;
   z-index: 6;
-  margin-bottom: 22px;
   box-shadow: 0 22px 36px -32px rgba(0, 0, 0, 0.28);
 }
 
 .content-strip--sticky::before {
   opacity: 1;
+}
+
+.content-strip-market-shell {
+  max-height: 220px;
+  overflow: hidden;
+  transition:
+    max-height 220ms ease,
+    opacity 180ms ease,
+    transform 180ms ease,
+    margin 180ms ease;
+}
+
+.content-strip-links-shell {
+  padding-top: 12px;
+  border-top: 1px solid rgba(221, 212, 200, 0.92);
+}
+
+.content-strip.is-market-collapsed .content-strip-market-shell {
+  max-height: 0;
+  margin-bottom: -4px;
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.content-strip.is-market-collapsed .content-strip-links-shell {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .content-strip.is-rates-collapsed .content-strip-market {
@@ -2302,7 +2325,7 @@ button.button {
     letter-spacing: 0.09em;
   }
 
-  .portal-content > .content-strip--market {
+  .portal-content > .content-strip {
     display: none;
   }
 
@@ -2399,8 +2422,7 @@ button.button {
     font-size: 0.78rem;
   }
 
-  .portal-content > .content-strip--market,
-  .portal-content > .content-strip--sticky {
+  .portal-content > .content-strip {
     display: none;
   }
 

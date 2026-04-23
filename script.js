@@ -2,7 +2,7 @@ const headerClockRefs = [...document.querySelectorAll("[data-header-clock]")];
 const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
 const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".portal-content");
-const stickyContentStrip = document.querySelector(".content-strip--sticky");
+const contentStrip = document.querySelector(".content-strip--sticky");
 const sectionLinks = [...document.querySelectorAll(".section-nav-link")].filter((link) => {
   const href = link.getAttribute("href") || "";
   return href.startsWith("#");
@@ -284,7 +284,7 @@ function updateActiveSectionFromScroll() {
   }
 
   const activationLine = scrollContainer
-    ? scrollContainer.getBoundingClientRect().top + (stickyContentStrip ? stickyContentStrip.offsetHeight : 0) + 42
+    ? scrollContainer.getBoundingClientRect().top + (contentStrip ? contentStrip.offsetHeight : 0) + 42
     : Math.max(140, window.innerHeight * 0.28);
   let activeId = sections[0].id;
 
@@ -307,7 +307,12 @@ function readScrollTop() {
 }
 
 function syncContentStripVisibility() {
-  return;
+  if (!contentStrip) {
+    return;
+  }
+
+  const isCollapsed = readScrollTop() > 24;
+  contentStrip.classList.toggle("is-market-collapsed", isCollapsed);
 }
 
 function requestActiveSectionUpdate() {
