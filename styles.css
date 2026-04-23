@@ -749,7 +749,13 @@ img {
 }
 
 .content-rate-pill {
-  gap: 8px;
+  min-width: 116px;
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 2px;
+  padding: 0.48rem 0.68rem;
+  text-transform: none;
 }
 
 .content-strip-stats {
@@ -784,11 +790,43 @@ img {
   line-height: 1;
 }
 
+.content-rate-trend,
 .content-stat-trend {
   color: var(--kw-gray);
   font-family: "Roboto", Arial, sans-serif;
   font-size: 0.72rem;
   line-height: 1.2;
+}
+
+.content-rate-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.content-rate-trend::before {
+  content: "\2192";
+  color: var(--kw-gray-soft);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.content-rate-trend[data-tone="down"] {
+  color: #1f7a46;
+}
+
+.content-rate-trend[data-tone="down"]::before {
+  content: "\2193";
+  color: #1f7a46;
+}
+
+.content-rate-trend[data-tone="up"] {
+  color: var(--kw-red);
+}
+
+.content-rate-trend[data-tone="up"]::before {
+  content: "\2191";
+  color: var(--kw-red);
 }
 
 .content-stat-trend[data-tone="up"] {

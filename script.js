@@ -18,6 +18,12 @@ const rateRefs = {
   fha: [...document.querySelectorAll('[data-rate-value="fha"]')],
   va: [...document.querySelectorAll('[data-rate-value="va"]')],
   jumbo: [...document.querySelectorAll('[data-rate-value="jumbo"]')],
+  trends: {
+    conventional: [...document.querySelectorAll('[data-rate-trend="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-trend="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-trend="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-trend="jumbo"]')]
+  },
   sourceDateLabels: [...document.querySelectorAll("[data-rates-source-date]")]
 };
 const riMarketRefs = {
@@ -40,6 +46,10 @@ const hasRateTargets = [
   ...rateRefs.fha,
   ...rateRefs.va,
   ...rateRefs.jumbo,
+  ...rateRefs.trends.conventional,
+  ...rateRefs.trends.fha,
+  ...rateRefs.trends.va,
+  ...rateRefs.trends.jumbo,
   ...rateRefs.sourceDateLabels
 ].length > 0;
 const hasRiMarketTargets = [
@@ -326,6 +336,87 @@ function writeRates(state) {
   rateRefs.jumbo.forEach((ref) => {
     ref.textContent = state.jumboRate || "--";
   });
+
+  writeRateTrend("conventional", state.conventionalRateChange, state.conventionalRateDirection);
+  writeRateTrend("fha", state.fhaRateChange, state.fhaRateDirection);
+  writeRateTrend("va", state.vaRateChange, state.vaRateDirection);
+  writeRateTrend("jumbo", state.jumboRateChange, state.jumboRateDirection);
+}
+
+function normalizeTextContent(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function parseRateNumber(value) {
+  const match = normalizeTextContent(value).match(/-?\d+(?:\.\d+)?/);
+  return match ? Number.parseFloat(match[0]) : Number.NaN;
+}
+
+function parseSignedPercent(value) {
+  const normalized = normalizeTextContent(value).replace(/\u2212/g, "-");
+  const match = normalized.match(/([+-]?\d+(?:\.\d+)?)\s*%/);
+  return match ? Number.parseFloat(match[1]) : Number.NaN;
+}
+
+function roundRateChange(value) {
+  if (!Number.isFinite(value)) {
+    return Number.NaN;
+  }
+
+  const rounded = Number(value.toFixed(2));
+  return Object.is(rounded, -0) ? 0 : rounded;
+}
+
+function resolveRateDirection(changeValue, fallbackDirection = "neutral") {
+  if (Number.isFinite(changeValue)) {
+    if (changeValue > 0) {
+      return "up";
+    }
+
+    if (changeValue < 0) {
+      return "down";
+    }
+
+    return "neutral";
+  }
+
+  return fallbackDirection;
+}
+
+function formatRateChange(changeValue) {
+  if (!Number.isFinite(changeValue)) {
+    return "--";
+  }
+
+  return `${Math.abs(changeValue).toFixed(2)}%`;
+}
+
+function writeRateTrend(programKey, changeValue, direction) {
+  const refs = rateRefs.trends[programKey] || [];
+  const numericChange = changeValue === null || changeValue === undefined || changeValue === ""
+    ? Number.NaN
+    : Number(changeValue);
+  const formattedValue = formatRateChange(numericChange);
+  const tone = resolveRateDirection(numericChange, direction);
+
+  refs.forEach((ref) => {
+    ref.textContent = formattedValue;
+    ref.dataset.tone = formattedValue === "--" ? "neutral" : tone;
+
+    let label = "Day-over-day rate change unavailable";
+    if (formattedValue !== "--") {
+      if (tone === "down") {
+        label = `Rate decreased ${formattedValue} from yesterday`;
+      } else if (tone === "up") {
+        label = `Rate increased ${formattedValue} from yesterday`;
+      } else {
+        label = `Rate unchanged from yesterday (${formattedValue})`;
+      }
+    }
+
+    ref.setAttribute("aria-label", label);
+    ref.title = label;
+  });
 }
 
 function formatSourceDate(value) {
@@ -545,6 +636,81 @@ async function fetchTextViaProxy(sourceUrl) {
   return response.text();
 }
 
+function parseMortgageSurveyRow(row) {
+  const dateCell = row.querySelector("td.rate-date");
+  const currentRateCell = row.querySelector("td.rate");
+  const changeCell = row.querySelector("td.change");
+  const hiddenDate = dateCell?.querySelector(".hidden-xs")?.textContent || "";
+  const dateText = normalizeTextContent(hiddenDate || dateCell?.textContent || "");
+  const rate = parseRateNumber(currentRateCell?.textContent || "");
+  const change = roundRateChange(parseSignedPercent(changeCell?.textContent || ""));
+  let direction = "neutral";
+
+  if (changeCell?.querySelector(".rate-up, .fa-arrow-up")) {
+    direction = "up";
+  } else if (changeCell?.querySelector(".rate-down, .fa-arrow-down")) {
+    direction = "down";
+  }
+
+  return {
+    date: dateText,
+    rate,
+    change,
+    direction
+  };
+}
+
+function parseMortgageNewsDailySurvey(html, surveyName) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const sectionHeading = [...doc.querySelectorAll("th.rate-product")].find((heading) => {
+    return normalizeTextContent(heading.textContent).startsWith(`MND's ${surveyName} (daily survey)`);
+  });
+
+  if (!sectionHeading) {
+    return null;
+  }
+
+  const headingRow = sectionHeading.closest("tr");
+  if (!headingRow) {
+    return null;
+  }
+
+  const surveyRows = [];
+  for (let row = headingRow.nextElementSibling; row; row = row.nextElementSibling) {
+    if (row.querySelector("th.rate-product")) {
+      break;
+    }
+
+    if (row.querySelector("td.rate-date") && row.querySelector("td.rate")) {
+      surveyRows.push(row);
+    }
+  }
+
+  if (!surveyRows.length) {
+    return null;
+  }
+
+  const currentRow = parseMortgageSurveyRow(surveyRows[0]);
+  const previousRow = surveyRows[1] ? parseMortgageSurveyRow(surveyRows[1]) : null;
+
+  if (!Number.isFinite(currentRow.rate)) {
+    return null;
+  }
+
+  const computedChange = previousRow && Number.isFinite(previousRow.rate)
+    ? roundRateChange(currentRow.rate - previousRow.rate)
+    : currentRow.change;
+  const direction = resolveRateDirection(computedChange, currentRow.direction);
+
+  return {
+    date: currentRow.date,
+    rate: currentRow.rate,
+    previousRate: previousRow && Number.isFinite(previousRow.rate) ? previousRow.rate : null,
+    change: computedChange,
+    direction
+  };
+}
+
 function parseLatestMortgageNewsDailyRate(html, surveyName) {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const text = (doc.body && doc.body.textContent ? doc.body.textContent : html).replace(/\s+/g, " ").trim();
@@ -556,7 +722,10 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
   if (surveyMatch) {
     return {
       date: surveyMatch[1].trim(),
-      rate: Number.parseFloat(surveyMatch[2])
+      rate: Number.parseFloat(surveyMatch[2]),
+      previousRate: null,
+      change: Number.NaN,
+      direction: "neutral"
     };
   }
 
@@ -564,7 +733,10 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
   if (currentRateMatch) {
     return {
       date: "",
-      rate: Number.parseFloat(currentRateMatch[1])
+      rate: Number.parseFloat(currentRateMatch[1]),
+      previousRate: null,
+      change: Number.NaN,
+      direction: "neutral"
     };
   }
 
@@ -574,7 +746,8 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
 async function fetchRate(programKey) {
   const program = RATE_PROGRAMS[programKey];
   const html = await fetchTextViaProxy(program.sourceUrl);
-  const latestRate = parseLatestMortgageNewsDailyRate(html, program.surveyName);
+  const latestRate = parseMortgageNewsDailySurvey(html, program.surveyName)
+    || parseLatestMortgageNewsDailyRate(html, program.surveyName);
 
   if (!latestRate || !Number.isFinite(latestRate.rate)) {
     throw new Error(`Could not parse ${program.label} rate`);
@@ -607,6 +780,14 @@ async function refreshRates() {
       fhaRate: fha.rate.toFixed(2),
       vaRate: va.rate.toFixed(2),
       jumboRate: jumbo.rate.toFixed(2),
+      conventionalRateChange: Number.isFinite(conventional.change) ? conventional.change : null,
+      fhaRateChange: Number.isFinite(fha.change) ? fha.change : null,
+      vaRateChange: Number.isFinite(va.change) ? va.change : null,
+      jumboRateChange: Number.isFinite(jumbo.change) ? jumbo.change : null,
+      conventionalRateDirection: conventional.direction || "neutral",
+      fhaRateDirection: fha.direction || "neutral",
+      vaRateDirection: va.direction || "neutral",
+      jumboRateDirection: jumbo.direction || "neutral",
       conventionalSurveyDate: conventional.date || "",
       fhaSurveyDate: fha.date || "",
       vaSurveyDate: va.date || "",
