@@ -1,0 +1,47 @@
+name: Refresh Social Preview
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - index.html
+      - styles.css
+      - script.js
+      - brand/**
+      - team/**
+      - images/portal-morning-ascent.jpg
+      - scripts/update-social-preview.ps1
+      - .github/workflows/refresh-social-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-social-preview:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Refresh social preview image
+        shell: pwsh
+        run: .\scripts\update-social-preview.ps1 -RepositoryRoot $PWD.Path
+
+      - name: Commit refreshed preview when needed
+        shell: pwsh
+        run: |
+          git add images/social-preview-login.png index.html brand-assets.html login-screen-preview.html
+
+          if (git diff --cached --quiet) {
+            Write-Host "No social preview changes detected."
+            exit 0
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh social preview [skip ci]"
+          git push
