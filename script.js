@@ -272,7 +272,17 @@ function getPortalUnlockTargets() {
     ...structuralTargets,
     ...(overviewTargets.length ? overviewTargets : panelFallbackTargets)
   ])]
-    .sort((left, right) => right.getBoundingClientRect().top - left.getBoundingClientRect().top)
+    .sort((left, right) => {
+      const leftRect = left.getBoundingClientRect();
+      const rightRect = right.getBoundingClientRect();
+      const topDifference = leftRect.top - rightRect.top;
+
+      if (Math.abs(topDifference) > 4) {
+        return topDifference;
+      }
+
+      return leftRect.left - rightRect.left;
+    })
     .slice(0, PORTAL_UNLOCK_REVEAL_LIMIT);
 }
 
