@@ -428,7 +428,7 @@ img {
 .portal-lock-error {
   min-height: 1rem;
   margin: 0;
-  color: var(--kw-red);
+  color: #fff;
   font-size: 0.9rem;
 }
 
