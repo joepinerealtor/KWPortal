@@ -1,8 +1,12 @@
 const headerClockRefs = [...document.querySelectorAll("[data-header-clock]")];
 const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
 const currentYear = document.getElementById("currentYear");
-const scrollContainer = document.querySelector(".portal-content");
+const scrollContainer = document.querySelector(".page-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
+const calendarModal = document.querySelector("[data-calendar-modal]");
+const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
+const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
+const calendarModalTriggers = [...document.querySelectorAll("[data-calendar-modal-trigger]")];
 const mobileSidebarMenus = document.querySelector(".mobile-sidebar-menus");
 const mobileMenuPanels = [...document.querySelectorAll(".mobile-menu-panel")];
 const sectionLinks = [...document.querySelectorAll(".section-nav-link")].filter((link) => {
@@ -68,12 +72,18 @@ const hasRiMarketTargets = [
 let scrollTicking = false;
 let ratesRefreshInFlight = false;
 let riMarketRefreshInFlight = false;
+let calendarModalLastTrigger = null;
+let calendarModalCloseTimer = 0;
+let hasLoadedCalendarModalContent = false;
 
+const PORTAL_SECTION_SCROLL_GAP_PX = 22;
+const PORTAL_SECTION_SCROLL_FALLBACK_PX = 32;
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
+const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
 const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
 const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
 const PORTAL_ACCESS_SUPPORT_BODY = [
@@ -569,6 +579,35 @@ function updateDateTime() {
   }
 }
 
+function usesInternalSectionScroll() {
+  if (!scrollContainer) {
+    return false;
+  }
+
+  const { overflowY } = window.getComputedStyle(scrollContainer);
+  return (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay")
+    && scrollContainer.clientHeight > 0;
+}
+
+function resolveSectionScrollOffset() {
+  if (usesInternalSectionScroll()) {
+    return PORTAL_SECTION_SCROLL_GAP_PX;
+  }
+
+  const mobileMenusAreVisible = mobileSidebarMenus
+    && window.getComputedStyle(mobileSidebarMenus).display !== "none";
+  const mobileMenuOffset = mobileMenusAreVisible
+    ? Math.ceil(mobileSidebarMenus.getBoundingClientRect().height) + PORTAL_SECTION_SCROLL_GAP_PX
+    : 0;
+
+  return mobileMenuOffset || PORTAL_SECTION_SCROLL_FALLBACK_PX;
+}
+
+function syncSectionScrollOffset() {
+  const nextOffset = resolveSectionScrollOffset();
+  document.documentElement.style.setProperty("--portal-section-scroll-offset", `${nextOffset}px`);
+}
+
 function setActiveSection(id) {
   sectionLinks.forEach((link) => {
     const isActive = link.getAttribute("href") === `#${id}`;
@@ -587,12 +626,13 @@ function updateActiveSectionFromScroll() {
     return;
   }
 
-  const stickyOffset = contentStrip ? contentStrip.getBoundingClientRect().height : 0;
-  const viewportTop = scrollContainer
-    ? scrollContainer.getBoundingClientRect().top + stickyOffset + 16
-    : stickyOffset + 16;
-  const viewportBottom = scrollContainer
-    ? scrollContainer.getBoundingClientRect().bottom - 16
+  const internalScrollViewport = usesInternalSectionScroll() ? scrollContainer : null;
+  const sectionOffset = resolveSectionScrollOffset();
+  const viewportTop = internalScrollViewport
+    ? internalScrollViewport.getBoundingClientRect().top + 16
+    : sectionOffset + 16;
+  const viewportBottom = internalScrollViewport
+    ? internalScrollViewport.getBoundingClientRect().bottom - 16
     : window.innerHeight - 16;
   const viewportCenter = viewportTop + ((viewportBottom - viewportTop) / 2);
   let activeId = sections[0].id;
@@ -620,7 +660,7 @@ function updateActiveSectionFromScroll() {
 }
 
 function readScrollTop() {
-  if (scrollContainer) {
+  if (usesInternalSectionScroll()) {
     return scrollContainer.scrollTop;
   }
 
@@ -667,6 +707,9 @@ function initializeMobileMenus() {
       if (panel.open) {
         closeMobileMenus(panel);
       }
+
+      syncSectionScrollOffset();
+      requestActiveSectionUpdate();
     });
 
     panel.querySelectorAll("a[href]").forEach((link) => {
@@ -692,6 +735,196 @@ function initializeMobileMenus() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeMobileMenus();
+    }
+  });
+}
+
+function ensureCalendarModalContent() {
+  if (!calendarModalShell || hasLoadedCalendarModalContent) {
+    return;
+  }
+
+  calendarModalShell.innerHTML = `
+    <iframe
+      class="calendar-modal__iframe"
+      src="${TRAINING_CALENDAR_URL}"
+      title="KW Leading Edge full training calendar"
+      loading="lazy"
+      scrolling="yes"
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
+  `;
+
+  hasLoadedCalendarModalContent = true;
+}
+
+function closeCalendarModal() {
+  if (!calendarModal || calendarModal.hidden) {
+    return;
+  }
+
+  calendarModal.classList.remove("is-open");
+  document.body.classList.remove("has-calendar-modal");
+
+  const returnFocusTarget = calendarModalLastTrigger;
+
+  window.clearTimeout(calendarModalCloseTimer);
+  calendarModalCloseTimer = window.setTimeout(() => {
+    if (!calendarModal.classList.contains("is-open")) {
+      calendarModal.hidden = true;
+    }
+
+    if (returnFocusTarget instanceof HTMLElement) {
+      returnFocusTarget.focus();
+    }
+  }, 180);
+}
+
+function openCalendarModal(trigger = null) {
+  if (!calendarModal) {
+    return;
+  }
+
+  calendarModalLastTrigger = trigger instanceof HTMLElement
+    ? trigger
+    : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+
+  window.clearTimeout(calendarModalCloseTimer);
+  calendarModal.hidden = false;
+  document.body.classList.add("has-calendar-modal");
+
+  requestAnimationFrame(() => {
+    calendarModal.classList.add("is-open");
+    ensureCalendarModalContent();
+    (calendarModalCloseButton || calendarModal)?.focus?.();
+  });
+}
+
+function initializeCalendarModal() {
+  if (!calendarModal || !calendarModalTriggers.length) {
+    return;
+  }
+
+  calendarModalTriggers.forEach((trigger) => {
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      openCalendarModal(trigger);
+    });
+  });
+
+  calendarModal.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest("[data-calendar-modal-close]")) {
+      closeCalendarModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !calendarModal.hidden) {
+      event.preventDefault();
+      closeCalendarModal();
+    }
+  });
+}
+
+function createRoomBookingModal() {
+  const modal = document.createElement("div");
+  modal.className = "room-booking-modal";
+  modal.setAttribute("hidden", "");
+  modal.innerHTML = `
+    <div class="room-booking-dialog" role="dialog" aria-modal="true" aria-labelledby="roomBookingTitle">
+      <div class="room-booking-header">
+        <div class="room-booking-copy">
+          <p class="eyebrow small">Conference Room Booking</p>
+          <h2 class="room-booking-title" id="roomBookingTitle">Book a Room</h2>
+          <p class="room-booking-summary">Choose an available time and complete the reservation without leaving the portal.</p>
+        </div>
+        <button type="button" class="button secondary compact room-booking-close">Close</button>
+      </div>
+      <div class="room-booking-frame-shell">
+        <iframe class="room-booking-frame" title="Conference room booking" src="about:blank" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </div>
+  `;
+  return modal;
+}
+
+function initializeRoomBookingModal() {
+  const triggers = [...document.querySelectorAll(".room-booking-trigger[data-room-booking-url]")];
+  if (!triggers.length) {
+    return;
+  }
+
+  const modal = createRoomBookingModal();
+  document.body.append(modal);
+
+  const title = modal.querySelector(".room-booking-title");
+  const summary = modal.querySelector(".room-booking-summary");
+  const closeButton = modal.querySelector(".room-booking-close");
+  const iframe = modal.querySelector(".room-booking-frame");
+  let lastTrigger = null;
+  let closeTimer = 0;
+
+  const closeModal = () => {
+    if (modal.hasAttribute("hidden")) {
+      return;
+    }
+
+    modal.classList.remove("is-open");
+    document.body.classList.remove("has-room-booking-modal");
+
+    window.clearTimeout(closeTimer);
+    closeTimer = window.setTimeout(() => {
+      modal.setAttribute("hidden", "");
+      iframe?.setAttribute("src", "about:blank");
+      lastTrigger?.focus();
+    }, 180);
+  };
+
+  const openModal = (trigger) => {
+    const bookingUrl = trigger.dataset.roomBookingUrl;
+    const bookingLabel = trigger.dataset.roomBookingLabel || "Conference Room";
+
+    if (!bookingUrl || !title || !summary || !iframe) {
+      return;
+    }
+
+    window.clearTimeout(closeTimer);
+    lastTrigger = trigger;
+    title.textContent = bookingLabel;
+    summary.textContent = `Complete the ${bookingLabel.toLowerCase()} reservation in Calendly.`;
+    iframe.setAttribute("src", bookingUrl);
+    modal.removeAttribute("hidden");
+    document.body.classList.add("has-room-booking-modal");
+
+    window.requestAnimationFrame(() => {
+      modal.classList.add("is-open");
+    });
+
+    closeButton?.focus();
+  };
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      openModal(trigger);
+    });
+  });
+
+  closeButton?.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hasAttribute("hidden")) {
+      closeModal();
     }
   });
 }
@@ -1270,14 +1503,21 @@ async function initializePortal() {
   updateDateTime();
   setInterval(updateDateTime, 30000);
   initializeMobileMenus();
+  initializeCalendarModal();
+  initializeRoomBookingModal();
+  syncSectionScrollOffset();
+  window.requestAnimationFrame(syncSectionScrollOffset);
   syncContentStripVisibility();
   updateActiveSectionFromScroll();
   if (scrollContainer) {
     scrollContainer.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
-  } else {
-    window.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
   }
-  window.addEventListener("resize", requestActiveSectionUpdate);
+  window.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
+  window.addEventListener("resize", () => {
+    syncSectionScrollOffset();
+    requestActiveSectionUpdate();
+  });
+  window.addEventListener("load", syncSectionScrollOffset, { once: true });
 
   const storedRates = loadStoredRates();
   if (storedRates && hasRateTargets) {
