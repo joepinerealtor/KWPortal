@@ -139,9 +139,9 @@ function createPortalGateMarkup() {
     <div class="portal-lock-panel" role="dialog" aria-modal="true" aria-labelledby="portalLockTitle">
       <img src="brand/kw-leading-edge-logo.png" alt="Keller Williams Realty Leading Edge" class="portal-lock-logo">
       <div class="portal-lock-copy">
-        <p class="eyebrow small">Protected Preview</p>
+        <p class="eyebrow small">Protected Access</p>
         <h1 id="portalLockTitle">${pageLabel}</h1>
-        <p>Enter the passcode to view this portal preview.</p>
+        <p>Enter the passcode to access the portal.</p>
       </div>
       <form class="portal-lock-form">
         <input class="portal-lock-input" name="passcode" type="password" inputmode="numeric" autocomplete="off" placeholder="Passcode" aria-label="Passcode">

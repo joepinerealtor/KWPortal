@@ -2122,9 +2122,9 @@ button.button {
 }
 
 .site-footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   margin-top: 22px;
   padding: 18px 22px;
@@ -2133,6 +2133,27 @@ button.button {
 .site-footer p {
   margin: 0;
   font-size: 0.92rem;
+}
+
+.site-footer-item--left {
+  text-align: left;
+}
+
+.site-footer-item--center {
+  text-align: center;
+}
+
+.site-footer-item--right {
+  text-align: right;
+}
+
+.site-footer a {
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--kw-red);
+  text-decoration: underline;
 }
 
 .button:focus-visible,
@@ -2414,13 +2435,23 @@ button.button {
   }
 
   .site-header,
-  .site-footer,
   .section-head,
   .vision-quote,
   .directory-head,
   .directory-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .site-footer {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer-item--left,
+  .site-footer-item--center,
+  .site-footer-item--right {
+    text-align: left;
   }
 
   .content-strip,
