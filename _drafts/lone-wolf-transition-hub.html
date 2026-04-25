@@ -1,0 +1,605 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b40101">
+  <meta
+    name="description"
+    content="Draft transition hub for the move from DocuSign to Lone Wolf Transact inside Command, with workflow guides, training, and rollout resources."
+  >
+  <title>KW Leading Edge Transition Hub Draft</title>
+  <link rel="icon" type="image/png" href="../kw-app-11%20favicon%20app.png">
+  <link rel="shortcut icon" href="../kw-app-11%20favicon%20app.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Condensed:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body data-portal-public="true">
+  <!-- Draft is stored under _drafts so GitHub Pages will not publish it until we move it into a live path. -->
+  <div class="top-rail" aria-hidden="true"></div>
+
+  <div class="site-shell">
+    <div class="portal-frame">
+      <aside class="portal-sidebar">
+        <div class="site-header">
+          <a class="brand-link" href="../index.html#overview" aria-label="KW Leading Edge portal home">
+            <div class="brand-lockup">
+              <img src="../brand/kw-leading-edge-logo.png" alt="Keller Williams Realty Leading Edge" class="brand-logo">
+            </div>
+            <div class="brand-copy">
+              <strong>Transition Hub Draft</strong>
+            </div>
+          </a>
+
+          <div class="header-time-card" aria-label="Current date and time">
+            <strong data-header-clock>--:-- ET</strong>
+            <span data-header-date>Loading today...</span>
+          </div>
+        </div>
+
+        <nav class="section-nav panel" aria-label="Transition hub sections">
+          <a href="../index.html#overview" class="section-nav-link section-nav-link--page">Portal Home</a>
+          <a href="#transition-overview" class="section-nav-link is-active" aria-current="page">Overview</a>
+          <a href="#course-library" class="section-nav-link">Course Library</a>
+          <a href="#lesson-walkthroughs" class="section-nav-link">Step Guides</a>
+          <a href="#preview-library" class="section-nav-link">Preview Library</a>
+          <a href="#office-library" class="section-nav-link">Office Shelf</a>
+          <a href="#launch-readiness" class="section-nav-link">Launch Notes</a>
+        </nav>
+
+        <section class="panel sidebar-utility">
+          <p class="eyebrow small">Key Links</p>
+          <div class="sidebar-link-stack">
+            <a class="button primary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">KW Workflow Article</a>
+            <a class="button primary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command" target="_blank" rel="noreferrer">Connect Account</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Create Transaction</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/49199696550035-Sync-Updated-Opportunity-and-Listing-Information-with-Lone-Wolf-Transact" target="_blank" rel="noreferrer">Sync Updates</a>
+            <a class="button secondary sidebar-button" href="https://www.youtube.com/watch?v=6P0WCBhFr-s" target="_blank" rel="noreferrer">Transition Video</a>
+            <a class="button secondary sidebar-button" href="https://www.lwolf.com/support" target="_blank" rel="noreferrer">Lone Wolf Support</a>
+          </div>
+        </section>
+      </aside>
+
+      <div class="mobile-sidebar-menus" aria-label="Mobile portal menus">
+        <details class="mobile-menu-panel">
+          <summary class="mobile-menu-summary">Menu</summary>
+          <div class="mobile-menu-links">
+            <a href="../index.html#overview" class="section-nav-link section-nav-link--page">Portal Home</a>
+            <a href="#transition-overview" class="section-nav-link is-active" aria-current="page">Overview</a>
+            <a href="#course-library" class="section-nav-link">Course Library</a>
+            <a href="#lesson-walkthroughs" class="section-nav-link">Step Guides</a>
+            <a href="#preview-library" class="section-nav-link">Preview Library</a>
+            <a href="#office-library" class="section-nav-link">Office Shelf</a>
+            <a href="#launch-readiness" class="section-nav-link">Launch Notes</a>
+          </div>
+        </details>
+
+        <details class="mobile-menu-panel">
+          <summary class="mobile-menu-summary">Quick Links</summary>
+          <div class="mobile-menu-links">
+            <a class="button primary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">KW Workflow Article</a>
+            <a class="button primary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command" target="_blank" rel="noreferrer">Connect Account</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Create Transaction</a>
+            <a class="button secondary sidebar-button" href="https://answers.kw.com/hc/en-us/articles/49199696550035-Sync-Updated-Opportunity-and-Listing-Information-with-Lone-Wolf-Transact" target="_blank" rel="noreferrer">Sync Updates</a>
+            <a class="button secondary sidebar-button" href="https://www.youtube.com/watch?v=6P0WCBhFr-s" target="_blank" rel="noreferrer">Transition Video</a>
+            <a class="button secondary sidebar-button" href="https://www.lwolf.com/support" target="_blank" rel="noreferrer">Lone Wolf Support</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="portal-content">
+        <section class="content-strip content-strip--sticky panel" aria-label="Transition resources">
+          <div class="content-strip-row content-strip-row--links">
+            <div class="content-strip-heading content-strip-heading--links">
+              <span class="content-strip-kicker">Transition Links</span>
+              <strong>KW + Lone Wolf</strong>
+            </div>
+            <div class="content-strip-links">
+              <a class="content-strip-link content-strip-link-primary" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">Workflow Article</a>
+              <a class="content-strip-link" href="https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command" target="_blank" rel="noreferrer">Connect Account</a>
+              <a class="content-strip-link" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Create Transaction</a>
+              <a class="content-strip-link" href="https://answers.kw.com/hc/en-us/articles/49199696550035-Sync-Updated-Opportunity-and-Listing-Information-with-Lone-Wolf-Transact" target="_blank" rel="noreferrer">Sync Updates</a>
+              <a class="content-strip-link" href="https://www.youtube.com/watch?v=6P0WCBhFr-s" target="_blank" rel="noreferrer">Video Walkthrough</a>
+            </div>
+          </div>
+        </section>
+
+        <main class="page-content">
+          <section class="panel directory-panel" id="transition-overview">
+            <div class="hero transition-hero">
+              <div class="hero-copy">
+                <p class="eyebrow small">Draft Transition Hub</p>
+                <p class="hero-tagline">DocuSign to Transact, inside Command.</p>
+                <h1>One place for the workflow, training, and office rollout resources.</h1>
+                <p class="hero-text">
+                  This draft page is moving toward a real course library, not just a list of links. The plan is to
+                  teach the Keller Williams Command Edition workflow in modules, show the exact step-by-step path inside
+                  Command and Transact, and keep previewable PDFs plus inline videos right on the page.
+                </p>
+                <div class="hero-actions">
+                  <a class="button primary compact" href="#course-library">Course Library</a>
+                  <a class="button secondary compact" href="#lesson-walkthroughs">Step Guides</a>
+                  <a class="button secondary compact" href="#preview-library">Preview Library</a>
+                </div>
+                <div class="hero-points">
+                  <span class="hero-point">Draft only</span>
+                  <span class="hero-point">Built off KW workflow docs</span>
+                  <span class="hero-point">Not linked in portal nav</span>
+                </div>
+              </div>
+
+              <aside class="hero-aside">
+                <article class="spotlight-card">
+                  <p class="eyebrow small">What This Hub Should Do</p>
+                  <h2>Take the confusion out of the switch.</h2>
+                  <div class="spotlight-list">
+                    <div class="spotlight-item">
+                      <span>1</span>
+                      <div>
+                        <strong>Show the exact KW workflow</strong>
+                        <p>Command stays central, Transact handles forms and signing, and compliance still finishes back in Command.</p>
+                      </div>
+                    </div>
+                    <div class="spotlight-item">
+                      <span>2</span>
+                      <div>
+                        <strong>Teach it like a course</strong>
+                        <p>Organize the transition into modules, lessons, and repeatable step lists so agents can learn one part at a time.</p>
+                      </div>
+                    </div>
+                    <div class="spotlight-item">
+                      <span>3</span>
+                      <div>
+                        <strong>Preview the assets inline</strong>
+                        <p>Give the office a home for SOPs, cheat sheets, recorded sessions, and PDFs or videos that load right on the page.</p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel" id="course-library">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Course Library</p>
+                <h2>Learning modules agents can move through in order</h2>
+              </div>
+            </div>
+
+            <div class="transition-course-grid">
+              <article class="transition-course-card">
+                <span class="card-tag">Module 1</span>
+                <h3>Connect Lone Wolf in Command</h3>
+                <p>Get the account connected correctly so the rest of the workflow can happen from inside Opportunities.</p>
+                <div class="chip-row">
+                  <span class="chip">Setup</span>
+                  <span class="chip">10 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-connect-account">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+
+              <article class="transition-course-card">
+                <span class="card-tag">Module 2</span>
+                <h3>Prepare the Opportunity</h3>
+                <p>Build the Opportunity with the details that will matter later for compliance and sync mapping.</p>
+                <div class="chip-row">
+                  <span class="chip">Command</span>
+                  <span class="chip">10 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-create-transaction">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+
+              <article class="transition-course-card">
+                <span class="card-tag">Module 3</span>
+                <h3>Create the linked transaction</h3>
+                <p>Choose the checklist and push the Opportunity into Lone Wolf so the transaction is created with the right connection.</p>
+                <div class="chip-row">
+                  <span class="chip">Sync</span>
+                  <span class="chip">8 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-create-transaction">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+
+              <article class="transition-course-card">
+                <span class="card-tag">Module 4</span>
+                <h3>Work the file in Transact</h3>
+                <p>Open the linked transaction, update forms and parties, then send paperwork through Authentisign.</p>
+                <div class="chip-row">
+                  <span class="chip">Transact</span>
+                  <span class="chip">15 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-work-in-transact">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/49198810019347-Access-the-Lone-Wolf-Transaction-Linked-to-an-Opportunity" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+
+              <article class="transition-course-card">
+                <span class="card-tag">Module 5</span>
+                <h3>Attach signed docs in Command</h3>
+                <p>Return to the Opportunity, choose the compliance event, and pull signed files into the checklist.</p>
+                <div class="chip-row">
+                  <span class="chip">Compliance</span>
+                  <span class="chip">10 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-attach-documents">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/360034202573-Get-Started-with-Documents-and-Attach-Signed-Forms-to-an-Opportunity" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+
+              <article class="transition-course-card">
+                <span class="card-tag">Module 6</span>
+                <h3>Submit and resolve returns</h3>
+                <p>Hand documents off to the Market Center, then understand how to correct and resubmit returned items.</p>
+                <div class="chip-row">
+                  <span class="chip">Review</span>
+                  <span class="chip">8 min</span>
+                </div>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="#lesson-submit-documents">Open Lesson</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/360033741014-Submit-Compliance-Documents-to-Your-Market-Center-for-Approval" target="_blank" rel="noreferrer">Source Article</a>
+                </div>
+              </article>
+            </div>
+
+            <div class="transition-note-card">
+              <strong>Course-building note</strong>
+              <p>
+                This section gives us a clean way to add office versions later: each module can eventually hold a short
+                intro video, a checklist PDF, and a local office SOP without changing the overall page structure.
+              </p>
+            </div>
+          </section>
+
+          <section class="panel" id="lesson-walkthroughs">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Step Guides</p>
+                <h2>Detailed lessons with the exact steps agents will follow</h2>
+              </div>
+            </div>
+
+            <div class="transition-lesson-stack">
+              <article class="support-card support-card-accent transition-lesson-card" id="lesson-connect-account">
+                <div class="transition-lesson-head">
+                  <div>
+                    <p class="eyebrow small">Lesson 1</p>
+                    <h3>Connect the Lone Wolf account in Command</h3>
+                    <p>Use this lesson when an agent is setting up access for the first time or reconnecting an existing Lone Wolf account.</p>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip">Setup</span>
+                    <span class="chip">Command Settings</span>
+                  </div>
+                </div>
+                <ol class="transition-step-list">
+                  <li><div><strong>Log into Command.</strong><span>Use the standard Keller Williams login at `agent.kw.com` so the setup happens inside the correct Command profile.</span></div></li>
+                  <li><div><strong>Open Settings from the profile menu.</strong><span>At the top-right of Command, click the profile picture and choose Settings.</span></div></li>
+                  <li><div><strong>Find Lone Wolf under Connected Applications.</strong><span>In the Digital Signature &amp; Transactions area, select `Connect Account` for Lone Wolf.</span></div></li>
+                  <li><div><strong>Sign up or sign in.</strong><span>If the agent already has a Lone Wolf product account, they should sign in with it. If not, they can create the free Command Edition account.</span></div></li>
+                  <li><div><strong>Verify the email and finish setup.</strong><span>After verification, the account is ready for forms access and transaction creation from Opportunities.</span></div></li>
+                </ol>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command" target="_blank" rel="noreferrer">Open KW Guide</a>
+                </div>
+              </article>
+
+              <article class="support-card transition-lesson-card" id="lesson-create-transaction">
+                <div class="transition-lesson-head">
+                  <div>
+                    <p class="eyebrow small">Lesson 2</p>
+                    <h3>Prepare the Opportunity and create the linked transaction</h3>
+                    <p>This is the Command-side setup that makes the rest of the workflow cleaner, especially when the office checklist structure matters.</p>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip">Command</span>
+                    <span class="chip">Checklist Type</span>
+                  </div>
+                </div>
+                <ol class="transition-step-list">
+                  <li><div><strong>Create or find the contact.</strong><span>Make sure the buyer, seller, tenant, or landlord exists in Command before building the Opportunity.</span></div></li>
+                  <li><div><strong>Build the Opportunity with as much detail as possible.</strong><span>Dates, people, property details, and dollar amounts all help later when mapping data into Transact.</span></div></li>
+                  <li><div><strong>Open the Documents tab.</strong><span>Once inside the Opportunity, go to `Documents` to start the compliance-connected workflow.</span></div></li>
+                  <li><div><strong>Select the right checklist type.</strong><span>The checklist type is tied to Market Center setup, so it determines the document expectations and can also control linked forms.</span></div></li>
+                  <li><div><strong>Click `Sync with Transact`.</strong><span>If multiple providers are connected, choose Lone Wolf Transact from the provider menu to create the linked transaction.</span></div></li>
+                </ol>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Create Transaction Guide</a>
+                  <a class="button secondary compact" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">Workflow Overview</a>
+                </div>
+              </article>
+
+              <article class="support-card transition-lesson-card" id="lesson-work-in-transact">
+                <div class="transition-lesson-head">
+                  <div>
+                    <p class="eyebrow small">Lesson 3</p>
+                    <h3>Open the transaction, prep forms, and send for signature</h3>
+                    <p>Once the sync is done, this is the Transact-and-Authentisign portion of the flow.</p>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip">Transact</span>
+                    <span class="chip">Authentisign</span>
+                  </div>
+                </div>
+                <ol class="transition-step-list">
+                  <li><div><strong>Use `Go to Transact` from the Opportunity.</strong><span>Return to the Opportunity Documents tab and open the linked transaction directly from there.</span></div></li>
+                  <li><div><strong>Review the transaction details and parties.</strong><span>Update listing information, add contacts or vendors, and fill in any gaps that were not mapped from Command.</span></div></li>
+                  <li><div><strong>Add the needed forms and documents.</strong><span>Use the form library, templates, and any office-provided structure to build the working packet.</span></div></li>
+                  <li><div><strong>Complete the unsigned portions of the forms.</strong><span>Finish as much of the paperwork as possible before asking for signatures, including reusable clauses when needed.</span></div></li>
+                  <li><div><strong>Create the signing in Authentisign.</strong><span>Assign recipients, make final checks, and send the packet out for email signature.</span></div></li>
+                </ol>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="https://answers.kw.com/hc/en-us/articles/49198810019347-Access-the-Lone-Wolf-Transaction-Linked-to-an-Opportunity" target="_blank" rel="noreferrer">Open Transaction Guide</a>
+                  <a class="button secondary compact" href="https://www.lwolf.com/products/authentisign" target="_blank" rel="noreferrer">Authentisign Overview</a>
+                </div>
+              </article>
+
+              <article class="support-card transition-lesson-card" id="lesson-attach-documents">
+                <div class="transition-lesson-head">
+                  <div>
+                    <p class="eyebrow small">Lesson 4</p>
+                    <h3>Attach the signed files back to the Opportunity</h3>
+                    <p>Command still owns the compliance handoff, so the signed PDFs have to come back into the right event and checklist items.</p>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip">Documents Tab</span>
+                    <span class="chip">Compliance Events</span>
+                  </div>
+                </div>
+                <ol class="transition-step-list">
+                  <li><div><strong>Return to Documents in the Opportunity.</strong><span>Make sure the correct checklist type is still selected before attaching anything.</span></div></li>
+                  <li><div><strong>Pick the compliance event.</strong><span>Choose `Listed`, `Under Contract`, `Closed`, or the event that matches where the transaction is in the process.</span></div></li>
+                  <li><div><strong>Review required and conditional documents.</strong><span>Use the checklist so the agent knows exactly what needs to be present before submission.</span></div></li>
+                  <li><div><strong>Use `Attach Files From`.</strong><span>Pull the signed file from the connected Lone Wolf transaction, another provider, a custom folder, or upload the PDF manually.</span></div></li>
+                  <li><div><strong>Match each file to the right checklist item.</strong><span>Keep attaching until the event is fully documented and ready to move forward.</span></div></li>
+                </ol>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="https://answers.kw.com/hc/en-us/articles/360034202573-Get-Started-with-Documents-and-Attach-Signed-Forms-to-an-Opportunity" target="_blank" rel="noreferrer">Attach Documents Guide</a>
+                </div>
+              </article>
+
+              <article class="support-card transition-lesson-card" id="lesson-submit-documents">
+                <div class="transition-lesson-head">
+                  <div>
+                    <p class="eyebrow small">Lesson 5</p>
+                    <h3>Submit to the Market Center and handle returns</h3>
+                    <p>This closes the workflow loop and gives agents the basic playbook for corrections when a document comes back.</p>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip">Submit to MC</span>
+                    <span class="chip">Returned Docs</span>
+                  </div>
+                </div>
+                <ol class="transition-step-list">
+                  <li><div><strong>Choose the completed compliance event.</strong><span>Inside Documents, select the event that is fully assembled and ready for review.</span></div></li>
+                  <li><div><strong>Click `Submit to MC`.</strong><span>Confirm the submission once all required files are present and attached correctly.</span></div></li>
+                  <li><div><strong>Track the status after submission.</strong><span>Documents can be approved or returned depending on what the Market Center review finds.</span></div></li>
+                  <li><div><strong>Use `Update` when a file needs correction.</strong><span>If something is wrong, replace the document on the checklist and resubmit after the correction is made.</span></div></li>
+                  <li><div><strong>Watch for rejection comments.</strong><span>Use the returned status and comment details to understand exactly what needs to be fixed before sending it back.</span></div></li>
+                </ol>
+                <div class="transition-course-links">
+                  <a class="button primary compact" href="https://answers.kw.com/hc/en-us/articles/360033741014-Submit-Compliance-Documents-to-Your-Market-Center-for-Approval" target="_blank" rel="noreferrer">Submission Guide</a>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" id="preview-library">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Preview Library</p>
+                <h2>Inline videos and previewable PDFs that can live right on the page</h2>
+              </div>
+            </div>
+
+            <div class="transition-resource-grid">
+              <details class="transition-resource-card" open>
+                <summary class="transition-resource-summary">
+                  <div>
+                    <span class="card-tag">Video</span>
+                    <strong>Transitioning to Lone Wolf Transact in KW Command</strong>
+                    <p>Regional walkthrough from KW South Florida Region. This is the first proof-of-concept for how inline video can live in the course library.</p>
+                  </div>
+                  <span class="transition-resource-summary-action">Preview</span>
+                </summary>
+                <div class="transition-resource-body">
+                  <iframe
+                    class="transition-resource-frame transition-resource-frame--video"
+                    src="https://www.youtube.com/embed/6P0WCBhFr-s"
+                    title="Transitioning to Lone Wolf Transact in KW Command"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                  ></iframe>
+                  <div class="transition-course-links">
+                    <a class="button secondary compact" href="https://www.youtube.com/watch?v=6P0WCBhFr-s" target="_blank" rel="noreferrer">Open on YouTube</a>
+                  </div>
+                </div>
+              </details>
+
+              <details class="transition-resource-card">
+                <summary class="transition-resource-summary">
+                  <div>
+                    <span class="card-tag">PDF Preview</span>
+                    <strong>Transact quick-start guide</strong>
+                    <p>Vendor PDF preview so agents can open the guide inside the page before deciding whether they need the full document.</p>
+                  </div>
+                  <span class="transition-resource-summary-action">Load PDF</span>
+                </summary>
+                <div class="transition-resource-body">
+                  <iframe
+                    class="transition-resource-frame transition-resource-frame--pdf"
+                    src="https://get.lwolf.com/rs/803-SUI-561/images/transact-quick-start-guide.pdf?version=0#toolbar=1&navpanes=0&view=FitH"
+                    title="Transact quick-start guide"
+                    loading="lazy"
+                  ></iframe>
+                  <div class="transition-course-links">
+                    <a class="button secondary compact" href="https://get.lwolf.com/rs/803-SUI-561/images/transact-quick-start-guide.pdf?version=0" target="_blank" rel="noreferrer">Open Full PDF</a>
+                  </div>
+                </div>
+              </details>
+
+              <details class="transition-resource-card">
+                <summary class="transition-resource-summary">
+                  <div>
+                    <span class="card-tag">PDF Preview</span>
+                    <strong>Agent launch FAQ</strong>
+                    <p>A second previewable PDF slot that shows how launch memos, FAQ packs, and office guides can load without leaving the page.</p>
+                  </div>
+                  <span class="transition-resource-summary-action">Load PDF</span>
+                </summary>
+                <div class="transition-resource-body">
+                  <iframe
+                    class="transition-resource-frame transition-resource-frame--pdf"
+                    src="https://get.lwolf.com/rs/803-SUI-561/images/lone-wolf-transact-agent-launch-faq.pdf?version=0#toolbar=1&navpanes=0&view=FitH"
+                    title="Lone Wolf Transact agent launch FAQ"
+                    loading="lazy"
+                  ></iframe>
+                  <div class="transition-course-links">
+                    <a class="button secondary compact" href="https://get.lwolf.com/rs/803-SUI-561/images/lone-wolf-transact-agent-launch-faq.pdf?version=0" target="_blank" rel="noreferrer">Open Full PDF</a>
+                  </div>
+                </div>
+              </details>
+
+              <article class="support-card transition-inline-note">
+                <span class="card-tag">Future Shelf</span>
+                <h3>Office files can use the same preview pattern</h3>
+                <p>Once we have Leading Edge PDFs or recordings, we can point cards like these at local files and keep the same click-to-preview behavior.</p>
+                <ul class="transition-checklist">
+                  <li><div><strong>PDFs</strong><span>Examples: quick guides, office SOPs, checklists, launch decks, and FAQ packets.</span></div></li>
+                  <li><div><strong>Videos</strong><span>Examples: office walkthrough recordings, short clips for one lesson, or weekly office-hours recaps.</span></div></li>
+                  <li><div><strong>Course packs</strong><span>Each module can eventually get its own small media shelf instead of relying on one big resource list.</span></div></li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" id="office-library">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Office Shelf</p>
+                <h2>How local PDFs and recordings can plug into this draft later</h2>
+              </div>
+            </div>
+
+            <div class="transition-file-shelf">
+              <article class="transition-file-slot">
+                <span class="card-tag">PDF Slot</span>
+                <h3>Office cheat sheet pack</h3>
+                <p>Good spot for a short "what do I click next?" PDF that matches the exact office process once launch timing is set.</p>
+                <div class="chip-row">
+                  <span class="chip">Suggested path</span>
+                  <span class="chip">downloads/transition/leading-edge-lw-cheat-sheet.pdf</span>
+                </div>
+              </article>
+
+              <article class="transition-file-slot">
+                <span class="card-tag">Video Slot</span>
+                <h3>Office walkthrough replay</h3>
+                <p>This is where a Leading Edge training recording or Loom recap can sit once the office runs its own session.</p>
+                <div class="chip-row">
+                  <span class="chip">Suggested path</span>
+                  <span class="chip">downloads/transition/leading-edge-lw-walkthrough.mp4</span>
+                </div>
+              </article>
+
+              <article class="transition-file-slot">
+                <span class="card-tag">PDF Slot</span>
+                <h3>Launch FAQ and support ladder</h3>
+                <p>Useful for one office-owned PDF that answers "who do I contact for what?" while agents are still adjusting to the new system.</p>
+                <div class="chip-row">
+                  <span class="chip">Suggested path</span>
+                  <span class="chip">downloads/transition/leading-edge-lw-faq.pdf</span>
+                </div>
+              </article>
+
+              <article class="transition-file-slot">
+                <span class="card-tag">Course Pack</span>
+                <h3>Module-by-module downloads</h3>
+                <p>Each lesson can eventually get its own office PDF, instead of forcing agents to scroll through one large reference pack.</p>
+                <div class="chip-row">
+                  <span class="chip">Examples</span>
+                  <span class="chip">module-1.pdf</span>
+                  <span class="chip">module-2.pdf</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" id="launch-readiness">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow small">Launch Notes</p>
+                <h2>How this draft can grow from training page to live resource hub</h2>
+              </div>
+            </div>
+
+            <div class="transition-phase-grid">
+              <article class="transition-phase-card">
+                <span class="card-tag">Before Go-Live</span>
+                <h3>Build the page</h3>
+                <p>Finish gathering the workflow articles, office expectations, and first-wave support material before the office publicly points agents here.</p>
+                <ul class="transition-mini-list">
+                  <li>Confirm which links should stay at the top of the page.</li>
+                  <li>Add office-specific FAQs, dates, and contact paths.</li>
+                  <li>Decide which internal training recording should be the featured resource.</li>
+                </ul>
+              </article>
+
+              <article class="transition-phase-card">
+                <span class="card-tag">Go-Live Week</span>
+                <h3>Use it daily</h3>
+                <p>This draft can become the office help center during the first wave of adoption once the rollout date is announced.</p>
+                <ul class="transition-mini-list">
+                  <li>Pin the most common troubleshooting steps and training sessions.</li>
+                  <li>Update the FAQ based on what agents are asking in real time.</li>
+                  <li>Keep the workflow articles visible so agents can self-serve.</li>
+                </ul>
+              </article>
+
+              <article class="transition-phase-card">
+                <span class="card-tag">After Launch</span>
+                <h3>Keep it current</h3>
+                <p>Once the transition settles, this can remain the permanent Transact resource page rather than a one-time announcement page.</p>
+                <ul class="transition-mini-list">
+                  <li>Retire outdated launch notes and keep evergreen guidance.</li>
+                  <li>Refresh videos, SOPs, and templates as the workflow evolves.</li>
+                  <li>Link it into the portal only when the office is ready for it to be a standing page.</li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="transition-note-card">
+              <strong>Current draft status</strong>
+              <p>
+                This file is being created as a working draft only. It is intentionally not added to the live portal
+                navigation, and it is stored in a non-published path so we can keep building content before launch.
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="../script.js"></script>
+</body>
+</html>

@@ -24,11 +24,41 @@ const rateRefs = {
   fha: [...document.querySelectorAll('[data-rate-value="fha"]')],
   va: [...document.querySelectorAll('[data-rate-value="va"]')],
   jumbo: [...document.querySelectorAll('[data-rate-value="jumbo"]')],
+  pills: {
+    conventional: [...document.querySelectorAll('[data-rate-pill="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-pill="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-pill="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-pill="jumbo"]')]
+  },
   trends: {
     conventional: [...document.querySelectorAll('[data-rate-trend="conventional"]')],
     fha: [...document.querySelectorAll('[data-rate-trend="fha"]')],
     va: [...document.querySelectorAll('[data-rate-trend="va"]')],
     jumbo: [...document.querySelectorAll('[data-rate-trend="jumbo"]')]
+  },
+  dayChanges: {
+    conventional: [...document.querySelectorAll('[data-rate-day-change="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-day-change="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-day-change="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-day-change="jumbo"]')]
+  },
+  dayDates: {
+    conventional: [...document.querySelectorAll('[data-rate-day-date="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-day-date="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-day-date="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-day-date="jumbo"]')]
+  },
+  yearChanges: {
+    conventional: [...document.querySelectorAll('[data-rate-year-change="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-year-change="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-year-change="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-year-change="jumbo"]')]
+  },
+  yearDates: {
+    conventional: [...document.querySelectorAll('[data-rate-year-date="conventional"]')],
+    fha: [...document.querySelectorAll('[data-rate-year-date="fha"]')],
+    va: [...document.querySelectorAll('[data-rate-year-date="va"]')],
+    jumbo: [...document.querySelectorAll('[data-rate-year-date="jumbo"]')]
   },
   sourceDateLabels: [...document.querySelectorAll("[data-rates-source-date]")]
 };
@@ -113,21 +143,25 @@ const RATE_PROGRAMS = {
   conventional: {
     label: "Conventional",
     surveyName: "30 Year Fixed",
+    chartCode: "mtg-rates-thirty-year-full",
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fixed"
   },
   fha: {
     label: "FHA",
     surveyName: "30 Year FHA",
+    chartCode: "mtg-rates-thirty-year-fha-full",
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-fha"
   },
   va: {
     label: "VA",
     surveyName: "30 Year VA",
+    chartCode: "mtg-rates-thirty-year-va-full",
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-va"
   },
   jumbo: {
     label: "Jumbo",
     surveyName: "30 Year Jumbo",
+    chartCode: "mtg-rates-thirty-year-jumbo-full",
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo"
   }
 };
@@ -981,6 +1015,10 @@ function writeRates(state) {
   writeRateTrend("fha", state.fhaRateChange, state.fhaRateDirection);
   writeRateTrend("va", state.vaRateChange, state.vaRateDirection);
   writeRateTrend("jumbo", state.jumboRateChange, state.jumboRateDirection);
+  writeRateDetailState("conventional", state);
+  writeRateDetailState("fha", state);
+  writeRateDetailState("va", state);
+  writeRateDetailState("jumbo", state);
 }
 
 function normalizeTextContent(value) {
@@ -1005,6 +1043,12 @@ function roundRateChange(value) {
 
   const rounded = Number(value.toFixed(2));
   return Object.is(rounded, -0) ? 0 : rounded;
+}
+
+function normalizeRateChangeValue(changeValue) {
+  return changeValue === null || changeValue === undefined || changeValue === ""
+    ? Number.NaN
+    : Number(changeValue);
 }
 
 function resolveRateDirection(changeValue, fallbackDirection = "neutral") {
@@ -1033,9 +1077,7 @@ function formatRateChange(changeValue) {
 
 function writeRateTrend(programKey, changeValue, direction) {
   const refs = rateRefs.trends[programKey] || [];
-  const numericChange = changeValue === null || changeValue === undefined || changeValue === ""
-    ? Number.NaN
-    : Number(changeValue);
+  const numericChange = normalizeRateChangeValue(changeValue);
   const formattedValue = formatRateChange(numericChange);
   const tone = resolveRateDirection(numericChange, direction);
 
@@ -1059,14 +1101,109 @@ function writeRateTrend(programKey, changeValue, direction) {
   });
 }
 
+function buildRateComparisonSummary(periodLabel, comparison) {
+  if (!comparison || comparison.formattedValue === "--") {
+    return `${periodLabel} change unavailable.`;
+  }
+
+  const dateSummary = comparison.formattedDate ? ` versus ${comparison.formattedDate}` : "";
+  if (comparison.tone === "down") {
+    return `${periodLabel} decreased ${comparison.formattedValue}${dateSummary}.`;
+  }
+
+  if (comparison.tone === "up") {
+    return `${periodLabel} increased ${comparison.formattedValue}${dateSummary}.`;
+  }
+
+  return `${periodLabel} unchanged at ${comparison.formattedValue}${dateSummary}.`;
+}
+
+function writeRateComparison(changeRefs, dateRefs, changeValue, direction, compareDate) {
+  const numericChange = normalizeRateChangeValue(changeValue);
+  const formattedValue = formatRateChange(numericChange);
+  const tone = resolveRateDirection(numericChange, direction);
+  const formattedDate = formatSourceDate(compareDate);
+  const comparisonLabel = formattedDate ? `vs ${formattedDate}` : "Comparison unavailable";
+
+  changeRefs.forEach((ref) => {
+    ref.textContent = formattedValue;
+    ref.dataset.tone = formattedValue === "--" ? "neutral" : tone;
+  });
+
+  dateRefs.forEach((ref) => {
+    ref.textContent = comparisonLabel;
+  });
+
+  return {
+    formattedValue,
+    tone,
+    formattedDate
+  };
+}
+
+function setRatePillAriaLabel(programKey, currentRate, dayComparison, yearComparison) {
+  const refs = rateRefs.pills[programKey] || [];
+  if (!refs.length) {
+    return;
+  }
+
+  const programLabel = RATE_PROGRAMS[programKey]?.label || programKey;
+  const currentRateSummary = currentRate
+    ? `${programLabel} mortgage rate ${currentRate}%.`
+    : `${programLabel} mortgage rate unavailable.`;
+  const label = [
+    currentRateSummary,
+    buildRateComparisonSummary("Day over day", dayComparison),
+    buildRateComparisonSummary("Year over year", yearComparison)
+  ].join(" ");
+
+  refs.forEach((ref) => {
+    ref.setAttribute("aria-label", label);
+  });
+}
+
+function writeRateDetailState(programKey, state) {
+  const dayComparison = writeRateComparison(
+    rateRefs.dayChanges[programKey] || [],
+    rateRefs.dayDates[programKey] || [],
+    state[`${programKey}RateChange`],
+    state[`${programKey}RateDirection`],
+    state[`${programKey}RatePreviousDate`]
+  );
+  const yearComparison = writeRateComparison(
+    rateRefs.yearChanges[programKey] || [],
+    rateRefs.yearDates[programKey] || [],
+    state[`${programKey}RateYearChange`],
+    state[`${programKey}RateYearDirection`],
+    state[`${programKey}RateYearAgoDate`]
+  );
+
+  setRatePillAriaLabel(programKey, state[`${programKey}Rate`], dayComparison, yearComparison);
+}
+
+function parseRateDateValue(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const directParsed = Date.parse(normalized);
+  if (Number.isFinite(directParsed)) {
+    return new Date(directParsed);
+  }
+
+  const fallbackParsed = Date.parse(`${normalized} 12:00:00`);
+  return Number.isFinite(fallbackParsed) ? new Date(fallbackParsed) : null;
+}
+
 function formatSourceDate(value) {
   const normalized = String(value || "").trim();
   if (!normalized) {
     return "";
   }
 
-  const parsed = Date.parse(`${normalized} 12:00:00`);
-  if (!Number.isFinite(parsed)) {
+  const parsed = parseRateDateValue(normalized);
+  if (!parsed) {
     return normalized;
   }
 
@@ -1075,7 +1212,7 @@ function formatSourceDate(value) {
     day: "numeric",
     year: "numeric",
     timeZone: "America/New_York"
-  }).format(new Date(parsed));
+  }).format(parsed);
 }
 
 function setRatesSourceDateLabel(state) {
@@ -1346,6 +1483,7 @@ function parseMortgageNewsDailySurvey(html, surveyName) {
     date: currentRow.date,
     rate: currentRow.rate,
     previousRate: previousRow && Number.isFinite(previousRow.rate) ? previousRow.rate : null,
+    previousDate: previousRow ? previousRow.date : "",
     change: computedChange,
     direction
   };
@@ -1364,6 +1502,7 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
       date: surveyMatch[1].trim(),
       rate: Number.parseFloat(surveyMatch[2]),
       previousRate: null,
+      previousDate: "",
       change: Number.NaN,
       direction: "neutral"
     };
@@ -1375,6 +1514,7 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
       date: "",
       rate: Number.parseFloat(currentRateMatch[1]),
       previousRate: null,
+      previousDate: "",
       change: Number.NaN,
       direction: "neutral"
     };
@@ -1383,8 +1523,114 @@ function parseLatestMortgageNewsDailyRate(html, surveyName) {
   return null;
 }
 
+function parseRateChartPayload(html) {
+  const match = String(html || "").match(/var chartData = (\{[\s\S]*?\});/);
+  if (!match) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeRateChartPoint(point) {
+  const date = typeof point?.d === "string" ? point.d : "";
+  const parsedDate = parseRateDateValue(date);
+  const rate = Number(point?.v);
+  const change = roundRateChange(Number(point?.DataChange));
+
+  return {
+    date,
+    timestamp: parsedDate ? parsedDate.getTime() : Number.NaN,
+    rate,
+    change,
+    direction: resolveRateDirection(change, "neutral")
+  };
+}
+
+function findNearestHistoricalRatePoint(points, targetTimestamp) {
+  if (!Number.isFinite(targetTimestamp)) {
+    return null;
+  }
+
+  for (let index = points.length - 1; index >= 0; index -= 1) {
+    const point = points[index];
+    if (Number.isFinite(point.timestamp) && point.timestamp <= targetTimestamp) {
+      return point;
+    }
+  }
+
+  return null;
+}
+
+function buildRateFromChartData(chartData) {
+  const rawPoints = Array.isArray(chartData?.chartSeries?.[0]?.data)
+    ? chartData.chartSeries[0].data
+    : [];
+  const points = rawPoints
+    .map(normalizeRateChartPoint)
+    .filter((point) => Number.isFinite(point.rate) && Number.isFinite(point.timestamp));
+
+  if (!points.length) {
+    return null;
+  }
+
+  const currentPoint = points[points.length - 1];
+  const previousPoint = points.length > 1 ? points[points.length - 2] : null;
+  const yearAgoTarget = new Date(currentPoint.timestamp);
+  yearAgoTarget.setUTCFullYear(yearAgoTarget.getUTCFullYear() - 1);
+  const yearAgoPoint = findNearestHistoricalRatePoint(points, yearAgoTarget.getTime());
+  const dayChange = previousPoint
+    ? roundRateChange(currentPoint.rate - previousPoint.rate)
+    : currentPoint.change;
+  const yearChange = yearAgoPoint
+    ? roundRateChange(currentPoint.rate - yearAgoPoint.rate)
+    : Number.NaN;
+
+  return {
+    date: currentPoint.date,
+    rate: currentPoint.rate,
+    previousRate: previousPoint ? previousPoint.rate : null,
+    previousDate: previousPoint ? previousPoint.date : "",
+    change: dayChange,
+    direction: resolveRateDirection(dayChange, currentPoint.direction),
+    yearAgoRate: yearAgoPoint ? yearAgoPoint.rate : null,
+    yearAgoDate: yearAgoPoint ? yearAgoPoint.date : "",
+    yearChange,
+    yearDirection: resolveRateDirection(yearChange, "neutral")
+  };
+}
+
+async function fetchRateHistory(programKey) {
+  const program = RATE_PROGRAMS[programKey];
+  if (!program?.chartCode) {
+    throw new Error(`Missing chart code for ${programKey}`);
+  }
+
+  const chartUrl = `https://www.mortgagenewsdaily.com/charts/embed/${program.chartCode}`;
+  const html = await fetchTextViaProxy(chartUrl);
+  const chartData = parseRateChartPayload(html);
+  const latestRate = buildRateFromChartData(chartData);
+  if (!latestRate || !Number.isFinite(latestRate.rate)) {
+    throw new Error(`Could not parse ${program.label} history`);
+  }
+
+  return latestRate;
+}
+
 async function fetchRate(programKey) {
   const program = RATE_PROGRAMS[programKey];
+  if (program?.chartCode) {
+    try {
+      return await fetchRateHistory(programKey);
+    } catch {
+      // Fall back to the product page parser if the chart payload is unavailable.
+    }
+  }
+
   const html = await fetchTextViaProxy(program.sourceUrl);
   const latestRate = parseMortgageNewsDailySurvey(html, program.surveyName)
     || parseLatestMortgageNewsDailyRate(html, program.surveyName);
@@ -1428,6 +1674,22 @@ async function refreshRates() {
       fhaRateDirection: fha.direction || "neutral",
       vaRateDirection: va.direction || "neutral",
       jumboRateDirection: jumbo.direction || "neutral",
+      conventionalRatePreviousDate: conventional.previousDate || "",
+      fhaRatePreviousDate: fha.previousDate || "",
+      vaRatePreviousDate: va.previousDate || "",
+      jumboRatePreviousDate: jumbo.previousDate || "",
+      conventionalRateYearChange: Number.isFinite(conventional.yearChange) ? conventional.yearChange : null,
+      fhaRateYearChange: Number.isFinite(fha.yearChange) ? fha.yearChange : null,
+      vaRateYearChange: Number.isFinite(va.yearChange) ? va.yearChange : null,
+      jumboRateYearChange: Number.isFinite(jumbo.yearChange) ? jumbo.yearChange : null,
+      conventionalRateYearDirection: conventional.yearDirection || "neutral",
+      fhaRateYearDirection: fha.yearDirection || "neutral",
+      vaRateYearDirection: va.yearDirection || "neutral",
+      jumboRateYearDirection: jumbo.yearDirection || "neutral",
+      conventionalRateYearAgoDate: conventional.yearAgoDate || "",
+      fhaRateYearAgoDate: fha.yearAgoDate || "",
+      vaRateYearAgoDate: va.yearAgoDate || "",
+      jumboRateYearAgoDate: jumbo.yearAgoDate || "",
       conventionalSurveyDate: conventional.date || "",
       fhaSurveyDate: fha.date || "",
       vaSurveyDate: va.date || "",
