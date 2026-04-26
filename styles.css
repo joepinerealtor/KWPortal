@@ -1517,7 +1517,7 @@ img {
   grid-template-columns: minmax(340px, 1.1fr) minmax(0, 0.9fr);
   align-items: stretch;
   padding: 28px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(212, 201, 188, 0.92);
   background:
     linear-gradient(102deg, rgba(17, 17, 17, 0.84) 0%, rgba(17, 17, 17, 0.68) 34%, rgba(17, 17, 17, 0.28) 64%, rgba(17, 17, 17, 0.08) 100%),
@@ -1610,9 +1610,11 @@ img {
   display: grid;
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   gap: 12px;
+  overflow: visible;
 }
 
 .dashboard-head-market-section {
+  position: relative;
   display: grid;
   gap: 10px;
   padding: 14px;
@@ -1620,6 +1622,7 @@ img {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(250, 246, 241, 0.16));
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 48px -36px rgba(0, 0, 0, 0.52);
+  overflow: visible;
 }
 
 .dashboard-head-market-heading {
