@@ -2832,7 +2832,34 @@ img {
   display: grid;
   gap: 6px;
   align-content: start;
+  align-items: center;
+  min-height: 112px;
   min-width: 0;
+}
+
+.vendor-card-featured .vendor-brand {
+  min-height: 140px;
+}
+
+.vendor-logo {
+  display: block;
+  width: min(100%, 330px);
+  max-height: 118px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.vendor-card-featured .vendor-logo {
+  width: min(100%, 470px);
+  max-height: 150px;
+}
+
+.vendor-brand-trueliving .vendor-logo {
+  max-height: 150px;
+}
+
+.vendor-brand-airguardian .vendor-logo {
+  border-radius: 4px;
 }
 
 .vendor-brand strong,
