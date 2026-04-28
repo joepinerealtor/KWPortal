@@ -2843,14 +2843,17 @@ img {
 
 .vendor-logo {
   display: block;
-  width: min(100%, 330px);
+  width: 100%;
+  max-width: 330px;
+  height: auto;
   max-height: 118px;
   object-fit: contain;
   object-position: left center;
+  place-self: center start;
 }
 
 .vendor-card-featured .vendor-logo {
-  width: min(100%, 470px);
+  max-width: 470px;
   max-height: 150px;
 }
 
