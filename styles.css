@@ -2166,15 +2166,25 @@ img {
 }
 
 .joe-support-contact-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(105, 105, 105, 0.18);
+  border-radius: 999px;
+  background: rgba(246, 241, 234, 0.72);
   color: var(--kw-gray);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
   overflow-wrap: anywhere;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
 }
 
 .joe-support-contact-link:hover,
 .joe-support-contact-link:focus-visible {
+  border-color: rgba(180, 1, 1, 0.24);
+  background: rgba(255, 246, 246, 0.96);
   color: var(--kw-red);
 }
 
@@ -2639,14 +2649,14 @@ img {
 
 .leadership-support-card {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 108px minmax(0, 1fr) auto;
   grid-template-areas:
-    "photo copy"
-    "photo action";
-  gap: 16px;
+    "photo copy action"
+    "photo status status";
+  gap: 14px 20px;
   align-items: start;
   margin-top: 18px;
-  padding: 18px;
+  padding: 22px 24px;
   border: 1px solid var(--kw-border);
   border-top: 4px solid var(--kw-red);
   background: linear-gradient(180deg, #ffffff, #faf6f1);
@@ -2654,18 +2664,20 @@ img {
 
 .leadership-support-photo {
   grid-area: photo;
-  width: 96px;
-  height: 96px;
+  width: 108px;
+  height: 108px;
   object-fit: cover;
   border: 1px solid var(--kw-border);
+  border-radius: 18px;
   background: #f1ece4;
 }
 
 .leadership-support-copy {
   grid-area: copy;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
+  align-self: center;
 }
 
 .leadership-support-copy .eyebrow,
@@ -2676,16 +2688,27 @@ img {
 .leadership-support-copy h3 {
   margin: 0;
   font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
-  font-size: 1.28rem;
-  line-height: 1;
+  font-size: 1.42rem;
+  line-height: 0.98;
   text-transform: uppercase;
+}
+
+.leadership-support-summary {
+  max-width: 72ch;
+  color: var(--kw-gray);
+  line-height: 1.5;
 }
 
 .leadership-support-button {
   grid-area: action;
-  justify-self: start;
-  align-self: start;
+  justify-self: end;
+  align-self: center;
+  min-width: 232px;
   white-space: normal;
+}
+
+.leadership-support-card > .joe-availability-panel {
+  grid-area: status;
 }
 
 .joe-availability-panel {
@@ -2693,7 +2716,7 @@ img {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid rgba(105, 105, 105, 0.22);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 241, 234, 0.92));
@@ -3864,7 +3887,13 @@ body.has-calendar-modal .page-content {
     grid-template-columns: 96px minmax(0, 1fr);
     grid-template-areas:
       "photo copy"
+      "status status"
       "action action";
+  }
+
+  .leadership-support-photo {
+    width: 96px;
+    height: 96px;
   }
 
   .joe-support-profile {
@@ -3878,6 +3907,8 @@ body.has-calendar-modal .page-content {
 
   .leadership-support-button {
     justify-self: start;
+    align-self: start;
+    min-width: 0;
   }
 }
 
@@ -3946,7 +3977,13 @@ body.has-calendar-modal .page-content {
     grid-template-areas:
       "photo"
       "copy"
+      "status"
       "action";
+  }
+
+  .leadership-support-photo {
+    width: 112px;
+    height: 112px;
   }
 
   .joe-support-profile {
