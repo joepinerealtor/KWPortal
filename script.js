@@ -155,7 +155,6 @@ const JOE_AVAILABILITY_STORAGE_KEY = "kw-leading-edge-portal.joe-tech-status.v1"
 const JOE_AVAILABILITY_REFRESH_INTERVAL_MS = 60 * 1000;
 const JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS = 60 * 1000;
 const JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES = 30;
-const JOE_AVAILABILITY_SOON_WINDOW_MS = 0;
 const JOE_AVAILABILITY_FALLBACK_TIMEZONE = "America/New_York";
 const JOE_AVAILABILITY_DEFAULT_WORKING_HOURS = Object.freeze([
   Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00" }),
@@ -1160,10 +1159,6 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
     : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
-  const parsedAvailableWindow = Number.parseInt(rawState?.availableWindowMinutes, 10);
-  const availableWindowMs = Number.isFinite(parsedAvailableWindow) && parsedAvailableWindow >= 0
-    ? parsedAvailableWindow * 60 * 1000
-    : JOE_AVAILABILITY_SOON_WINDOW_MS;
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
@@ -1179,24 +1174,20 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const isWithinWorkingHoursNow = isWithinJoeWorkingHours(new Date(nowMs), timezone, workingHours);
   const isNextSlotWithinWorkingHours = Number.isFinite(nextOpenSlotMs)
     && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHours, eventDurationMinutes);
-  const availableNowLabel = rawState?.availableNowLabel || "Joe is available now";
-  const availableSoonLabel = rawState?.availableSoonLabel || "Joe is available soon";
+  const availableNowLabel = rawState?.availableNowLabel || "Joe is available to chat";
   const unavailableLabel = rawState?.unavailableLabel || "Joe is unavailable";
   const baseStatus = [
     "available",
     "available_now",
-    "available_soon",
     "unavailable"
   ].includes(rawState?.status)
     ? rawState.status
     : "unavailable";
-  let status = baseStatus === "available" ? "available_soon" : baseStatus;
+  let status = baseStatus === "available" ? "unavailable" : baseStatus;
 
   if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
     if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
       status = "available_now";
-    } else if (isWithinWorkingHoursNow && nextOpenSlotMs > nowMs && nextOpenSlotMs <= nowMs + availableWindowMs) {
-      status = "available_soon";
     } else if (nowMs < nextOpenSlotMs) {
       status = "unavailable";
     } else {
@@ -1213,22 +1204,8 @@ function normalizeJoeAvailabilityState(rawState = {}) {
       status,
       label: availableNowLabel,
       summary: rawState?.availableNowSummary || (endLabel
-        ? `Current tech-help window is open until ${endLabel}.`
-        : "Open Calendly to grab Joe's current tech-help slot.")
-    };
-  }
-
-  if (status === "available_soon") {
-    const nextLabel = Number.isFinite(nextOpenSlotMs)
-      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
-      : "";
-
-    return {
-      status,
-      label: availableSoonLabel,
-      summary: rawState?.availableSoonSummary || (nextLabel
-        ? `Next open slot is ${nextLabel}.`
-        : "A tech-help slot is opening soon.")
+        ? `Feel free to book a private meeting or call Joe to sit with him. Current availability runs until ${endLabel}.`
+        : "Feel free to book a private meeting or call Joe to sit with him.")
     };
   }
 

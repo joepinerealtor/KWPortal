@@ -1,9 +1,8 @@
 {
-    "status":  "available_soon",
+    "status":  "unavailable",
     "timezone":  "America/New_York",
     "eventDurationMinutes":  30,
-    "availableWindowMinutes":  60,
-    "nextOpenSlotIso":  "2026-04-29T19:00:00.000Z",
+    "nextOpenSlotIso":  "2026-04-29T20:00:00.000Z",
     "busyNowStartIso":  "",
     "busyNowEndIso":  "",
     "workingHours":  [
@@ -23,8 +22,8 @@
                              "end":  "16:00"
                          }
                      ],
-    "availableNowLabel":  "Joe is available now",
-    "availableSoonLabel":  "Joe is available soon",
+    "availableNowLabel":  "Joe is available to chat",
+    "availableNowSummary":  "Feel free to book a private meeting or call Joe to sit with him.",
     "busyNowLabel":  "Joe is in another appointment",
     "unavailableLabel":  "Joe is unavailable",
     "noSlotsSummary":  "No open tech-help slots are listed right now."

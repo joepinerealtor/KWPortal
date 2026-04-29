@@ -6,8 +6,7 @@ param(
   [string]$CalendlyUserUri = $env:CALENDLY_JOE_USER_URI,
   [string]$CalendlyBookingUrl = $(if ($env:CALENDLY_JOE_BOOKING_URL) { $env:CALENDLY_JOE_BOOKING_URL } else { "https://calendly.com/joepinerealtor/tech-meeting-with-joe" }),
   [string]$CalendlyTimeZone = $env:CALENDLY_JOE_TIMEZONE,
-  [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 }),
-  [int]$AvailableWindowMinutes = $(if ($env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES) { [int]$env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES } else { 0 })
+  [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 })
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,10 +15,6 @@ $JoeWorkingHours = @(
   [ordered]@{ Day = "Thursday"; Start = "09:00"; End = "17:00" },
   [ordered]@{ Day = "Friday"; Start = "09:00"; End = "16:00" }
 )
-
-if ($AvailableWindowMinutes -le 0) {
-  $AvailableWindowMinutes = 60
-}
 
 function Get-CalendlyHeaders {
   param(
@@ -486,8 +481,6 @@ if ((-not $isBusyNow) -and -not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) 
 
   if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
     $status = "available_now"
-  } elseif ($isWithinWorkingHoursNow -and $slotStart -gt $now -and $slotStart -le $now.AddMinutes($AvailableWindowMinutes)) {
-    $status = "available_soon"
   }
 }
 
@@ -495,7 +488,6 @@ $payload = [ordered]@{
   status = $status
   timezone = $timeZone
   eventDurationMinutes = $durationMinutes
-  availableWindowMinutes = $AvailableWindowMinutes
   nextOpenSlotIso = $nextOpenSlotIso
   busyNowStartIso = $busyNowStartIso
   busyNowEndIso = $busyNowEndIso
@@ -508,8 +500,8 @@ $payload = [ordered]@{
       }
     }
   )
-  availableNowLabel = "Joe is available now"
-  availableSoonLabel = "Joe is available soon"
+  availableNowLabel = "Joe is available to chat"
+  availableNowSummary = "Feel free to book a private meeting or call Joe to sit with him."
   busyNowLabel = "Joe is in another appointment"
   unavailableLabel = "Joe is unavailable"
   noSlotsSummary = "No open tech-help slots are listed right now."

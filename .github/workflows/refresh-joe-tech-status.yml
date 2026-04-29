@@ -26,7 +26,6 @@ jobs:
           CALENDLY_JOE_BOOKING_URL: ${{ vars.CALENDLY_JOE_BOOKING_URL }}
           CALENDLY_JOE_TIMEZONE: ${{ vars.CALENDLY_JOE_TIMEZONE }}
           CALENDLY_JOE_EVENT_DURATION_MINUTES: ${{ vars.CALENDLY_JOE_EVENT_DURATION_MINUTES }}
-          CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES: ${{ vars.CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES }}
         run: .\scripts\update-joe-tech-status.ps1 -RepositoryRoot $PWD.Path
 
       - name: Commit refreshed status feed when needed
