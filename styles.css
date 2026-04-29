@@ -1017,7 +1017,7 @@ img {
 
 .content-strip-tech-support {
   display: flex;
-  flex: 0 1 380px;
+  flex: 0 1 450px;
   min-width: min(100%, 320px);
   max-width: 100%;
 }
@@ -1123,7 +1123,8 @@ img {
   align-items: center;
   justify-content: center;
   min-height: 34px;
-  padding: 0.52rem 0.76rem;
+  min-width: 86px;
+  padding: 0.52rem 0.72rem;
   border: 1px solid rgba(17, 17, 17, 0.16);
   background: rgba(255, 255, 255, 0.92);
   color: var(--kw-black);
@@ -1178,10 +1179,10 @@ img {
   margin-right: 2px;
 }
 
-.joe-availability-panel--compact {
+.joe-availability-panel.joe-availability-panel--compact {
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   padding: 10px 12px;
   border-radius: 16px;
@@ -1221,7 +1222,7 @@ img {
 }
 
 .joe-availability-panel--compact .joe-availability-label {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.15;
@@ -1229,8 +1230,8 @@ img {
 }
 
 .joe-availability-panel--compact .joe-availability-summary {
-  font-size: 0.8rem;
-  line-height: 1.22;
+  font-size: 0.76rem;
+  line-height: 1.25;
 }
 
 .content-rate-pill {
@@ -3421,6 +3422,10 @@ body.has-calendar-modal .page-content {
 .room-booking-modal.is-open {
   opacity: 1;
   pointer-events: auto;
+}
+
+.room-booking-modal[hidden] {
+  display: none;
 }
 
 .room-booking-dialog {

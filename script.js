@@ -170,6 +170,15 @@ const JOE_AVAILABILITY_WEEKDAY_INDEX = Object.freeze({
   friday: 5,
   saturday: 6
 });
+const JOE_AVAILABILITY_WEEKDAY_LABELS = Object.freeze([
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat"
+]);
 const RATE_PROGRAMS = {
   conventional: {
     label: "Conventional",
@@ -904,22 +913,41 @@ function createRoomBookingModal() {
     <div class="room-booking-dialog" role="dialog" aria-modal="true" aria-labelledby="roomBookingTitle">
       <div class="room-booking-header">
         <div class="room-booking-copy">
-          <p class="eyebrow small">Conference Room Booking</p>
+          <p class="eyebrow small room-booking-eyebrow">Conference Room Booking</p>
           <h2 class="room-booking-title" id="roomBookingTitle">Book a Room</h2>
           <p class="room-booking-summary">Choose an available time and complete the reservation without leaving the portal.</p>
         </div>
         <button type="button" class="button secondary compact room-booking-close">Close</button>
       </div>
       <div class="room-booking-frame-shell">
-        <iframe class="room-booking-frame" title="Conference room booking" src="about:blank" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <iframe class="room-booking-frame" title="Booking calendar" src="about:blank" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </div>
   `;
   return modal;
 }
 
+function getCalendlyEmbedUrl(url) {
+  if (!url || !url.includes("calendly.com")) {
+    return url;
+  }
+
+  try {
+    const calendlyUrl = new URL(url, window.location.href);
+    calendlyUrl.searchParams.set("embed_domain", "agent.kwleadingedge.com");
+    calendlyUrl.searchParams.set("embed_type", "Inline");
+    calendlyUrl.searchParams.set("back", "1");
+    return calendlyUrl.toString();
+  } catch {
+    return url;
+  }
+}
+
 function initializeRoomBookingModal() {
-  const triggers = [...document.querySelectorAll(".room-booking-trigger[data-room-booking-url]")];
+  const triggers = [
+    ...document.querySelectorAll(".room-booking-trigger[data-room-booking-url]"),
+    ...document.querySelectorAll('a[href*="calendly.com/joepinerealtor/tech-meeting-with-joe"]')
+  ];
   if (!triggers.length) {
     return;
   }
@@ -929,6 +957,7 @@ function initializeRoomBookingModal() {
 
   const title = modal.querySelector(".room-booking-title");
   const summary = modal.querySelector(".room-booking-summary");
+  const eyebrow = modal.querySelector(".room-booking-eyebrow");
   const closeButton = modal.querySelector(".room-booking-close");
   const iframe = modal.querySelector(".room-booking-frame");
   let lastTrigger = null;
@@ -951,17 +980,26 @@ function initializeRoomBookingModal() {
   };
 
   const openModal = (trigger) => {
-    const bookingUrl = trigger.dataset.roomBookingUrl;
-    const bookingLabel = trigger.dataset.roomBookingLabel || "Conference Room";
+    const href = trigger.getAttribute("href") || "";
+    const isJoeBooking = href.includes("calendly.com/joepinerealtor/tech-meeting-with-joe");
+    const bookingUrl = getCalendlyEmbedUrl(trigger.dataset.roomBookingUrl || href);
+    const bookingLabel = trigger.dataset.roomBookingLabel || (isJoeBooking ? "Book Time with Joe" : "Conference Room");
+    const bookingEyebrow = trigger.dataset.roomBookingEyebrow || (isJoeBooking ? "Tech Help Booking" : "Conference Room Booking");
+    const bookingSummary = trigger.dataset.roomBookingSummary || (isJoeBooking
+      ? "Choose an available tech-help time with Joe in Calendly."
+      : `Complete the ${bookingLabel.toLowerCase()} reservation in Calendly.`);
 
-    if (!bookingUrl || !title || !summary || !iframe) {
+    if (!bookingUrl || !title || !summary || !eyebrow || !iframe) {
       return;
     }
 
     window.clearTimeout(closeTimer);
     lastTrigger = trigger;
+    eyebrow.textContent = bookingEyebrow;
     title.textContent = bookingLabel;
-    summary.textContent = `Complete the ${bookingLabel.toLowerCase()} reservation in Calendly.`;
+    summary.textContent = bookingSummary;
+    iframe.hidden = false;
+    iframe.setAttribute("title", bookingLabel);
     iframe.setAttribute("src", bookingUrl);
     modal.removeAttribute("hidden");
     document.body.classList.add("has-room-booking-modal");
@@ -974,7 +1012,12 @@ function initializeRoomBookingModal() {
   };
 
   triggers.forEach((trigger) => {
-    trigger.addEventListener("click", () => {
+    trigger.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      event.preventDefault();
       openModal(trigger);
     });
   });
@@ -1145,6 +1188,50 @@ function formatJoeAvailabilityUntilLabel(iso, timezone = JOE_AVAILABILITY_FALLBA
   }
 }
 
+function formatJoeAvailabilityCompactUntilLabel(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE, referenceDate = new Date()) {
+  const date = parseJoeAvailabilityDate(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const timeLabel = formatJoeAvailabilityTime(date.toISOString(), timezone);
+  if (!timeLabel) {
+    return "";
+  }
+
+  const targetDateKey = getJoeAvailabilityLocalDateKey(date, timezone);
+  const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
+  if (targetDateKey && targetDateKey === referenceDateKey) {
+    return `today at ${timeLabel}`;
+  }
+
+  const targetYear = getJoeAvailabilityLocalYear(date, timezone);
+  const referenceYear = getJoeAvailabilityLocalYear(referenceDate, timezone);
+  const dateOptions = {
+    timeZone: timezone,
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  };
+
+  if (targetYear && targetYear !== referenceYear) {
+    dateOptions.year = "numeric";
+  }
+
+  try {
+    const dateLabel = new Intl.DateTimeFormat("en-US", dateOptions).format(date);
+    return `${dateLabel} at ${timeLabel}`;
+  } catch {
+    const fallbackDateLabel = date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      ...(targetYear && targetYear !== referenceYear ? { year: "numeric" } : {})
+    });
+    return `${fallbackDateLabel} at ${timeLabel}`;
+  }
+}
+
 function parseJoeAvailabilityDate(value) {
   if (value instanceof Date) {
     return value;
@@ -1196,6 +1283,66 @@ function normalizeJoeWorkingHours(rawHours = []) {
       };
     })
     .filter(Boolean);
+}
+
+function formatJoeAvailabilityMinutes(minutes) {
+  if (!Number.isFinite(minutes)) {
+    return "";
+  }
+
+  const normalizedMinutes = Math.max(0, Math.min(1439, Math.round(minutes)));
+  const hours24 = Math.floor(normalizedMinutes / 60);
+  const minuteValue = normalizedMinutes % 60;
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  const minuteLabel = minuteValue ? `:${String(minuteValue).padStart(2, "0")}` : "";
+  return `${hours12}${minuteLabel} ${period}`;
+}
+
+function formatJoeAvailabilityOfficeHours(rawHours = []) {
+  const workingHours = normalizeJoeWorkingHours(rawHours);
+  if (!workingHours.length) {
+    return "Office hours available by appointment";
+  }
+
+  const orderedHours = [...workingHours].sort((left, right) => left.dayIndex - right.dayIndex);
+  const ranges = [];
+  let currentRange = null;
+
+  orderedHours.forEach((entry) => {
+    const matchesCurrentRange = currentRange
+      && entry.dayIndex === currentRange.endDayIndex + 1
+      && entry.startMinutes === currentRange.startMinutes
+      && entry.endMinutes === currentRange.endMinutes;
+
+    if (matchesCurrentRange) {
+      currentRange.endDayIndex = entry.dayIndex;
+      return;
+    }
+
+    currentRange = {
+      startDayIndex: entry.dayIndex,
+      endDayIndex: entry.dayIndex,
+      startMinutes: entry.startMinutes,
+      endMinutes: entry.endMinutes
+    };
+    ranges.push(currentRange);
+  });
+
+  const rangeLabels = ranges
+    .map((range) => {
+      const startDay = JOE_AVAILABILITY_WEEKDAY_LABELS[range.startDayIndex] || "";
+      const endDay = JOE_AVAILABILITY_WEEKDAY_LABELS[range.endDayIndex] || "";
+      const dayLabel = range.startDayIndex === range.endDayIndex ? startDay : `${startDay}-${endDay}`;
+      const startTime = formatJoeAvailabilityMinutes(range.startMinutes);
+      const endTime = formatJoeAvailabilityMinutes(range.endMinutes);
+      return dayLabel && startTime && endTime ? `${dayLabel} ${startTime}-${endTime}` : "";
+    })
+    .filter(Boolean);
+
+  return rangeLabels.length
+    ? `Hours ${rangeLabels.join("; ")}`
+    : "Office hours available by appointment";
 }
 
 function getJoeAvailabilityLocalTimeParts(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
@@ -1358,6 +1505,7 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
+  const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours);
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -1384,29 +1532,29 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = Number.isFinite(availableNowEndMs) ? availableNowEndMs : nextOpenSlotEndMs;
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
-      ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
+      ? formatJoeAvailabilityCompactUntilLabel(new Date(effectiveAvailableNowEndMs).toISOString(), timezone, new Date(nowMs))
       : "";
 
     return {
-      label: "Tech Help Available",
-      summary: endLabel ? `Available until ${endLabel}.` : "Available right now."
+      label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
+      summary: officeHoursLabel
     };
   }
 
   if (normalizedState.status === "unavailable") {
     const untilLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
-      ? formatJoeAvailabilityUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
+      ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
 
     return {
-      label: "Joe Pine is unavailable",
-      summary: untilLabel ? `Until ${untilLabel}.` : "No open tech-help slots listed."
+      label: untilLabel ? `Unavailable until ${untilLabel}` : "Joe is unavailable",
+      summary: officeHoursLabel
     };
   }
 
   return {
-    label: normalizedState.label || "Joe Pine is unavailable",
-    summary: normalizedState.summary || "No open tech-help slots listed."
+    label: normalizedState.label || "Joe is unavailable",
+    summary: officeHoursLabel
   };
 }
 
