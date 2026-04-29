@@ -1,9 +1,8 @@
 {
-<<<<<<< HEAD
-    "status":  "unavailable",
+    "status":  "available_soon",
     "timezone":  "America/New_York",
     "eventDurationMinutes":  30,
-    "availableWindowMinutes":  0,
+    "availableWindowMinutes":  60,
     "nextOpenSlotIso":  "2026-04-29T19:00:00.000Z",
     "workingHours":  [
                          {
@@ -22,34 +21,8 @@
                              "end":  "16:00"
                          }
                      ],
-    "availableLabel":  "Joe is available to chat",
+    "availableNowLabel":  "Joe is available now",
+    "availableSoonLabel":  "Joe is available soon",
     "unavailableLabel":  "Joe is unavailable",
     "noSlotsSummary":  "No open tech-help slots are listed right now."
-=======
-  "status": "unavailable",
-  "timezone": "America/New_York",
-  "eventDurationMinutes": 30,
-  "availableWindowMinutes": 60,
-  "nextOpenSlotIso": "2026-04-29T19:00:00.0000000+00:00",
-  "workingHours": [
-    {
-      "day": "Wednesday",
-      "start": "09:00",
-      "end": "17:00"
-    },
-    {
-      "day": "Thursday",
-      "start": "09:00",
-      "end": "17:00"
-    },
-    {
-      "day": "Friday",
-      "start": "09:00",
-      "end": "16:00"
-    }
-  ],
-  "availableLabel": "Joe is available to chat",
-  "unavailableLabel": "Joe is unavailable",
-  "noSlotsSummary": "No open tech-help slots are listed right now."
->>>>>>> 072c4390bf0901420650f2856bbc80e2c99a931e
 }

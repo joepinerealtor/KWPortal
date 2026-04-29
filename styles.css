@@ -2683,14 +2683,16 @@ img {
   line-height: 1.45;
 }
 
-.joe-availability-panel[data-status="available"] {
+.joe-availability-panel[data-status="available"],
+.joe-availability-panel[data-status="available_now"] {
   border-color: rgba(42, 117, 61, 0.24);
   background:
     radial-gradient(circle at top right, rgba(68, 167, 94, 0.16), transparent 42%),
     linear-gradient(180deg, rgba(247, 255, 250, 0.98), rgba(238, 250, 242, 0.96));
 }
 
-.joe-availability-panel[data-status="available"] .joe-availability-light {
+.joe-availability-panel[data-status="available"] .joe-availability-light,
+.joe-availability-panel[data-status="available_now"] .joe-availability-light {
   background: #1f8f43;
   box-shadow:
     0 0 0 5px rgba(31, 143, 67, 0.18),
@@ -2698,8 +2700,27 @@ img {
   animation: joe-availability-pulse 1.9s ease-in-out infinite;
 }
 
-.joe-availability-panel[data-status="available"] .joe-availability-label {
+.joe-availability-panel[data-status="available"] .joe-availability-label,
+.joe-availability-panel[data-status="available_now"] .joe-availability-label {
   color: #156b30;
+}
+
+.joe-availability-panel[data-status="available_soon"] {
+  border-color: rgba(180, 132, 1, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(224, 171, 29, 0.16), transparent 42%),
+    linear-gradient(180deg, rgba(255, 252, 245, 0.98), rgba(252, 246, 230, 0.96));
+}
+
+.joe-availability-panel[data-status="available_soon"] .joe-availability-light {
+  background: #cc8b00;
+  box-shadow:
+    0 0 0 5px rgba(204, 139, 0, 0.16),
+    0 0 18px rgba(204, 139, 0, 0.24);
+}
+
+.joe-availability-panel[data-status="available_soon"] .joe-availability-label {
+  color: #8c5c00;
 }
 
 .joe-availability-panel[data-status="unavailable"] {

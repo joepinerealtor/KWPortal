@@ -1179,18 +1179,24 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const isWithinWorkingHoursNow = isWithinJoeWorkingHours(new Date(nowMs), timezone, workingHours);
   const isNextSlotWithinWorkingHours = Number.isFinite(nextOpenSlotMs)
     && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHours, eventDurationMinutes);
-  const availableLabel = rawState?.availableLabel || "Joe is available to chat";
+  const availableNowLabel = rawState?.availableNowLabel || "Joe is available now";
+  const availableSoonLabel = rawState?.availableSoonLabel || "Joe is available soon";
   const unavailableLabel = rawState?.unavailableLabel || "Joe is unavailable";
-  const baseStatus = rawState?.status === "available" || rawState?.status === "unavailable"
+  const baseStatus = [
+    "available",
+    "available_now",
+    "available_soon",
+    "unavailable"
+  ].includes(rawState?.status)
     ? rawState.status
     : "unavailable";
-  let status = baseStatus;
+  let status = baseStatus === "available" ? "available_soon" : baseStatus;
 
   if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
     if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
-      status = "available";
+      status = "available_now";
     } else if (isWithinWorkingHoursNow && nextOpenSlotMs > nowMs && nextOpenSlotMs <= nowMs + availableWindowMs) {
-      status = "available";
+      status = "available_soon";
     } else if (nowMs < nextOpenSlotMs) {
       status = "unavailable";
     } else {
@@ -1198,22 +1204,31 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     }
   }
 
-  if (status === "available") {
-    const nextLabel = Number.isFinite(nextOpenSlotMs)
-      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
-      : "";
+  if (status === "available_now") {
     const endLabel = Number.isFinite(nextOpenSlotEndMs)
       ? formatJoeAvailabilityTime(new Date(nextOpenSlotEndMs).toISOString(), timezone)
       : "";
 
     return {
       status,
-      label: availableLabel,
-      summary: rawState?.availableSummary || (endLabel
-        ? (nextOpenSlotMs > nowMs
-          ? `Next open slot is ${nextLabel}.`
-          : `Current tech-help window is open until ${endLabel}.`)
+      label: availableNowLabel,
+      summary: rawState?.availableNowSummary || (endLabel
+        ? `Current tech-help window is open until ${endLabel}.`
         : "Open Calendly to grab Joe's current tech-help slot.")
+    };
+  }
+
+  if (status === "available_soon") {
+    const nextLabel = Number.isFinite(nextOpenSlotMs)
+      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
+      : "";
+
+    return {
+      status,
+      label: availableSoonLabel,
+      summary: rawState?.availableSoonSummary || (nextLabel
+        ? `Next open slot is ${nextLabel}.`
+        : "A tech-help slot is opening soon.")
     };
   }
 

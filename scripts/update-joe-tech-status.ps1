@@ -16,6 +16,10 @@ $JoeWorkingHours = @(
   [ordered]@{ Day = "Friday"; Start = "09:00"; End = "16:00" }
 )
 
+if ($AvailableWindowMinutes -le 0) {
+  $AvailableWindowMinutes = 60
+}
+
 function Get-CalendlyHeaders {
   param(
     [Parameter(Mandatory = $true)]
@@ -351,8 +355,10 @@ if (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
   $slotEnd = $slotStart.AddMinutes($durationMinutes)
   $isWithinWorkingHoursNow = Test-IsWithinJoeWorkingHoursNow -UtcNow $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
 
-  if ($isWithinWorkingHoursNow -and (($now -ge $slotStart -and $now -lt $slotEnd) -or ($slotStart -gt $now -and $slotStart -le $now.AddMinutes($AvailableWindowMinutes)))) {
-    $status = "available"
+  if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
+    $status = "available_now"
+  } elseif ($isWithinWorkingHoursNow -and $slotStart -gt $now -and $slotStart -le $now.AddMinutes($AvailableWindowMinutes)) {
+    $status = "available_soon"
   }
 }
 
@@ -371,7 +377,8 @@ $payload = [ordered]@{
       }
     }
   )
-  availableLabel = "Joe is available to chat"
+  availableNowLabel = "Joe is available now"
+  availableSoonLabel = "Joe is available soon"
   unavailableLabel = "Joe is unavailable"
   noSlotsSummary = "No open tech-help slots are listed right now."
 }
