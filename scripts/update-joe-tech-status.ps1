@@ -6,7 +6,7 @@ param(
   [string]$CalendlyBookingUrl = $(if ($env:CALENDLY_JOE_BOOKING_URL) { $env:CALENDLY_JOE_BOOKING_URL } else { "https://calendly.com/joepinerealtor/tech-meeting-with-joe" }),
   [string]$CalendlyTimeZone = $env:CALENDLY_JOE_TIMEZONE,
   [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 }),
-  [int]$AvailableWindowMinutes = $(if ($env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES) { [int]$env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES } else { 60 })
+  [int]$AvailableWindowMinutes = $(if ($env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES) { [int]$env:CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES } else { 0 })
 )
 
 $ErrorActionPreference = "Stop"
@@ -60,6 +60,15 @@ function Get-ParsedDurationMinutes {
   }
 
   return $Fallback
+}
+
+function Format-UtcIsoForPortal {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$Value
+  )
+
+  return $Value.ToUniversalTime().UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff'Z'", [Globalization.CultureInfo]::InvariantCulture)
 }
 
 function Invoke-CalendlyRequest {
@@ -252,7 +261,7 @@ function Get-NextPublicCalendlySlot {
   return @{
     TimeZone = $resolvedTimeZone
     DurationMinutes = $resolvedDuration
-    NextOpenSlotIso = if ($nextOpenSlot) { $nextOpenSlot.ToUniversalTime().ToString("o") } else { "" }
+    NextOpenSlotIso = if ($nextOpenSlot) { Format-UtcIsoForPortal -Value $nextOpenSlot } else { "" }
   }
 }
 
@@ -260,6 +269,15 @@ $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
 $resolvedOutputDirectory = Split-Path $resolvedOutputPath -Parent
 if (-not (Test-Path $resolvedOutputDirectory)) {
   New-Item -ItemType Directory -Path $resolvedOutputDirectory -Force | Out-Null
+}
+
+$previousState = $null
+if (Test-Path $resolvedOutputPath) {
+  try {
+    $previousState = Get-Content -Raw $resolvedOutputPath | ConvertFrom-Json
+  } catch {
+    $previousState = $null
+  }
 }
 
 $timeZone = "America/New_York"
@@ -296,7 +314,7 @@ try {
         Select-Object -First 1
 
       if ($nextOpenSlot.start_time) {
-        $nextOpenSlotIso = ([DateTimeOffset]::Parse($nextOpenSlot.start_time)).ToUniversalTime().ToString("o")
+        $nextOpenSlotIso = Format-UtcIsoForPortal -Value ([DateTimeOffset]::Parse($nextOpenSlot.start_time))
       }
     }
   } else {
@@ -307,6 +325,23 @@ try {
   }
 } catch {
   Write-Warning "Could not refresh Joe tech status from Calendly: $($_.Exception.Message)"
+}
+
+if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpenSlotIso)) {
+  try {
+    $previousDurationMinutes = Get-ParsedDurationMinutes -Value $previousState.eventDurationMinutes -Fallback $durationMinutes
+    $previousSlotStart = [DateTimeOffset]::Parse($previousState.nextOpenSlotIso).ToUniversalTime()
+    $previousSlotEnd = $previousSlotStart.AddMinutes($previousDurationMinutes)
+    $nowForPreviousSlot = [DateTimeOffset]::UtcNow
+    $nextSlotStart = if ([string]::IsNullOrWhiteSpace($nextOpenSlotIso)) { $null } else { [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime() }
+
+    if ($nowForPreviousSlot -ge $previousSlotStart -and $nowForPreviousSlot -lt $previousSlotEnd -and (-not $nextSlotStart -or $nextSlotStart -gt $previousSlotStart)) {
+      $durationMinutes = $previousDurationMinutes
+      $nextOpenSlotIso = Format-UtcIsoForPortal -Value $previousSlotStart
+    }
+  } catch {
+    # If the previous feed has an older timestamp format, ignore it and use the fresh Calendly result.
+  }
 }
 
 $status = "unavailable"

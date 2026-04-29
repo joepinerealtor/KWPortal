@@ -155,7 +155,7 @@ const JOE_AVAILABILITY_STORAGE_KEY = "kw-leading-edge-portal.joe-tech-status.v1"
 const JOE_AVAILABILITY_REFRESH_INTERVAL_MS = 60 * 1000;
 const JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS = 60 * 1000;
 const JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES = 30;
-const JOE_AVAILABILITY_SOON_WINDOW_MS = 60 * 60 * 1000;
+const JOE_AVAILABILITY_SOON_WINDOW_MS = 0;
 const JOE_AVAILABILITY_FALLBACK_TIMEZONE = "America/New_York";
 const JOE_AVAILABILITY_DEFAULT_WORKING_HOURS = Object.freeze([
   Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00" }),
@@ -1013,7 +1013,7 @@ function saveStoredJoeAvailability(state) {
 }
 
 function formatJoeAvailabilityTime(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
-  const date = new Date(iso);
+  const date = parseJoeAvailabilityDate(iso);
   if (Number.isNaN(date.getTime())) {
     return "";
   }
@@ -1030,6 +1030,19 @@ function formatJoeAvailabilityTime(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIM
       minute: "2-digit"
     }).format(date);
   }
+}
+
+function parseJoeAvailabilityDate(value) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  const normalizedValue = String(value || "").trim().replace(
+    /\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})$/,
+    ".$1$2"
+  );
+
+  return new Date(normalizedValue);
 }
 
 function parseJoeAvailabilityTimeToMinutes(value) {
@@ -1148,13 +1161,13 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     ? parsedDuration
     : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
   const parsedAvailableWindow = Number.parseInt(rawState?.availableWindowMinutes, 10);
-  const availableWindowMs = Number.isFinite(parsedAvailableWindow) && parsedAvailableWindow > 0
+  const availableWindowMs = Number.isFinite(parsedAvailableWindow) && parsedAvailableWindow >= 0
     ? parsedAvailableWindow * 60 * 1000
     : JOE_AVAILABILITY_SOON_WINDOW_MS;
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
-  const nextOpenSlotDate = nextOpenSlotIso ? new Date(nextOpenSlotIso) : null;
+  const nextOpenSlotDate = nextOpenSlotIso ? parseJoeAvailabilityDate(nextOpenSlotIso) : null;
   const nextOpenSlotMs = nextOpenSlotDate && !Number.isNaN(nextOpenSlotDate.getTime())
     ? nextOpenSlotDate.getTime()
     : Number.NaN;
