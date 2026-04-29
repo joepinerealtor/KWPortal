@@ -1220,8 +1220,10 @@ img {
 }
 
 .joe-availability-panel--compact .joe-availability-label {
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+  line-height: 1.22;
+  text-transform: none;
 }
 
 .joe-availability-panel--compact .joe-availability-summary {

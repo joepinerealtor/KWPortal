@@ -1086,6 +1086,65 @@ function formatJoeAvailabilityNextSlotLabel(iso, timezone = JOE_AVAILABILITY_FAL
   }
 }
 
+function getJoeAvailabilityLocalYear(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric"
+    }).format(date);
+  } catch {
+    return String(date.getFullYear());
+  }
+}
+
+function formatJoeAvailabilityUntilLabel(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE, referenceDate = new Date()) {
+  const date = parseJoeAvailabilityDate(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const timeLabel = formatJoeAvailabilityTime(date.toISOString(), timezone);
+  if (!timeLabel) {
+    return "";
+  }
+
+  const targetDateKey = getJoeAvailabilityLocalDateKey(date, timezone);
+  const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
+  if (targetDateKey && targetDateKey === referenceDateKey) {
+    return `today at ${timeLabel}`;
+  }
+
+  const targetYear = getJoeAvailabilityLocalYear(date, timezone);
+  const referenceYear = getJoeAvailabilityLocalYear(referenceDate, timezone);
+  const dateOptions = {
+    timeZone: timezone,
+    weekday: "long",
+    month: "long",
+    day: "numeric"
+  };
+
+  if (targetYear && targetYear !== referenceYear) {
+    dateOptions.year = "numeric";
+  }
+
+  try {
+    const dateLabel = new Intl.DateTimeFormat("en-US", dateOptions).format(date);
+    return `${dateLabel} at ${timeLabel}`;
+  } catch {
+    const fallbackDateLabel = date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      ...(targetYear && targetYear !== referenceYear ? { year: "numeric" } : {})
+    });
+    return `${fallbackDateLabel} at ${timeLabel}`;
+  }
+}
+
 function parseJoeAvailabilityDate(value) {
   if (value instanceof Date) {
     return value;
@@ -1335,18 +1394,20 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   }
 
   if (normalizedState.status === "unavailable") {
-    const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
-      ? formatJoeAvailabilityNextSlotLabel(nextOpenSlotIso, timezone, new Date(nowMs))
+    const untilLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
+      ? formatJoeAvailabilityUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
 
     return {
-      label: "Tech Help Unavailable",
-      summary: nextLabel ? `Next open slot ${nextLabel}.` : "No open tech-help slots listed."
+      label: untilLabel
+        ? `Joe Pine is unavailable until ${untilLabel}.`
+        : "Joe Pine is unavailable",
+      summary: untilLabel ? "" : "No open tech-help slots listed."
     };
   }
 
   return {
-    label: normalizedState.label || "Tech Help Unavailable",
+    label: normalizedState.label || "Joe Pine is unavailable",
     summary: normalizedState.summary || "No open tech-help slots listed."
   };
 }
@@ -1365,7 +1426,9 @@ function writeJoeAvailability(rawState = {}) {
     ref.panel.dataset.status = state.status;
     ref.panel.hidden = false;
     ref.label.textContent = compactState ? compactState.label : state.label;
-    ref.summary.textContent = compactState ? compactState.summary : state.summary;
+    const summaryText = compactState ? compactState.summary : state.summary;
+    ref.summary.textContent = summaryText;
+    ref.summary.hidden = !summaryText;
   });
 }
 
