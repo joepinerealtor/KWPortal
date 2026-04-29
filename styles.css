@@ -1017,7 +1017,7 @@ img {
 
 .content-strip-tech-support {
   display: flex;
-  flex: 0 1 360px;
+  flex: 0 1 380px;
   min-width: min(100%, 320px);
   max-width: 100%;
 }
@@ -1181,10 +1181,11 @@ img {
 .joe-availability-panel--compact {
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
   padding: 10px 12px;
   border-radius: 16px;
+  box-sizing: border-box;
 }
 
 .joe-availability-compact-copy {
@@ -1220,15 +1221,16 @@ img {
 }
 
 .joe-availability-panel--compact .joe-availability-label {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0;
-  line-height: 1.22;
+  line-height: 1.15;
   text-transform: none;
 }
 
 .joe-availability-panel--compact .joe-availability-summary {
   font-size: 0.8rem;
-  line-height: 1.28;
+  line-height: 1.22;
 }
 
 .content-rate-pill {

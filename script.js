@@ -1399,10 +1399,8 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
       : "";
 
     return {
-      label: untilLabel
-        ? `Joe Pine is unavailable until ${untilLabel}.`
-        : "Joe Pine is unavailable",
-      summary: untilLabel ? "" : "No open tech-help slots listed."
+      label: "Joe Pine is unavailable",
+      summary: untilLabel ? `Until ${untilLabel}.` : "No open tech-help slots listed."
     };
   }
 
@@ -1428,7 +1426,7 @@ function writeJoeAvailability(rawState = {}) {
     ref.label.textContent = compactState ? compactState.label : state.label;
     const summaryText = compactState ? compactState.summary : state.summary;
     ref.summary.textContent = summaryText;
-    ref.summary.hidden = !summaryText;
+    ref.summary.hidden = false;
   });
 }
 
