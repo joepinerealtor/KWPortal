@@ -1,0 +1,27 @@
+{
+    "status":  "available",
+    "timezone":  "America/New_York",
+    "eventDurationMinutes":  30,
+    "availableWindowMinutes":  60,
+    "nextOpenSlotIso":  "2026-04-29T16:00:00.0000000+00:00",
+    "workingHours":  [
+                         {
+                             "day":  "Wednesday",
+                             "start":  "09:00",
+                             "end":  "17:00"
+                         },
+                         {
+                             "day":  "Thursday",
+                             "start":  "09:00",
+                             "end":  "17:00"
+                         },
+                         {
+                             "day":  "Friday",
+                             "start":  "09:00",
+                             "end":  "16:00"
+                         }
+                     ],
+    "availableLabel":  "Joe is available to chat",
+    "unavailableLabel":  "Joe is unavailable",
+    "noSlotsSummary":  "No open tech-help slots are listed right now."
+}

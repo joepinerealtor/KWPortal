@@ -1,0 +1,44 @@
+name: Refresh Joe Tech Status
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-joe-tech-status:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Refresh Joe tech status feed
+        shell: pwsh
+        env:
+          CALENDLY_PERSONAL_ACCESS_TOKEN: ${{ secrets.CALENDLY_PERSONAL_ACCESS_TOKEN }}
+          CALENDLY_JOE_EVENT_TYPE_URI: ${{ vars.CALENDLY_JOE_EVENT_TYPE_URI }}
+          CALENDLY_JOE_BOOKING_URL: ${{ vars.CALENDLY_JOE_BOOKING_URL }}
+          CALENDLY_JOE_TIMEZONE: ${{ vars.CALENDLY_JOE_TIMEZONE }}
+          CALENDLY_JOE_EVENT_DURATION_MINUTES: ${{ vars.CALENDLY_JOE_EVENT_DURATION_MINUTES }}
+          CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES: ${{ vars.CALENDLY_JOE_AVAILABLE_WINDOW_MINUTES }}
+        run: .\scripts\update-joe-tech-status.ps1 -RepositoryRoot $PWD.Path
+
+      - name: Commit refreshed status feed when needed
+        shell: pwsh
+        run: |
+          git add data/joe-tech-status.json
+
+          if (git diff --cached --quiet) {
+            Write-Host "No Joe tech status changes detected."
+            exit 0
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh Joe tech status [skip ci]"
+          git push

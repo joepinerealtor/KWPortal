@@ -77,6 +77,16 @@ const riMarketRefs = {
     inventory: [...document.querySelectorAll('[data-ri-market-trend="inventory"]')]
   }
 };
+const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availability-card]")]
+  .map((card) => ({
+    card,
+    panel: card.querySelector(".joe-availability-panel"),
+    light: card.querySelector("[data-joe-availability-light]"),
+    label: card.querySelector("[data-joe-availability-label]"),
+    summary: card.querySelector("[data-joe-availability-summary]")
+  }))
+  .filter((ref) => ref.panel && ref.light && ref.label && ref.summary);
+const joeAvailabilitySourceUrl = joeAvailabilityRefs[0]?.card.dataset.joeAvailabilitySrc || "";
 const hasRateTargets = [
   ...rateRefs.conventional,
   ...rateRefs.fha,
@@ -99,9 +109,11 @@ const hasRiMarketTargets = [
   ...riMarketRefs.trends.pending,
   ...riMarketRefs.trends.inventory
 ].length > 0;
+const hasJoeAvailabilityTargets = joeAvailabilityRefs.length > 0 && Boolean(joeAvailabilitySourceUrl);
 let scrollTicking = false;
 let ratesRefreshInFlight = false;
 let riMarketRefreshInFlight = false;
+let joeAvailabilityRefreshInFlight = false;
 let calendarModalLastTrigger = null;
 let calendarModalCloseTimer = 0;
 let hasLoadedCalendarModalContent = false;
@@ -139,6 +151,26 @@ const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
 const RI_MARKET_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const RI_MARKET_SOURCE_URL = "https://www.rirealtors.org/";
+const JOE_AVAILABILITY_STORAGE_KEY = "kw-leading-edge-portal.joe-tech-status.v1";
+const JOE_AVAILABILITY_REFRESH_INTERVAL_MS = 60 * 1000;
+const JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS = 60 * 1000;
+const JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES = 30;
+const JOE_AVAILABILITY_SOON_WINDOW_MS = 60 * 60 * 1000;
+const JOE_AVAILABILITY_FALLBACK_TIMEZONE = "America/New_York";
+const JOE_AVAILABILITY_DEFAULT_WORKING_HOURS = Object.freeze([
+  Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00" }),
+  Object.freeze({ day: "Thursday", start: "09:00", end: "17:00" }),
+  Object.freeze({ day: "Friday", start: "09:00", end: "16:00" })
+]);
+const JOE_AVAILABILITY_WEEKDAY_INDEX = Object.freeze({
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6
+});
 const RATE_PROGRAMS = {
   conventional: {
     label: "Conventional",
@@ -961,6 +993,284 @@ function initializeRoomBookingModal() {
       closeModal();
     }
   });
+}
+
+function loadStoredJoeAvailability() {
+  try {
+    const stored = window.localStorage.getItem(JOE_AVAILABILITY_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredJoeAvailability(state) {
+  try {
+    window.localStorage.setItem(JOE_AVAILABILITY_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage failures in static/local contexts.
+  }
+}
+
+function formatJoeAvailabilityTime(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
+  }
+}
+
+function parseJoeAvailabilityTimeToMinutes(value) {
+  const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    return Number.NaN;
+  }
+
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return Number.NaN;
+  }
+
+  return (hours * 60) + minutes;
+}
+
+function normalizeJoeWorkingHours(rawHours = []) {
+  const source = Array.isArray(rawHours) && rawHours.length
+    ? rawHours
+    : JOE_AVAILABILITY_DEFAULT_WORKING_HOURS;
+
+  return source
+    .map((entry) => {
+      const dayKey = String(entry?.day || "").trim().toLowerCase();
+      const dayIndex = JOE_AVAILABILITY_WEEKDAY_INDEX[dayKey];
+      const startMinutes = parseJoeAvailabilityTimeToMinutes(entry?.start);
+      const endMinutes = parseJoeAvailabilityTimeToMinutes(entry?.end);
+
+      if (!Number.isInteger(dayIndex) || !Number.isFinite(startMinutes) || !Number.isFinite(endMinutes) || endMinutes <= startMinutes) {
+        return null;
+      }
+
+      return {
+        dayIndex,
+        startMinutes,
+        endMinutes
+      };
+    })
+    .filter(Boolean);
+}
+
+function getJoeAvailabilityLocalTimeParts(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23"
+    });
+    const parts = formatter.formatToParts(date);
+    const weekday = parts.find((part) => part.type === "weekday")?.value?.toLowerCase() || "";
+    const hour = Number.parseInt(parts.find((part) => part.type === "hour")?.value || "", 10);
+    const minute = Number.parseInt(parts.find((part) => part.type === "minute")?.value || "", 10);
+    const dayIndex = JOE_AVAILABILITY_WEEKDAY_INDEX[weekday];
+
+    if (!Number.isInteger(dayIndex) || !Number.isInteger(hour) || !Number.isInteger(minute)) {
+      return null;
+    }
+
+    return {
+      dayIndex,
+      minutes: (hour * 60) + minute
+    };
+  } catch {
+    return {
+      dayIndex: date.getDay(),
+      minutes: (date.getHours() * 60) + date.getMinutes()
+    };
+  }
+}
+
+function isWithinJoeWorkingHours(date, timezone, workingHours, durationMinutes = 0) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  if (!workingHours.length) {
+    return true;
+  }
+
+  const startParts = getJoeAvailabilityLocalTimeParts(date, timezone);
+  if (!startParts) {
+    return false;
+  }
+
+  const rule = workingHours.find((entry) => entry.dayIndex === startParts.dayIndex);
+  if (!rule) {
+    return false;
+  }
+
+  if (durationMinutes <= 0) {
+    return startParts.minutes >= rule.startMinutes && startParts.minutes < rule.endMinutes;
+  }
+
+  const endDate = new Date(date.getTime() + (durationMinutes * 60 * 1000));
+  const endParts = getJoeAvailabilityLocalTimeParts(endDate, timezone);
+  if (!endParts || endParts.dayIndex !== startParts.dayIndex) {
+    return false;
+  }
+
+  return startParts.minutes >= rule.startMinutes && endParts.minutes <= rule.endMinutes;
+}
+
+function normalizeJoeAvailabilityState(rawState = {}) {
+  const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
+    ? rawState.timezone.trim()
+    : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
+  const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
+  const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+    ? parsedDuration
+    : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
+  const parsedAvailableWindow = Number.parseInt(rawState?.availableWindowMinutes, 10);
+  const availableWindowMs = Number.isFinite(parsedAvailableWindow) && parsedAvailableWindow > 0
+    ? parsedAvailableWindow * 60 * 1000
+    : JOE_AVAILABILITY_SOON_WINDOW_MS;
+  const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
+    ? rawState.nextOpenSlotIso
+    : "";
+  const nextOpenSlotDate = nextOpenSlotIso ? new Date(nextOpenSlotIso) : null;
+  const nextOpenSlotMs = nextOpenSlotDate && !Number.isNaN(nextOpenSlotDate.getTime())
+    ? nextOpenSlotDate.getTime()
+    : Number.NaN;
+  const nextOpenSlotEndMs = Number.isFinite(nextOpenSlotMs)
+    ? nextOpenSlotMs + (eventDurationMinutes * 60 * 1000)
+    : Number.NaN;
+  const nowMs = Date.now();
+  const workingHours = normalizeJoeWorkingHours(rawState?.workingHours);
+  const isWithinWorkingHoursNow = isWithinJoeWorkingHours(new Date(nowMs), timezone, workingHours);
+  const isNextSlotWithinWorkingHours = Number.isFinite(nextOpenSlotMs)
+    && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHours, eventDurationMinutes);
+  const availableLabel = rawState?.availableLabel || "Joe is available to chat";
+  const unavailableLabel = rawState?.unavailableLabel || "Joe is unavailable";
+  const baseStatus = rawState?.status === "available" || rawState?.status === "unavailable"
+    ? rawState.status
+    : "unavailable";
+  let status = baseStatus;
+
+  if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
+    if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
+      status = "available";
+    } else if (isWithinWorkingHoursNow && nextOpenSlotMs > nowMs && nextOpenSlotMs <= nowMs + availableWindowMs) {
+      status = "available";
+    } else if (nowMs < nextOpenSlotMs) {
+      status = "unavailable";
+    } else {
+      status = "unavailable";
+    }
+  }
+
+  if (status === "available") {
+    const nextLabel = Number.isFinite(nextOpenSlotMs)
+      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
+      : "";
+    const endLabel = Number.isFinite(nextOpenSlotEndMs)
+      ? formatJoeAvailabilityTime(new Date(nextOpenSlotEndMs).toISOString(), timezone)
+      : "";
+
+    return {
+      status,
+      label: availableLabel,
+      summary: rawState?.availableSummary || (endLabel
+        ? (nextOpenSlotMs > nowMs
+          ? `Next open slot is ${nextLabel}.`
+          : `Current tech-help window is open until ${endLabel}.`)
+        : "Open Calendly to grab Joe's current tech-help slot.")
+    };
+  }
+
+  if (status === "unavailable") {
+    const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs && isNextSlotWithinWorkingHours
+      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
+      : "";
+
+    return {
+      status,
+      label: unavailableLabel,
+      summary: nextLabel
+        ? `Next open slot is ${nextLabel}.`
+        : (rawState?.noSlotsSummary || "No open tech-help slots are listed right now.")
+    };
+  }
+
+  return {
+    status: "unavailable",
+    label: unavailableLabel,
+    summary: rawState?.noSlotsSummary || "No open tech-help slots are listed right now."
+  };
+}
+
+function writeJoeAvailability(rawState = {}) {
+  if (!hasJoeAvailabilityTargets) {
+    return;
+  }
+
+  const state = normalizeJoeAvailabilityState(rawState);
+
+  joeAvailabilityRefs.forEach((ref) => {
+    ref.panel.dataset.status = state.status;
+    ref.panel.hidden = false;
+    ref.label.textContent = state.label;
+    ref.summary.textContent = state.summary;
+  });
+}
+
+async function refreshJoeAvailability() {
+  if (!hasJoeAvailabilityTargets || joeAvailabilityRefreshInFlight) {
+    return;
+  }
+
+  joeAvailabilityRefreshInFlight = true;
+
+  try {
+    const cacheBust = Math.floor(Date.now() / JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS);
+    const separator = joeAvailabilitySourceUrl.includes("?") ? "&" : "?";
+    const response = await fetch(`${joeAvailabilitySourceUrl}${separator}v=${cacheBust}`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed for ${joeAvailabilitySourceUrl}`);
+    }
+
+    const nextState = await response.json();
+    writeJoeAvailability(nextState);
+    saveStoredJoeAvailability(nextState);
+  } catch {
+    const storedState = loadStoredJoeAvailability();
+    if (storedState) {
+      writeJoeAvailability(storedState);
+    } else {
+      writeJoeAvailability({});
+    }
+  } finally {
+    joeAvailabilityRefreshInFlight = false;
+  }
 }
 
 function loadStoredRates() {
@@ -1792,6 +2102,13 @@ async function initializePortal() {
     writeRiMarket(storedRiMarket);
   }
 
+  const storedJoeAvailability = loadStoredJoeAvailability();
+  if (storedJoeAvailability && hasJoeAvailabilityTargets) {
+    writeJoeAvailability(storedJoeAvailability);
+  } else if (hasJoeAvailabilityTargets) {
+    writeJoeAvailability({});
+  }
+
   if (hasRateTargets) {
     refreshRates();
     setInterval(refreshRates, RATE_REFRESH_INTERVAL_MS);
@@ -1800,6 +2117,11 @@ async function initializePortal() {
   if (hasRiMarketTargets) {
     refreshRiMarket();
     setInterval(refreshRiMarket, RI_MARKET_REFRESH_INTERVAL_MS);
+  }
+
+  if (hasJoeAvailabilityTargets) {
+    refreshJoeAvailability();
+    setInterval(refreshJoeAvailability, JOE_AVAILABILITY_REFRESH_INTERVAL_MS);
   }
 }
 

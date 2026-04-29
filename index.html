@@ -530,12 +530,19 @@
           </div>
         </div>
 
-        <article class="leadership-support-card" id="leadership-support">
+        <article class="leadership-support-card" id="leadership-support" data-joe-availability-card data-joe-availability-src="data/joe-tech-status.json">
           <img src="team/joe-pine-chair.jpg" alt="Joe Pine sitting in a chair" class="leadership-support-photo">
           <div class="leadership-support-copy">
             <p class="eyebrow small">Tech Help</p>
             <h3>Need tech help with Joe?</h3>
             <p>Use Joe's calendar to view availability and book one-on-one help with KW Command, DocuSign, Canva, social media, and other day-to-day real estate tech tools.</p>
+            <div class="joe-availability-panel" data-status="unavailable" aria-live="polite">
+              <span class="joe-availability-light" data-joe-availability-light aria-hidden="true"></span>
+              <div class="joe-availability-copy">
+                <p class="joe-availability-label" data-joe-availability-label>Joe is unavailable</p>
+                <p class="joe-availability-summary" data-joe-availability-summary>No open tech-help slots are listed right now.</p>
+              </div>
+            </div>
           </div>
           <a class="button secondary leadership-support-button" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer">Book Tech Help with Joe</a>
         </article>
