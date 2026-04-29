@@ -1214,6 +1214,13 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
     : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
+  const availableNowEndIso = typeof rawState?.availableNowEndIso === "string"
+    ? rawState.availableNowEndIso
+    : "";
+  const availableNowEndDate = availableNowEndIso ? parseJoeAvailabilityDate(availableNowEndIso) : null;
+  const availableNowEndMs = availableNowEndDate && !Number.isNaN(availableNowEndDate.getTime())
+    ? availableNowEndDate.getTime()
+    : Number.NaN;
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
@@ -1240,7 +1247,9 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     : "unavailable";
   let status = baseStatus === "available" ? "unavailable" : baseStatus;
 
-  if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
+  if (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs) {
+    status = "available_now";
+  } else if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
     if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
       status = "available_now";
     } else if (nowMs < nextOpenSlotMs) {
@@ -1251,8 +1260,9 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   }
 
   if (status === "available_now") {
-    const endLabel = Number.isFinite(nextOpenSlotEndMs)
-      ? formatJoeAvailabilityTime(new Date(nextOpenSlotEndMs).toISOString(), timezone)
+    const effectiveAvailableNowEndMs = Number.isFinite(availableNowEndMs) ? availableNowEndMs : nextOpenSlotEndMs;
+    const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
+      ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
       : "";
 
     return {
@@ -1293,6 +1303,13 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
     : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
+  const availableNowEndIso = typeof rawState?.availableNowEndIso === "string"
+    ? rawState.availableNowEndIso
+    : "";
+  const availableNowEndDate = availableNowEndIso ? parseJoeAvailabilityDate(availableNowEndIso) : null;
+  const availableNowEndMs = availableNowEndDate && !Number.isNaN(availableNowEndDate.getTime())
+    ? availableNowEndDate.getTime()
+    : Number.NaN;
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
@@ -1306,8 +1323,9 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const nowMs = Date.now();
 
   if (normalizedState.status === "available_now") {
-    const endLabel = Number.isFinite(nextOpenSlotEndMs)
-      ? formatJoeAvailabilityTime(new Date(nextOpenSlotEndMs).toISOString(), timezone)
+    const effectiveAvailableNowEndMs = Number.isFinite(availableNowEndMs) ? availableNowEndMs : nextOpenSlotEndMs;
+    const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
+      ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
       : "";
 
     return {

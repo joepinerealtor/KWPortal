@@ -241,6 +241,45 @@ function Test-IsWithinJoeWorkingHoursNow {
   return $nowMinutes -ge $ruleStartMinutes -and $nowMinutes -lt $ruleEndMinutes
 }
 
+function Get-JoeWorkingWindowForUtcTime {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$UtcTime,
+    [Parameter(Mandatory = $true)]
+    [string]$TimeZoneId,
+    [Parameter(Mandatory = $true)]
+    [array]$WorkingHours
+  )
+
+  if (-not $WorkingHours.Count) {
+    return $null
+  }
+
+  $timeZoneInfo = Get-TimeZoneInfoFromId -TimeZoneId $TimeZoneId
+  $localTime = [TimeZoneInfo]::ConvertTime($UtcTime, $timeZoneInfo)
+  $rule = $WorkingHours | Where-Object { $_.Day -eq $localTime.DayOfWeek.ToString() } | Select-Object -First 1
+  if (-not $rule) {
+    return $null
+  }
+
+  $ruleStartMinutes = Get-TimeOfDayMinutes -Value $rule.Start
+  $ruleEndMinutes = Get-TimeOfDayMinutes -Value $rule.End
+  if ($ruleStartMinutes -lt 0 -or $ruleEndMinutes -lt 0 -or $ruleEndMinutes -le $ruleStartMinutes) {
+    return $null
+  }
+
+  $localDayStart = [DateTime]::new($localTime.Year, $localTime.Month, $localTime.Day, 0, 0, 0, [DateTimeKind]::Unspecified)
+  $windowStartLocal = $localDayStart.AddMinutes($ruleStartMinutes)
+  $windowEndLocal = $localDayStart.AddMinutes($ruleEndMinutes)
+  $windowStartUtc = [DateTimeOffset]::new([DateTime]::SpecifyKind([TimeZoneInfo]::ConvertTimeToUtc($windowStartLocal, $timeZoneInfo), [DateTimeKind]::Utc))
+  $windowEndUtc = [DateTimeOffset]::new([DateTime]::SpecifyKind([TimeZoneInfo]::ConvertTimeToUtc($windowEndLocal, $timeZoneInfo), [DateTimeKind]::Utc))
+
+  return [pscustomobject]@{
+    Start = $windowStartUtc
+    End = $windowEndUtc
+  }
+}
+
 function Get-CalendlyBookingSlugs {
   param(
     [Parameter(Mandatory = $true)]
@@ -307,7 +346,7 @@ function Get-NextPublicCalendlySlot {
   }
 }
 
-function Get-ActiveCalendlyBusyRange {
+function Get-CalendlyBusyRanges {
   param(
     [Parameter(Mandatory = $true)]
     [string]$UserUri,
@@ -317,13 +356,11 @@ function Get-ActiveCalendlyBusyRange {
     [DateTimeOffset]$ReferenceTime
   )
 
-  $busyQueryStart = $ReferenceTime.AddSeconds(1).ToUniversalTime()
+  $busyQueryStart = $ReferenceTime.ToUniversalTime()
   $busyQueryEnd = $busyQueryStart.AddDays(7)
   $busyEndpoint = "https://api.calendly.com/user_busy_times?user=$([Uri]::EscapeDataString($UserUri))&start_time=$([Uri]::EscapeDataString($busyQueryStart.ToString("o")))&end_time=$([Uri]::EscapeDataString($busyQueryEnd.ToString("o")))"
   $busyResponse = Invoke-CalendlyRequest -Uri $busyEndpoint -Headers $Headers
-  $busyRanges = Get-CalendlyCollectionItems -Response $busyResponse
-
-  $activeRange = $busyRanges |
+  return Get-CalendlyCollectionItems -Response $busyResponse |
     ForEach-Object {
       if (-not $_.start_time -or -not $_.end_time) {
         return
@@ -336,17 +373,14 @@ function Get-ActiveCalendlyBusyRange {
         return
       }
 
-      if ($rangeStart -le $busyQueryStart -and $rangeEnd -gt $ReferenceTime) {
+      if ($rangeEnd -gt $ReferenceTime) {
         [pscustomobject]@{
           Start = $rangeStart
           End = $rangeEnd
         }
       }
     } |
-    Sort-Object Start |
-    Select-Object -First 1
-
-  return $activeRange
+    Sort-Object Start
 }
 
 $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
@@ -369,9 +403,11 @@ $durationMinutes = $DefaultDurationMinutes
 $nextOpenSlotIso = ""
 $busyNowStartIso = ""
 $busyNowEndIso = ""
+$availableNowEndIso = ""
 $currentUtcNow = [DateTimeOffset]::UtcNow
 $resolvedCalendlyHeaders = $null
 $didResolveAvailabilityFromApi = $false
+$busyRanges = @()
 
 if (-not [string]::IsNullOrWhiteSpace($CalendlyPersonalAccessToken)) {
   $resolvedCalendlyHeaders = Get-CalendlyHeaders -Token $CalendlyPersonalAccessToken
@@ -429,7 +465,11 @@ if (-not $didResolveAvailabilityFromApi) {
 if ($resolvedCalendlyHeaders) {
   try {
     $resolvedCalendlyUserUri = Resolve-CalendlyUserUri -ConfiguredUserUri $CalendlyUserUri -Headers $resolvedCalendlyHeaders
-    $activeBusyRange = Get-ActiveCalendlyBusyRange -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow
+    $busyRanges = @(Get-CalendlyBusyRanges -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow)
+    $activeBusyRange = $busyRanges |
+      Where-Object { $_.Start -le $currentUtcNow -and $_.End -gt $currentUtcNow } |
+      Sort-Object Start |
+      Select-Object -First 1
 
     if ($activeBusyRange) {
       $busyNowStartIso = Format-UtcIsoForPortal -Value $activeBusyRange.Start
@@ -475,12 +515,37 @@ if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
   }
 }
 
-if ((-not $isBusyNow) -and -not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
-  $slotStart = [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()
-  $slotEnd = $slotStart.AddMinutes($durationMinutes)
+$currentWorkingWindow = if ($isWithinWorkingHoursNow) {
+  Get-JoeWorkingWindowForUtcTime -UtcTime $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
+} else {
+  $null
+}
 
-  if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
+if (-not $isBusyNow) {
+  $lastHourAvailabilityEnd = $null
+  if ($currentWorkingWindow -and $now -ge $currentWorkingWindow.End.AddHours(-1) -and $now -lt $currentWorkingWindow.End) {
+    $lastHourAvailabilityEnd = $currentWorkingWindow.End
+    $nextBusyRange = $busyRanges |
+      Where-Object { $_.Start -gt $now -and $_.Start -lt $lastHourAvailabilityEnd } |
+      Sort-Object Start |
+      Select-Object -First 1
+
+    if ($nextBusyRange) {
+      $lastHourAvailabilityEnd = $nextBusyRange.Start
+    }
+  }
+
+  if ($lastHourAvailabilityEnd -and $lastHourAvailabilityEnd -gt $now) {
     $status = "available_now"
+    $availableNowEndIso = Format-UtcIsoForPortal -Value $lastHourAvailabilityEnd
+  } elseif (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
+    $slotStart = [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()
+    $slotEnd = $slotStart.AddMinutes($durationMinutes)
+
+    if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
+      $status = "available_now"
+      $availableNowEndIso = Format-UtcIsoForPortal -Value $slotEnd
+    }
   }
 }
 
@@ -489,6 +554,7 @@ $payload = [ordered]@{
   timezone = $timeZone
   eventDurationMinutes = $durationMinutes
   nextOpenSlotIso = $nextOpenSlotIso
+  availableNowEndIso = $availableNowEndIso
   busyNowStartIso = $busyNowStartIso
   busyNowEndIso = $busyNowEndIso
   workingHours = @(
