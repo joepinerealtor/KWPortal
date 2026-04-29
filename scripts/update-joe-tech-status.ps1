@@ -3,6 +3,7 @@ param(
   [string]$OutputPath = "data/joe-tech-status.json",
   [string]$CalendlyPersonalAccessToken = $env:CALENDLY_PERSONAL_ACCESS_TOKEN,
   [string]$CalendlyEventTypeUri = $env:CALENDLY_JOE_EVENT_TYPE_URI,
+  [string]$CalendlyUserUri = $env:CALENDLY_JOE_USER_URI,
   [string]$CalendlyBookingUrl = $(if ($env:CALENDLY_JOE_BOOKING_URL) { $env:CALENDLY_JOE_BOOKING_URL } else { "https://calendly.com/joepinerealtor/tech-meeting-with-joe" }),
   [string]$CalendlyTimeZone = $env:CALENDLY_JOE_TIMEZONE,
   [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 }),
@@ -84,6 +85,48 @@ function Invoke-CalendlyRequest {
   )
 
   return Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers
+}
+
+function Get-CalendlyCollectionItems {
+  param(
+    $Response
+  )
+
+  if ($null -eq $Response) {
+    return @()
+  }
+
+  if ($Response.PSObject.Properties.Name -contains "collection" -and $null -ne $Response.collection) {
+    return @($Response.collection)
+  }
+
+  return @($Response)
+}
+
+function Resolve-CalendlyUserUri {
+  param(
+    [string]$ConfiguredUserUri,
+    [Parameter(Mandatory = $true)]
+    [hashtable]$Headers
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($ConfiguredUserUri)) {
+    $trimmed = $ConfiguredUserUri.Trim()
+    if ($trimmed -match "^https?://") {
+      return $trimmed
+    }
+
+    return "https://api.calendly.com/users/$trimmed"
+  }
+
+  $currentUserResponse = Invoke-CalendlyRequest -Uri "https://api.calendly.com/users/me" -Headers $Headers
+  $currentUserResource = if ($null -ne $currentUserResponse.resource) { $currentUserResponse.resource } else { $currentUserResponse }
+
+  if (-not $currentUserResource.uri) {
+    throw "Could not determine Calendly user URI from /users/me."
+  }
+
+  return [string]$currentUserResource.uri
 }
 
 function Get-TimeZoneInfoFromId {
@@ -269,6 +312,48 @@ function Get-NextPublicCalendlySlot {
   }
 }
 
+function Get-ActiveCalendlyBusyRange {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$UserUri,
+    [Parameter(Mandatory = $true)]
+    [hashtable]$Headers,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$ReferenceTime
+  )
+
+  $busyQueryStart = $ReferenceTime.AddSeconds(1).ToUniversalTime()
+  $busyQueryEnd = $busyQueryStart.AddDays(7)
+  $busyEndpoint = "https://api.calendly.com/user_busy_times?user=$([Uri]::EscapeDataString($UserUri))&start_time=$([Uri]::EscapeDataString($busyQueryStart.ToString("o")))&end_time=$([Uri]::EscapeDataString($busyQueryEnd.ToString("o")))"
+  $busyResponse = Invoke-CalendlyRequest -Uri $busyEndpoint -Headers $Headers
+  $busyRanges = Get-CalendlyCollectionItems -Response $busyResponse
+
+  $activeRange = $busyRanges |
+    ForEach-Object {
+      if (-not $_.start_time -or -not $_.end_time) {
+        return
+      }
+
+      try {
+        $rangeStart = [DateTimeOffset]::Parse([string]$_.start_time).ToUniversalTime()
+        $rangeEnd = [DateTimeOffset]::Parse([string]$_.end_time).ToUniversalTime()
+      } catch {
+        return
+      }
+
+      if ($rangeStart -le $busyQueryStart -and $rangeEnd -gt $ReferenceTime) {
+        [pscustomobject]@{
+          Start = $rangeStart
+          End = $rangeEnd
+        }
+      }
+    } |
+    Sort-Object Start |
+    Select-Object -First 1
+
+  return $activeRange
+}
+
 $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
 $resolvedOutputDirectory = Split-Path $resolvedOutputPath -Parent
 if (-not (Test-Path $resolvedOutputDirectory)) {
@@ -287,27 +372,36 @@ if (Test-Path $resolvedOutputPath) {
 $timeZone = "America/New_York"
 $durationMinutes = $DefaultDurationMinutes
 $nextOpenSlotIso = ""
+$busyNowStartIso = ""
+$busyNowEndIso = ""
+$currentUtcNow = [DateTimeOffset]::UtcNow
+$resolvedCalendlyHeaders = $null
+$didResolveAvailabilityFromApi = $false
 
-try {
-  if (-not [string]::IsNullOrWhiteSpace($CalendlyPersonalAccessToken) -and -not [string]::IsNullOrWhiteSpace($CalendlyEventTypeUri)) {
+if (-not [string]::IsNullOrWhiteSpace($CalendlyPersonalAccessToken)) {
+  $resolvedCalendlyHeaders = Get-CalendlyHeaders -Token $CalendlyPersonalAccessToken
+}
+
+if ($resolvedCalendlyHeaders -and -not [string]::IsNullOrWhiteSpace($CalendlyEventTypeUri)) {
+  try {
     $timeZone = if ([string]::IsNullOrWhiteSpace($CalendlyTimeZone)) {
       "America/New_York"
     } else {
       $CalendlyTimeZone.Trim()
     }
 
-    $headers = Get-CalendlyHeaders -Token $CalendlyPersonalAccessToken
     $eventTypeId = Get-CalendlyEventTypeId -Value $CalendlyEventTypeUri
     $eventTypeEndpoint = "https://api.calendly.com/event_types/$eventTypeId"
-    $eventTypeResponse = Invoke-CalendlyRequest -Uri $eventTypeEndpoint -Headers $headers
+    $eventTypeResponse = Invoke-CalendlyRequest -Uri $eventTypeEndpoint -Headers $resolvedCalendlyHeaders
     $eventTypeResource = if ($null -ne $eventTypeResponse.resource) { $eventTypeResponse.resource } else { $eventTypeResponse }
     $durationMinutes = Get-ParsedDurationMinutes -Value $eventTypeResource.duration -Fallback $DefaultDurationMinutes
 
-    $startTime = [DateTimeOffset]::UtcNow.AddMinutes(1).ToUniversalTime()
+    $startTime = $currentUtcNow.AddMinutes(1).ToUniversalTime()
     $endTime = $startTime.AddDays(7)
     $availabilityEndpoint = "https://api.calendly.com/event_type_available_times?event_type=$([Uri]::EscapeDataString($CalendlyEventTypeUri))&start_time=$([Uri]::EscapeDataString($startTime.ToString("o")))&end_time=$([Uri]::EscapeDataString($endTime.ToString("o")))"
-    $availabilityResponse = Invoke-CalendlyRequest -Uri $availabilityEndpoint -Headers $headers
-    $availableSlots = @($availabilityResponse.collection)
+    $availabilityResponse = Invoke-CalendlyRequest -Uri $availabilityEndpoint -Headers $resolvedCalendlyHeaders
+    $availableSlots = Get-CalendlyCollectionItems -Response $availabilityResponse
+    $didResolveAvailabilityFromApi = $true
 
     if ($availableSlots.Count -gt 0) {
       $nextOpenSlot = $availableSlots |
@@ -321,14 +415,34 @@ try {
         $nextOpenSlotIso = Format-UtcIsoForPortal -Value ([DateTimeOffset]::Parse($nextOpenSlot.start_time))
       }
     }
-  } else {
+  } catch {
+    Write-Warning "Could not refresh Joe tech availability from Calendly API: $($_.Exception.Message)"
+  }
+}
+
+if (-not $didResolveAvailabilityFromApi) {
+  try {
     $publicAvailability = Get-NextPublicCalendlySlot -BookingUrl $CalendlyBookingUrl -FallbackDurationMinutes $DefaultDurationMinutes -WorkingHours $JoeWorkingHours
     $timeZone = $publicAvailability.TimeZone
     $durationMinutes = $publicAvailability.DurationMinutes
     $nextOpenSlotIso = $publicAvailability.NextOpenSlotIso
+  } catch {
+    Write-Warning "Could not refresh Joe tech availability from Calendly: $($_.Exception.Message)"
   }
-} catch {
-  Write-Warning "Could not refresh Joe tech status from Calendly: $($_.Exception.Message)"
+}
+
+if ($resolvedCalendlyHeaders) {
+  try {
+    $resolvedCalendlyUserUri = Resolve-CalendlyUserUri -ConfiguredUserUri $CalendlyUserUri -Headers $resolvedCalendlyHeaders
+    $activeBusyRange = Get-ActiveCalendlyBusyRange -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow
+
+    if ($activeBusyRange) {
+      $busyNowStartIso = Format-UtcIsoForPortal -Value $activeBusyRange.Start
+      $busyNowEndIso = Format-UtcIsoForPortal -Value $activeBusyRange.End
+    }
+  } catch {
+    Write-Warning "Could not refresh Joe busy-time status from Calendly API: $($_.Exception.Message)"
+  }
 }
 
 if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpenSlotIso)) {
@@ -349,11 +463,26 @@ if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpe
 }
 
 $status = "unavailable"
-if (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
-  $now = [DateTimeOffset]::UtcNow
+$now = [DateTimeOffset]::UtcNow
+$isWithinWorkingHoursNow = Test-IsWithinJoeWorkingHoursNow -UtcNow $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
+$isBusyNow = $false
+
+if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
+  try {
+    $busyNowStart = if ([string]::IsNullOrWhiteSpace($busyNowStartIso)) { $null } else { [DateTimeOffset]::Parse($busyNowStartIso).ToUniversalTime() }
+    $busyNowEnd = [DateTimeOffset]::Parse($busyNowEndIso).ToUniversalTime()
+
+    if ($busyNowEnd -gt $now -and (-not $busyNowStart -or $busyNowStart -le $now)) {
+      $isBusyNow = $true
+    }
+  } catch {
+    $isBusyNow = $false
+  }
+}
+
+if ((-not $isBusyNow) -and -not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
   $slotStart = [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()
   $slotEnd = $slotStart.AddMinutes($durationMinutes)
-  $isWithinWorkingHoursNow = Test-IsWithinJoeWorkingHoursNow -UtcNow $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
 
   if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
     $status = "available_now"
@@ -368,6 +497,8 @@ $payload = [ordered]@{
   eventDurationMinutes = $durationMinutes
   availableWindowMinutes = $AvailableWindowMinutes
   nextOpenSlotIso = $nextOpenSlotIso
+  busyNowStartIso = $busyNowStartIso
+  busyNowEndIso = $busyNowEndIso
   workingHours = @(
     $JoeWorkingHours | ForEach-Object {
       [ordered]@{
@@ -379,6 +510,7 @@ $payload = [ordered]@{
   )
   availableNowLabel = "Joe is available now"
   availableSoonLabel = "Joe is available soon"
+  busyNowLabel = "Joe is in another appointment"
   unavailableLabel = "Joe is unavailable"
   noSlotsSummary = "No open tech-help slots are listed right now."
 }

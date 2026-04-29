@@ -4,6 +4,8 @@
     "eventDurationMinutes":  30,
     "availableWindowMinutes":  60,
     "nextOpenSlotIso":  "2026-04-29T19:00:00.000Z",
+    "busyNowStartIso":  "",
+    "busyNowEndIso":  "",
     "workingHours":  [
                          {
                              "day":  "Wednesday",
@@ -23,6 +25,7 @@
                      ],
     "availableNowLabel":  "Joe is available now",
     "availableSoonLabel":  "Joe is available soon",
+    "busyNowLabel":  "Joe is in another appointment",
     "unavailableLabel":  "Joe is unavailable",
     "noSlotsSummary":  "No open tech-help slots are listed right now."
 }
