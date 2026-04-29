@@ -1031,6 +1031,61 @@ function formatJoeAvailabilityTime(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIM
   }
 }
 
+function getJoeAvailabilityLocalDateKey(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    const parts = formatter.formatToParts(date);
+    const year = parts.find((part) => part.type === "year")?.value || "";
+    const month = parts.find((part) => part.type === "month")?.value || "";
+    const day = parts.find((part) => part.type === "day")?.value || "";
+
+    return `${year}-${month}-${day}`;
+  } catch {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+}
+
+function formatJoeAvailabilityNextSlotLabel(iso, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE, referenceDate = new Date()) {
+  const date = parseJoeAvailabilityDate(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const timeLabel = formatJoeAvailabilityTime(date.toISOString(), timezone);
+  if (!timeLabel) {
+    return "";
+  }
+
+  const targetDateKey = getJoeAvailabilityLocalDateKey(date, timezone);
+  const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
+  if (targetDateKey && targetDateKey === referenceDateKey) {
+    return timeLabel;
+  }
+
+  try {
+    const dayLabel = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "long"
+    }).format(date);
+    return `${dayLabel} at ${timeLabel}`;
+  } catch {
+    const fallbackDayLabel = date.toLocaleDateString("en-US", { weekday: "long" });
+    return `${fallbackDayLabel} at ${timeLabel}`;
+  }
+}
+
 function parseJoeAvailabilityDate(value) {
   if (value instanceof Date) {
     return value;
@@ -1211,7 +1266,7 @@ function normalizeJoeAvailabilityState(rawState = {}) {
 
   if (status === "unavailable") {
     const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs && isNextSlotWithinWorkingHours
-      ? formatJoeAvailabilityTime(nextOpenSlotIso, timezone)
+      ? formatJoeAvailabilityNextSlotLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
 
     return {
@@ -1230,6 +1285,54 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   };
 }
 
+function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
+  const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
+    ? rawState.timezone.trim()
+    : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
+  const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
+  const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+    ? parsedDuration
+    : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES;
+  const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
+    ? rawState.nextOpenSlotIso
+    : "";
+  const nextOpenSlotDate = nextOpenSlotIso ? parseJoeAvailabilityDate(nextOpenSlotIso) : null;
+  const nextOpenSlotMs = nextOpenSlotDate && !Number.isNaN(nextOpenSlotDate.getTime())
+    ? nextOpenSlotDate.getTime()
+    : Number.NaN;
+  const nextOpenSlotEndMs = Number.isFinite(nextOpenSlotMs)
+    ? nextOpenSlotMs + (eventDurationMinutes * 60 * 1000)
+    : Number.NaN;
+  const nowMs = Date.now();
+
+  if (normalizedState.status === "available_now") {
+    const endLabel = Number.isFinite(nextOpenSlotEndMs)
+      ? formatJoeAvailabilityTime(new Date(nextOpenSlotEndMs).toISOString(), timezone)
+      : "";
+
+    return {
+      label: "Tech Help Available",
+      summary: endLabel ? `Available until ${endLabel}.` : "Available right now."
+    };
+  }
+
+  if (normalizedState.status === "unavailable") {
+    const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
+      ? formatJoeAvailabilityNextSlotLabel(nextOpenSlotIso, timezone, new Date(nowMs))
+      : "";
+
+    return {
+      label: "Tech Help Unavailable",
+      summary: nextLabel ? `Next open slot ${nextLabel}.` : "No open tech-help slots listed."
+    };
+  }
+
+  return {
+    label: normalizedState.label || "Tech Help Unavailable",
+    summary: normalizedState.summary || "No open tech-help slots listed."
+  };
+}
+
 function writeJoeAvailability(rawState = {}) {
   if (!hasJoeAvailabilityTargets) {
     return;
@@ -1238,10 +1341,13 @@ function writeJoeAvailability(rawState = {}) {
   const state = normalizeJoeAvailabilityState(rawState);
 
   joeAvailabilityRefs.forEach((ref) => {
+    const isCompactHeaderWidget = ref.panel.classList.contains("joe-availability-panel--compact");
+    const compactState = isCompactHeaderWidget ? getCompactJoeAvailabilityState(rawState, state) : null;
+
     ref.panel.dataset.status = state.status;
     ref.panel.hidden = false;
-    ref.label.textContent = state.label;
-    ref.summary.textContent = state.summary;
+    ref.label.textContent = compactState ? compactState.label : state.label;
+    ref.summary.textContent = compactState ? compactState.summary : state.summary;
   });
 }
 
