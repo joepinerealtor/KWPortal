@@ -693,6 +693,8 @@ function setActiveSection(id) {
       link.removeAttribute("aria-current");
     }
   });
+
+  contentStrip?.classList.toggle("is-leadership-active", id === "leadership");
 }
 
 function updateActiveSectionFromScroll() {

@@ -1022,6 +1022,10 @@ img {
   max-width: 100%;
 }
 
+.content-strip.is-leadership-active .content-strip-tech-support {
+  display: none;
+}
+
 .content-strip-links::-webkit-scrollbar {
   height: 8px;
 }
