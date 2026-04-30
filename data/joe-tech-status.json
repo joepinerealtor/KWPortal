@@ -1,13 +1,13 @@
 {
-  "status": "unavailable",
+  "status": "available_now",
   "timezone": "America/New_York",
   "eventDurationMinutes": 30,
   "nextOpenSlotIso": "2026-04-30T14:00:00.000Z",
   "nextOpenSlotWorkingWindowEndIso": "2026-04-30T21:00:00.000Z",
-  "availableNowEndIso": "",
+  "availableNowEndIso": "2026-04-30T16:00:00.000Z",
   "busyNowStartIso": "",
   "busyNowEndIso": "",
-  "nextBusyStartIso": "",
+  "nextBusyStartIso": "2026-04-30T16:00:00.000Z",
   "nextBusyEndIso": "",
   "workingHours": [
     {

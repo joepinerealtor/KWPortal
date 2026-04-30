@@ -1527,6 +1527,14 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     ? rawState.availableNowEndIso
     : "";
   const availableNowEndMs = getJoeAvailabilityIsoMs(availableNowEndIso);
+  const busyNowStartIso = typeof rawState?.busyNowStartIso === "string"
+    ? rawState.busyNowStartIso
+    : "";
+  const busyNowStartMs = getJoeAvailabilityIsoMs(busyNowStartIso);
+  const busyNowEndIso = typeof rawState?.busyNowEndIso === "string"
+    ? rawState.busyNowEndIso
+    : "";
+  const busyNowEndMs = getJoeAvailabilityIsoMs(busyNowEndIso);
   const nextBusyStartIso = typeof rawState?.nextBusyStartIso === "string"
     ? rawState.nextBusyStartIso
     : "";
@@ -1550,7 +1558,11 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const isWithinWorkingHoursNow = isWithinJoeWorkingHours(new Date(nowMs), timezone, workingHours);
   const isNextSlotWithinWorkingHours = Number.isFinite(nextOpenSlotMs)
     && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHours, eventDurationMinutes);
+  const isBusyNow = Number.isFinite(busyNowEndMs)
+    && busyNowEndMs > nowMs
+    && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
   const availableNowLabel = rawState?.availableNowLabel || "Joe is available to chat";
+  const busyNowLabel = rawState?.busyNowLabel || "Joe is in another appointment";
   const unavailableLabel = rawState?.unavailableLabel || "Joe is unavailable";
   const baseStatus = [
     "available",
@@ -1561,7 +1573,9 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     : "unavailable";
   let status = baseStatus === "available" ? "unavailable" : baseStatus;
 
-  if (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs) {
+  if (isBusyNow) {
+    status = "unavailable";
+  } else if (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs) {
     status = "available_now";
   } else if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
     if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
@@ -1595,16 +1609,21 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   }
 
   if (status === "unavailable") {
+    const busyUntilLabel = isBusyNow
+      ? formatJoeAvailabilityUntilLabel(busyNowEndIso, timezone, new Date(nowMs))
+      : "";
     const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs && isNextSlotWithinWorkingHours
       ? formatJoeAvailabilityNextSlotLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
 
     return {
       status,
-      label: unavailableLabel,
-      summary: nextLabel
-        ? `Next open slot is ${nextLabel}.`
-        : (rawState?.noSlotsSummary || "No open tech-help slots are listed right now.")
+      label: isBusyNow ? busyNowLabel : unavailableLabel,
+      summary: busyUntilLabel
+        ? `Next available time is ${busyUntilLabel}.`
+        : (nextLabel
+        ? `Next available time is ${nextLabel}.`
+        : (rawState?.noSlotsSummary || "No open tech-help slots are listed right now."))
     };
   }
 
@@ -1628,6 +1647,14 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.availableNowEndIso
     : "";
   const availableNowEndMs = getJoeAvailabilityIsoMs(availableNowEndIso);
+  const busyNowStartIso = typeof rawState?.busyNowStartIso === "string"
+    ? rawState.busyNowStartIso
+    : "";
+  const busyNowStartMs = getJoeAvailabilityIsoMs(busyNowStartIso);
+  const busyNowEndIso = typeof rawState?.busyNowEndIso === "string"
+    ? rawState.busyNowEndIso
+    : "";
+  const busyNowEndMs = getJoeAvailabilityIsoMs(busyNowEndIso);
   const nextBusyStartIso = typeof rawState?.nextBusyStartIso === "string"
     ? rawState.nextBusyStartIso
     : "";
@@ -1647,6 +1674,9 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? nextOpenSlotMs + (eventDurationMinutes * 60 * 1000)
     : Number.NaN;
   const nowMs = Date.now();
+  const isBusyNow = Number.isFinite(busyNowEndMs)
+    && busyNowEndMs > nowMs
+    && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
 
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
@@ -1667,12 +1697,17 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   }
 
   if (normalizedState.status === "unavailable") {
+    const busyUntilLabel = isBusyNow
+      ? formatJoeAvailabilityCompactUntilLabel(busyNowEndIso, timezone, new Date(nowMs))
+      : "";
     const untilLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
       ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
 
     return {
-      label: untilLabel ? `Unavailable until ${untilLabel}` : "Joe is unavailable",
+      label: busyUntilLabel
+        ? `Unavailable until ${busyUntilLabel}`
+        : (untilLabel ? `Unavailable until ${untilLabel}` : "Joe is unavailable"),
       summary: officeHoursLabel
     };
   }

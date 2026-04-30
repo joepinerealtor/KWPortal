@@ -343,6 +343,7 @@ function Get-NextPublicCalendlySlot {
     TimeZone = $resolvedTimeZone
     DurationMinutes = $resolvedDuration
     NextOpenSlotIso = if ($nextOpenSlot) { Format-UtcIsoForPortal -Value $nextOpenSlot } else { "" }
+    AvailableSlotIsos = @($availableSlots | Sort-Object | ForEach-Object { Format-UtcIsoForPortal -Value $_ })
   }
 }
 
@@ -397,8 +398,11 @@ function Get-AvailableNowEnd {
 
   $availableEnd = $SlotEnd
 
-  if ($CanUseBusyRanges -and $WorkingWindow -and $WorkingWindow.End -gt $Now) {
+  if ($WorkingWindow -and $WorkingWindow.End -gt $Now -and $WorkingWindow.End -lt $availableEnd) {
     $availableEnd = $WorkingWindow.End
+  }
+
+  if ($CanUseBusyRanges) {
     $nextBusyRange = $BusyRanges |
       Where-Object { $_.Start -gt $Now -and $_.Start -lt $availableEnd } |
       Sort-Object Start |
@@ -414,6 +418,64 @@ function Get-AvailableNowEnd {
   }
 
   return $availableEnd
+}
+
+function Get-AvailableIntervalContainingTime {
+  param(
+    [Parameter(Mandatory = $true)]
+    [array]$SlotStarts,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$ReferenceTime,
+    [Parameter(Mandatory = $true)]
+    [int]$DurationMinutes,
+    [bool]$AllowNearFutureStart
+  )
+
+  if (-not $SlotStarts.Count -or $DurationMinutes -le 0) {
+    return $null
+  }
+
+  $sortedStarts = @($SlotStarts | Sort-Object)
+  $currentStart = $null
+  $currentEnd = $null
+  $nearFutureThreshold = $ReferenceTime.AddMinutes($DurationMinutes)
+
+  foreach ($slotStartValue in $sortedStarts) {
+    $slotStart = ([DateTimeOffset]$slotStartValue).ToUniversalTime()
+    $slotEnd = $slotStart.AddMinutes($DurationMinutes)
+
+    if ($null -eq $currentStart) {
+      $currentStart = $slotStart
+      $currentEnd = $slotEnd
+      continue
+    }
+
+    if ($slotStart -le $currentEnd.AddSeconds(60)) {
+      if ($slotEnd -gt $currentEnd) {
+        $currentEnd = $slotEnd
+      }
+      continue
+    }
+
+    if (($currentStart -le $ReferenceTime -and $ReferenceTime -lt $currentEnd) -or ($AllowNearFutureStart -and $ReferenceTime -lt $currentStart -and $currentStart -le $nearFutureThreshold)) {
+      return [pscustomobject]@{
+        Start = $currentStart
+        End = $currentEnd
+      }
+    }
+
+    $currentStart = $slotStart
+    $currentEnd = $slotEnd
+  }
+
+  if (($currentStart -le $ReferenceTime -and $ReferenceTime -lt $currentEnd) -or ($AllowNearFutureStart -and $ReferenceTime -lt $currentStart -and $currentStart -le $nearFutureThreshold)) {
+    return [pscustomobject]@{
+      Start = $currentStart
+      End = $currentEnd
+    }
+  }
+
+  return $null
 }
 
 $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
@@ -445,6 +507,7 @@ $resolvedCalendlyHeaders = $null
 $didResolveAvailabilityFromApi = $false
 $didResolveBusyRangesFromApi = $false
 $busyRanges = @()
+$availableSlotStarts = @()
 
 if (-not [string]::IsNullOrWhiteSpace($CalendlyPersonalAccessToken)) {
   $resolvedCalendlyHeaders = Get-CalendlyHeaders -Token $CalendlyPersonalAccessToken
@@ -472,15 +535,28 @@ if ($resolvedCalendlyHeaders -and -not [string]::IsNullOrWhiteSpace($CalendlyEve
     $didResolveAvailabilityFromApi = $true
 
     if ($availableSlots.Count -gt 0) {
-      $nextOpenSlot = $availableSlots |
-        Where-Object {
-          $_.start_time -and (Test-IsWithinJoeWorkingHours -UtcStart ([DateTimeOffset]::Parse($_.start_time).ToUniversalTime()) -DurationMinutes $durationMinutes -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours)
-        } |
-        Sort-Object { [DateTimeOffset]::Parse($_.start_time) } |
-        Select-Object -First 1
+      $slotStarts = @()
+      foreach ($slot in @($availableSlots)) {
+        if (-not $slot.start_time) {
+          continue
+        }
 
-      if ($nextOpenSlot.start_time) {
-        $nextOpenSlotIso = Format-UtcIsoForPortal -Value ([DateTimeOffset]::Parse($nextOpenSlot.start_time))
+        try {
+          $slotStart = [DateTimeOffset]::Parse([string]$slot.start_time).ToUniversalTime()
+        } catch {
+          continue
+        }
+
+        if (Test-IsWithinJoeWorkingHours -UtcStart $slotStart -DurationMinutes $durationMinutes -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours) {
+          $slotStarts += $slotStart
+        }
+      }
+
+      $availableSlotStarts = @($slotStarts | Sort-Object)
+      $nextOpenSlot = $availableSlotStarts | Select-Object -First 1
+
+      if ($nextOpenSlot) {
+        $nextOpenSlotIso = Format-UtcIsoForPortal -Value $nextOpenSlot
       }
     }
   } catch {
@@ -494,6 +570,7 @@ if (-not $didResolveAvailabilityFromApi) {
     $timeZone = $publicAvailability.TimeZone
     $durationMinutes = $publicAvailability.DurationMinutes
     $nextOpenSlotIso = $publicAvailability.NextOpenSlotIso
+    $availableSlotStarts = @($publicAvailability.AvailableSlotIsos | ForEach-Object { [DateTimeOffset]::Parse([string]$_).ToUniversalTime() } | Sort-Object)
   } catch {
     Write-Warning "Could not refresh Joe tech availability from Calendly: $($_.Exception.Message)"
   }
@@ -538,6 +615,7 @@ if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpe
 
     if ($nowForPreviousSlot -ge $previousSlotStart -and $nowForPreviousSlot -lt $previousSlotEnd -and (-not $nextSlotStart -or $nextSlotStart -gt $previousSlotStart)) {
       $durationMinutes = $previousDurationMinutes
+      $availableSlotStarts = @($availableSlotStarts + $previousSlotStart | Sort-Object)
       $nextOpenSlotIso = Format-UtcIsoForPortal -Value $previousSlotStart
     }
   } catch {
@@ -581,22 +659,19 @@ $currentWorkingWindow = if ($isWithinWorkingHoursNow) {
 }
 
 if (-not $isBusyNow) {
-  $lastHourAvailabilityEnd = $null
-  if ($currentWorkingWindow -and $now -ge $currentWorkingWindow.End.AddHours(-1) -and $now -lt $currentWorkingWindow.End) {
-    $lastHourAvailabilityEnd = $currentWorkingWindow.End
-    $nextBusyRange = $busyRanges |
-      Where-Object { $_.Start -gt $now -and $_.Start -lt $lastHourAvailabilityEnd } |
-      Sort-Object Start |
-      Select-Object -First 1
+  $currentAvailableInterval = Get-AvailableIntervalContainingTime -SlotStarts $availableSlotStarts -ReferenceTime $now -DurationMinutes $durationMinutes -AllowNearFutureStart:($didResolveBusyRangesFromApi -and -not $isBusyNow)
 
-    if ($nextBusyRange) {
-      $lastHourAvailabilityEnd = $nextBusyRange.Start
-    }
-  }
-
-  if ($lastHourAvailabilityEnd -and $lastHourAvailabilityEnd -gt $now) {
+  if ($currentAvailableInterval) {
     $status = "available_now"
-    $availableNowEndIso = Format-UtcIsoForPortal -Value $lastHourAvailabilityEnd
+    $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $currentAvailableInterval.End -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $didResolveBusyRangesFromApi
+    $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
+    if ([string]::IsNullOrWhiteSpace($nextBusyStartIso) -and $availableNowEnd -gt $now) {
+      $nextBusyStartIso = Format-UtcIsoForPortal -Value $availableNowEnd
+    }
+  } elseif (-not $didResolveAvailabilityFromApi -and $didResolveBusyRangesFromApi -and $isWithinWorkingHoursNow -and $currentWorkingWindow) {
+    $status = "available_now"
+    $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $currentWorkingWindow.End -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $true
+    $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
   } elseif (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
     $slotStart = [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()
     $slotEnd = $slotStart.AddMinutes($durationMinutes)
