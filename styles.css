@@ -3414,6 +3414,7 @@ img {
 .vendor-details a {
   color: inherit;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 button.button {
@@ -3872,28 +3873,127 @@ body.has-calendar-modal .page-content {
 
 @media (min-aspect-ratio: 5/4) and (max-width: 1366px), (max-aspect-ratio: 5/4) and (min-width: 700px) {
   .portal-sidebar {
-    grid-template-columns: minmax(196px, 214px) minmax(0, 1fr);
-    grid-template-areas:
-      "brand sections"
-      "brand quick";
-    gap: 8px 10px;
+    gap: 10px;
     align-items: start;
   }
 
   .site-header {
-    grid-area: brand;
-    height: 100%;
-    align-content: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+  }
+
+  .brand-link {
+    display: grid;
+    grid-template-columns: minmax(128px, 182px) auto;
+    align-items: center;
+    justify-items: start;
+    gap: 12px;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .brand-lockup {
+    min-width: 0;
+    width: 100%;
+    max-width: 182px;
+    padding: 8px 10px;
+    justify-self: start;
+  }
+
+  .brand-copy {
+    min-width: 0;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .brand-copy strong {
+    font-size: 1.12rem;
+  }
+
+  .section-nav {
+    display: none;
+  }
+
+  .mobile-sidebar-menus {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.58fr);
     gap: 8px;
-    padding: 10px 12px;
+    align-items: stretch;
+    align-self: start;
+    position: sticky;
+    top: 12px;
+    z-index: 45;
+  }
+
+  .mobile-menu-panel {
+    position: relative;
+    height: 100%;
+  }
+
+  .mobile-menu-panel + .mobile-menu-panel {
+    margin-top: 0;
+  }
+
+  .mobile-menu-panel[open] {
+    z-index: 2;
+  }
+
+  .mobile-menu-summary,
+  .mobile-dashboard-link {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.64rem 2rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+  }
+
+  .mobile-sidebar-cta {
+    width: 100%;
+  }
+
+  .mobile-dashboard-link {
+    height: 100%;
+  }
+
+  .mobile-menu-links {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 3;
+    width: max-content;
+    min-width: min(360px, calc(100vw - 44px));
+    max-width: min(420px, calc(100vw - 44px));
+    max-height: min(58vh, 360px);
+    overflow-y: auto;
+    margin-top: 0;
+    box-shadow: var(--kw-shadow);
+  }
+
+  .mobile-menu-panel:nth-child(2) .mobile-menu-links {
+    right: 0;
+    left: auto;
+  }
+
+  .mobile-menu-links .section-nav-link,
+  .mobile-menu-links .button {
+    min-height: 40px;
+    padding: 0.58rem 0.7rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
   }
 
   .site-header .header-time-card {
     display: grid;
     width: auto;
-    padding: 0;
-    border: 0;
-    background: transparent;
+    min-width: 132px;
+    margin: 0;
+    padding: 8px 10px;
+    justify-self: end;
+    border: 1px solid var(--kw-border);
+    background: var(--kw-paper-soft);
     box-shadow: none;
     gap: 2px;
   }
@@ -3902,69 +4002,90 @@ body.has-calendar-modal .page-content {
     display: grid;
   }
 
-  .section-nav {
-    grid-area: sections;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-    align-items: start;
-    gap: 6px;
-    padding: 8px 10px;
+  .site-header .header-time-card strong {
+    font-size: 1rem;
   }
 
-  .sidebar-utility {
-    grid-area: quick;
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
-    align-items: center;
-    gap: 6px 10px;
-    padding: 8px 10px;
-  }
-
-  .sidebar-utility .eyebrow {
-    margin: 0;
-    font-size: 0.6rem;
-  }
-
-  .sidebar-link-stack {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-    gap: 6px;
-  }
-
-  .section-nav-link,
-  .sidebar-button {
-    width: 100%;
-    min-height: 32px;
-    padding: 0.36rem 0.6rem;
-    font-size: 0.62rem;
-    letter-spacing: 0.09em;
+  .site-header .header-time-card span:last-child {
+    font-size: 0.76rem;
   }
 
   .portal-content > .content-strip {
     display: none;
   }
+}
+
+@media (min-width: 1180px) and (max-width: 1366px) and (min-aspect-ratio: 5/4) {
+  .portal-frame {
+    grid-template-columns: minmax(430px, 0.9fr) minmax(0, 1fr);
+    grid-template-areas:
+      "header menus"
+      "content content";
+    gap: 10px 12px;
+    align-items: start;
+  }
+
+  .portal-sidebar {
+    grid-area: header;
+  }
+
+  .mobile-sidebar-menus {
+    grid-area: menus;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.72fr);
+    min-height: 64px;
+    top: 10px;
+  }
+
+  .portal-content {
+    grid-area: content;
+  }
+
+  .site-header {
+    min-height: 64px;
+    gap: 10px;
+    padding: 8px 10px;
+  }
 
   .brand-link {
-    gap: 8px;
+    grid-template-columns: minmax(126px, 150px) auto;
+    gap: 10px;
   }
 
   .brand-lockup {
-    min-width: 0;
-    width: min(100%, 184px);
-    max-width: 184px;
-    padding: 9px 10px;
+    max-width: 150px;
+    padding: 6px 8px;
   }
 
   .brand-copy strong {
-    font-size: 1.08rem;
+    font-size: 0.98rem;
+  }
+
+  .site-header .header-time-card {
+    min-width: 142px;
+    padding: 6px 8px;
   }
 
   .site-header .header-time-card strong {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
 
   .site-header .header-time-card span:last-child {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
+  }
+
+  .mobile-menu-summary,
+  .mobile-dashboard-link {
+    min-height: 64px;
+    padding: 0.54rem 1.7rem;
+    font-size: 0.68rem;
+  }
+
+  .mobile-menu-summary::after {
+    right: 0.85rem;
+  }
+
+  .mobile-menu-links {
+    top: calc(100% + 7px);
   }
 }
 
