@@ -1241,7 +1241,7 @@ function formatJoeAvailabilityUntilLabel(iso, timezone = JOE_AVAILABILITY_FALLBA
   const targetDateKey = getJoeAvailabilityLocalDateKey(date, timezone);
   const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
   if (targetDateKey && targetDateKey === referenceDateKey) {
-    return `today at ${timeLabel}`;
+    return `${timeLabel} today`;
   }
 
   const targetYear = getJoeAvailabilityLocalYear(date, timezone);
@@ -1285,7 +1285,7 @@ function formatJoeAvailabilityCompactUntilLabel(iso, timezone = JOE_AVAILABILITY
   const targetDateKey = getJoeAvailabilityLocalDateKey(date, timezone);
   const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
   if (targetDateKey && targetDateKey === referenceDateKey) {
-    return `today at ${timeLabel}`;
+    return `${timeLabel} today`;
   }
 
   const targetYear = getJoeAvailabilityLocalYear(date, timezone);
@@ -1539,6 +1539,10 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     ? rawState.nextBusyStartIso
     : "";
   const nextBusyStartMs = getJoeAvailabilityIsoMs(nextBusyStartIso);
+  const nextAppointmentAvailableIso = typeof rawState?.nextAppointmentAvailableIso === "string"
+    ? rawState.nextAppointmentAvailableIso
+    : "";
+  const nextAppointmentAvailableMs = getJoeAvailabilityIsoMs(nextAppointmentAvailableIso);
   const nextOpenSlotWorkingWindowEndIso = typeof rawState?.nextOpenSlotWorkingWindowEndIso === "string"
     ? rawState.nextOpenSlotWorkingWindowEndIso
     : "";
@@ -1598,13 +1602,18 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
       ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
       : "";
+    const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
+      ? formatJoeAvailabilityUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
+      : "";
 
     return {
       status,
       label: availableNowLabel,
-      summary: rawState?.availableNowSummary || (endLabel
+      summary: nextAppointmentLabel
+        ? `Next appointment available at ${nextAppointmentLabel}.`
+        : (rawState?.availableNowSummary || (endLabel
         ? `Feel free to book a private meeting or call Joe to sit with him. Current availability runs until ${endLabel}.`
-        : "Feel free to book a private meeting or call Joe to sit with him.")
+        : "Feel free to book a private meeting or call Joe to sit with him."))
     };
   }
 
@@ -1659,6 +1668,10 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.nextBusyStartIso
     : "";
   const nextBusyStartMs = getJoeAvailabilityIsoMs(nextBusyStartIso);
+  const nextAppointmentAvailableIso = typeof rawState?.nextAppointmentAvailableIso === "string"
+    ? rawState.nextAppointmentAvailableIso
+    : "";
+  const nextAppointmentAvailableMs = getJoeAvailabilityIsoMs(nextAppointmentAvailableIso);
   const nextOpenSlotWorkingWindowEndIso = typeof rawState?.nextOpenSlotWorkingWindowEndIso === "string"
     ? rawState.nextOpenSlotWorkingWindowEndIso
     : "";
@@ -1689,10 +1702,15 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
       ? formatJoeAvailabilityCompactUntilLabel(new Date(effectiveAvailableNowEndMs).toISOString(), timezone, new Date(nowMs))
       : "";
+    const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
+      ? formatJoeAvailabilityCompactUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
+      : "";
 
     return {
       label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
-      summary: officeHoursLabel
+      summary: nextAppointmentLabel
+        ? `Next appointment available at ${nextAppointmentLabel}`
+        : officeHoursLabel
     };
   }
 

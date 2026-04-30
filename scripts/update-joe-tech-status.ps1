@@ -501,6 +501,7 @@ $busyNowStartIso = ""
 $busyNowEndIso = ""
 $nextBusyStartIso = ""
 $nextBusyEndIso = ""
+$nextAppointmentAvailableIso = ""
 $availableNowEndIso = ""
 $currentUtcNow = [DateTimeOffset]::UtcNow
 $resolvedCalendlyHeaders = $null
@@ -665,6 +666,15 @@ if (-not $isBusyNow) {
     $status = "available_now"
     $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $currentAvailableInterval.End -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $didResolveBusyRangesFromApi
     $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
+    $nextAppointmentAvailable = $availableSlotStarts |
+      Where-Object { $_ -gt $currentAvailableInterval.End.AddSeconds(60) } |
+      Sort-Object |
+      Select-Object -First 1
+
+    if ($nextAppointmentAvailable) {
+      $nextAppointmentAvailableIso = Format-UtcIsoForPortal -Value $nextAppointmentAvailable
+    }
+
     if ([string]::IsNullOrWhiteSpace($nextBusyStartIso) -and $availableNowEnd -gt $now) {
       $nextBusyStartIso = Format-UtcIsoForPortal -Value $availableNowEnd
     }
@@ -682,6 +692,17 @@ if (-not $isBusyNow) {
       $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
     }
   }
+} else {
+  $nextAppointmentAvailable = $availableSlotStarts |
+    Where-Object { $_ -gt $now } |
+    Sort-Object |
+    Select-Object -First 1
+
+  if ($nextAppointmentAvailable) {
+    $nextAppointmentAvailableIso = Format-UtcIsoForPortal -Value $nextAppointmentAvailable
+  } elseif (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
+    $nextAppointmentAvailableIso = $busyNowEndIso
+  }
 }
 
 $payload = [ordered]@{
@@ -695,6 +716,7 @@ $payload = [ordered]@{
   busyNowEndIso = $busyNowEndIso
   nextBusyStartIso = $nextBusyStartIso
   nextBusyEndIso = $nextBusyEndIso
+  nextAppointmentAvailableIso = $nextAppointmentAvailableIso
   workingHours = @(
     $JoeWorkingHours | ForEach-Object {
       [ordered]@{
