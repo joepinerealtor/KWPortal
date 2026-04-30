@@ -727,7 +727,7 @@ $payload = [ordered]@{
     }
   )
   availableNowLabel = "Joe is available to chat"
-  availableNowSummary = "Feel free to book a private meeting or call Joe to sit with him."
+  availableNowSummary = "Schedule an appointment with Joe."
   busyNowLabel = "Joe is in another appointment"
   unavailableLabel = "Joe is unavailable"
   noSlotsSummary = "No open tech-help slots are listed right now."

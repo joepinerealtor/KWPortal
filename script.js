@@ -87,10 +87,7 @@ const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availabilit
     summary: card.querySelector("[data-joe-availability-summary]"),
     primaryAction: card.matches("[data-joe-primary-action]")
       ? card
-      : card.querySelector("[data-joe-primary-action]"),
-    secondaryAction: card.matches("[data-joe-secondary-action]")
-      ? card
-      : card.querySelector("[data-joe-secondary-action]")
+      : card.querySelector("[data-joe-primary-action]")
   }))
   .filter((ref) => ref.panel && ref.light && ref.label && ref.summary);
 const joeAvailabilitySourceUrl = joeAvailabilityRefs[0]?.card.dataset.joeAvailabilitySrc || "";
@@ -135,9 +132,6 @@ const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
 const JOE_TECH_BOOKING_URL = "https://calendly.com/joepinerealtor/tech-meeting-with-joe";
-const JOE_TECH_PHONE_URL = "tel:+14013270888";
-const JOE_TECH_TEXT_URL = "sms:+14013270888";
-const JOE_TECH_EMAIL_URL = "mailto:JoePine@KW.com?subject=KW%20Tech%20Question";
 const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
 const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
 const PORTAL_ACCESS_SUPPORT_BODY = [
@@ -1023,37 +1017,13 @@ function initializeRoomBookingModal() {
     }, 180);
   };
 
-  const createQuickAction = (label, href) => {
-    const action = document.createElement("a");
-    action.className = "room-booking-quick-action";
-    action.href = href;
-    action.textContent = label;
-    return action;
-  };
-
   const renderJoeBookingActions = (isJoeBooking) => {
     if (!quickActions) {
       return;
     }
 
     quickActions.replaceChildren();
-    if (!isJoeBooking) {
-      quickActions.hidden = true;
-      return;
-    }
-
-    const isAvailableNow = currentJoeAvailabilityState?.status === "available_now";
-    const actions = isAvailableNow
-      ? [
-          createQuickAction("Call Joe", JOE_TECH_PHONE_URL),
-          createQuickAction("Text Joe", JOE_TECH_TEXT_URL)
-        ]
-      : [
-          createQuickAction("Email Joe", JOE_TECH_EMAIL_URL)
-        ];
-
-    quickActions.append(...actions);
-    quickActions.hidden = false;
+    quickActions.hidden = true;
   };
 
   const openModal = (trigger) => {
@@ -1612,8 +1582,8 @@ function normalizeJoeAvailabilityState(rawState = {}) {
       summary: nextAppointmentLabel
         ? `Next appointment available at ${nextAppointmentLabel}.`
         : (rawState?.availableNowSummary || (endLabel
-        ? `Feel free to book a private meeting or call Joe to sit with him. Current availability runs until ${endLabel}.`
-        : "Feel free to book a private meeting or call Joe to sit with him."))
+        ? `Schedule an appointment with Joe. Current availability runs until ${endLabel}.`
+        : "Schedule an appointment with Joe."))
     };
   }
 
@@ -1740,58 +1710,38 @@ function getMobileBubbleJoeAvailabilityState(normalizedState = {}) {
   if (normalizedState.status === "available_now") {
     return {
       label: "Joe is available now",
-      summary: "Tap for call, text, or scheduling"
+      summary: "Tap to schedule an appointment"
     };
   }
 
   return {
-    label: "Schedule a time with Joe",
-    summary: "Tap to schedule a time"
+    label: "Schedule an appointment",
+    summary: "Tap to schedule an appointment"
   };
 }
 
-function updateJoeAvailabilityAction(action, type) {
+function updateJoeAvailabilityAction(action) {
   if (!action) {
     return;
   }
 
-  const isCallAction = type === "call";
   const isMobileBubbleAction = action.classList.contains("mobile-tech-help-bubble");
-  action.href = isMobileBubbleAction || !isCallAction ? JOE_TECH_BOOKING_URL : JOE_TECH_PHONE_URL;
+  action.href = JOE_TECH_BOOKING_URL;
 
   if (!isMobileBubbleAction) {
-    action.textContent = isCallAction ? "Call Joe" : "Schedule a time with Joe";
+    action.textContent = "Schedule an appointment";
   }
 
-  if (isCallAction) {
-    action.removeAttribute("target");
-    action.removeAttribute("rel");
-  } else {
-    action.setAttribute("target", "_blank");
-    action.setAttribute("rel", "noreferrer");
-  }
+  action.setAttribute("target", "_blank");
+  action.setAttribute("rel", "noreferrer");
 
   if (isMobileBubbleAction) {
-    action.setAttribute("target", "_blank");
-    action.setAttribute("rel", "noreferrer");
-    action.setAttribute("aria-label", isCallAction ? "Open tech help options with Joe" : "Schedule tech help with Joe");
+    action.setAttribute("aria-label", "Schedule tech help with Joe");
   }
 }
 
 function syncJoeAvailabilityActions(ref, state) {
-  const isAvailableNow = state.status === "available_now";
-
-  if (ref.card.classList.contains("mobile-tech-help-bubble")) {
-    updateJoeAvailabilityAction(ref.primaryAction, isAvailableNow ? "call" : "book");
-    return;
-  }
-
-  updateJoeAvailabilityAction(ref.primaryAction, "book");
-  updateJoeAvailabilityAction(ref.secondaryAction, "call");
-
-  if (ref.secondaryAction) {
-    ref.secondaryAction.hidden = !isAvailableNow;
-  }
+  updateJoeAvailabilityAction(ref.primaryAction);
 }
 
 function writeJoeAvailability(rawState = {}) {
