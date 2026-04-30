@@ -4013,6 +4013,33 @@ body.has-calendar-modal .page-content {
   .portal-content > .content-strip {
     display: none;
   }
+
+  .mobile-tech-help-bubble {
+    position: fixed;
+    right: max(20px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    z-index: 50;
+    display: block;
+    color: var(--kw-black);
+    text-decoration: none;
+  }
+
+  .mobile-tech-help-bubble .joe-availability-panel--mobile-bubble {
+    min-width: min(278px, calc(100vw - 40px));
+    padding: 12px 14px 12px 12px;
+  }
+
+  .mobile-tech-help-bubble .mobile-tech-help-avatar {
+    width: 46px;
+    height: 46px;
+  }
+
+  body.is-leadership-tech-visible .mobile-tech-help-bubble,
+  body.has-room-booking-modal .mobile-tech-help-bubble,
+  body.has-calendar-modal .mobile-tech-help-bubble,
+  body.portal-protected .mobile-tech-help-bubble {
+    display: none;
+  }
 }
 
 @media (min-width: 1180px) and (max-width: 1366px) and (min-aspect-ratio: 5/4) {
