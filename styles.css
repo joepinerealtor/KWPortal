@@ -320,11 +320,13 @@ img {
 
 .mobile-menu-panel[open] .mobile-menu-summary {
   border-color: var(--kw-red);
-  background: rgba(180, 1, 1, 0.04);
+  background: var(--kw-red);
+  color: var(--kw-white);
 }
 
 .mobile-menu-panel[open] .mobile-menu-summary::after {
   content: "-";
+  color: var(--kw-white);
 }
 
 .mobile-menu-links {
