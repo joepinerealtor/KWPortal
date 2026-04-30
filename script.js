@@ -3,6 +3,10 @@ const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
 const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".page-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
+const contentStripLinksRow = document.querySelector(".content-strip-row--links");
+const contentStripHeadingLinks = document.querySelector(".content-strip-heading--links");
+const contentStripHeaderLinks = document.querySelector(".content-strip-links");
+const contentStripTechSupport = document.querySelector(".content-strip-tech-support");
 const leadershipAvailabilityPanel = document.querySelector("#leadership-support .joe-availability-panel");
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
@@ -718,6 +722,63 @@ function syncLeadershipTechHelpVisibility() {
   document.body.classList.toggle("is-leadership-tech-visible", isLeadershipTechVisible);
 }
 
+function syncHeaderTechHelpPlacement() {
+  if (!contentStrip || !contentStripLinksRow || !contentStripHeaderLinks || !contentStripTechSupport) {
+    return;
+  }
+
+  contentStrip.classList.remove("is-header-tech-floating");
+  document.body.classList.remove("is-header-tech-floating");
+
+  const mobileMenusAreVisible = mobileSidebarMenus
+    && window.getComputedStyle(mobileSidebarMenus).display !== "none";
+  const stripRect = contentStrip.getBoundingClientRect();
+  const stripIsVisible = stripRect.width > 0
+    && stripRect.height > 0
+    && window.getComputedStyle(contentStrip).display !== "none";
+
+  if (!stripIsVisible || mobileMenusAreVisible || contentStrip.classList.contains("is-leadership-tech-visible")) {
+    return;
+  }
+
+  const supportRect = contentStripTechSupport.getBoundingClientRect();
+  const linksRect = contentStripHeaderLinks.getBoundingClientRect();
+  const headingRect = contentStripHeadingLinks?.getBoundingClientRect();
+
+  if (supportRect.width <= 0 || supportRect.height <= 0 || linksRect.width <= 0 || linksRect.height <= 0) {
+    return;
+  }
+
+  const inlineReferenceRects = [linksRect, headingRect].filter(Boolean);
+  const firstLineTop = Math.min(...inlineReferenceRects.map((rect) => rect.top));
+  const firstLineBottom = Math.max(...inlineReferenceRects.map((rect) => rect.bottom));
+  const firstLineCenter = firstLineTop + ((firstLineBottom - firstLineTop) / 2);
+  const supportCenter = supportRect.top + (supportRect.height / 2);
+  const rowGap = parseFloat(window.getComputedStyle(contentStripLinksRow).rowGap) || 0;
+  const quickLinkRects = [...contentStripHeaderLinks.children]
+    .map((child) => child.getBoundingClientRect())
+    .filter((rect) => rect.width > 0 && rect.height > 0);
+  const tallestQuickLink = quickLinkRects.length
+    ? Math.max(...quickLinkRects.map((rect) => rect.height))
+    : linksRect.height;
+  const quickLinksWrapped = linksRect.height > tallestQuickLink + Math.max(5, rowGap / 2);
+  const supportDroppedBelowLinks = supportRect.top > firstLineBottom + Math.max(3, rowGap / 2);
+  const supportCenterDrift = Math.abs(supportCenter - firstLineCenter);
+  const supportIsOnDifferentLine = supportCenterDrift > Math.max(12, Math.min(26, supportRect.height * 0.45));
+  const supportOverflowsStrip = supportRect.right > stripRect.right + 1 || supportRect.left < stripRect.left - 1;
+  const shouldFloatHeaderTech = quickLinksWrapped
+    || supportDroppedBelowLinks
+    || supportIsOnDifferentLine
+    || supportOverflowsStrip;
+
+  contentStrip.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
+  document.body.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
+}
+
+function queueHeaderTechHelpPlacementSync() {
+  window.requestAnimationFrame(syncHeaderTechHelpPlacement);
+}
+
 function setActiveSection(id) {
   sectionLinks.forEach((link) => {
     const isActive = link.getAttribute("href") === `#${id}`;
@@ -784,6 +845,7 @@ function syncContentStripVisibility() {
   }
 
   syncLeadershipTechHelpVisibility();
+  syncHeaderTechHelpPlacement();
 }
 
 function requestActiveSectionUpdate() {
@@ -1770,6 +1832,8 @@ function writeJoeAvailability(rawState = {}) {
     ref.summary.hidden = false;
     syncJoeAvailabilityActions(ref, state);
   });
+
+  window.requestAnimationFrame(syncHeaderTechHelpPlacement);
 }
 
 async function refreshJoeAvailability() {
@@ -2612,6 +2676,8 @@ async function initializePortal() {
   syncSectionScrollOffset();
   window.requestAnimationFrame(syncSectionScrollOffset);
   syncContentStripVisibility();
+  queueHeaderTechHelpPlacementSync();
+  window.requestAnimationFrame(queueHeaderTechHelpPlacementSync);
   updateActiveSectionFromScroll();
   if (scrollContainer) {
     scrollContainer.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
@@ -2621,7 +2687,14 @@ async function initializePortal() {
     syncSectionScrollOffset();
     requestActiveSectionUpdate();
   });
-  window.addEventListener("load", syncSectionScrollOffset, { once: true });
+  window.addEventListener("load", () => {
+    syncSectionScrollOffset();
+    syncContentStripVisibility();
+  }, { once: true });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(queueHeaderTechHelpPlacementSync).catch(() => {});
+  }
 
   const storedRates = loadStoredRates();
   if (storedRates && hasRateTargets) {

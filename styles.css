@@ -1028,6 +1028,10 @@ img {
   display: none;
 }
 
+.content-strip.is-header-tech-floating .content-strip-tech-support {
+  display: none;
+}
+
 .content-strip-links::-webkit-scrollbar {
   height: 8px;
 }
@@ -1277,6 +1281,33 @@ img {
 }
 
 .mobile-tech-help-bubble {
+  display: none;
+}
+
+body.is-header-tech-floating .mobile-tech-help-bubble {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: block;
+  color: var(--kw-black);
+  text-decoration: none;
+}
+
+body.is-header-tech-floating .mobile-tech-help-bubble .joe-availability-panel--mobile-bubble {
+  min-width: min(278px, calc(100vw - 40px));
+  padding: 12px 14px 12px 12px;
+}
+
+body.is-header-tech-floating .mobile-tech-help-bubble .mobile-tech-help-avatar {
+  width: 46px;
+  height: 46px;
+}
+
+body.is-header-tech-floating.is-leadership-tech-visible .mobile-tech-help-bubble,
+body.is-header-tech-floating.has-room-booking-modal .mobile-tech-help-bubble,
+body.is-header-tech-floating.has-calendar-modal .mobile-tech-help-bubble,
+body.portal-protected .mobile-tech-help-bubble {
   display: none;
 }
 
@@ -4115,6 +4146,110 @@ body.has-calendar-modal .page-content {
 
   .mobile-menu-links {
     top: calc(100% + 7px);
+  }
+}
+
+@media (min-width: 1367px) and (max-width: 1760px) and (min-aspect-ratio: 5/4) {
+  .portal-frame {
+    grid-template-columns: 304px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .portal-sidebar {
+    padding-right: 4px;
+  }
+
+  .content-strip {
+    min-height: 64px;
+    margin-bottom: 18px;
+    padding: 12px 16px;
+  }
+
+  .content-strip-row--links {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 10px 12px;
+  }
+
+  .content-strip-heading--links {
+    min-width: 112px;
+  }
+
+  .content-strip-links {
+    flex: 1 1 auto;
+    gap: 7px;
+    justify-content: flex-start;
+  }
+
+  .content-strip-link {
+    min-height: 34px;
+    padding: 0.52rem 0.64rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .content-strip-tech-support {
+    flex: 0 0 278px;
+    min-width: 0;
+    max-width: 278px;
+  }
+
+  .content-strip-tech-support .joe-availability-panel--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 9px;
+    border-radius: 12px;
+  }
+
+  .content-strip-tech-support .joe-availability-compact-copy {
+    gap: 3px;
+  }
+
+  .content-strip-tech-support .joe-availability-compact-kicker {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+  }
+
+  .content-strip-tech-support .joe-availability-compact-status {
+    gap: 7px;
+    align-items: center;
+  }
+
+  .content-strip-tech-support .joe-availability-panel--compact .joe-availability-light {
+    width: 10px;
+    height: 10px;
+    margin-top: 0;
+  }
+
+  .content-strip-tech-support .joe-availability-panel--compact .joe-availability-label,
+  .content-strip-tech-support .joe-availability-panel--compact .joe-availability-summary {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .content-strip-tech-support .joe-availability-panel--compact .joe-availability-label {
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
+  .content-strip-tech-support .joe-availability-panel--compact .joe-availability-summary {
+    font-size: 0.66rem;
+    line-height: 1.1;
+  }
+
+  .content-strip-tech-support .content-strip-tech-button {
+    min-width: 50px;
+    min-height: 30px;
+    padding: 0.42rem 0.5rem;
+    font-size: 0;
+  }
+
+  .content-strip-tech-support .content-strip-tech-button::after {
+    content: "Book";
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
   }
 }
 
