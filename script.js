@@ -1328,6 +1328,26 @@ function parseJoeAvailabilityDate(value) {
   return new Date(normalizedValue);
 }
 
+function getJoeAvailabilityIsoMs(value) {
+  const date = value ? parseJoeAvailabilityDate(value) : null;
+  return date && !Number.isNaN(date.getTime())
+    ? date.getTime()
+    : Number.NaN;
+}
+
+function getJoeAvailabilityEffectiveAvailableEndMs(availableNowEndMs, nextBusyStartMs, workingWindowEndMs, fallbackEndMs, nowMs) {
+  if (Number.isFinite(availableNowEndMs) && availableNowEndMs > nowMs) {
+    return availableNowEndMs;
+  }
+
+  const endCandidates = [nextBusyStartMs, workingWindowEndMs]
+    .filter((value) => Number.isFinite(value) && value > nowMs);
+
+  return endCandidates.length
+    ? Math.min(...endCandidates)
+    : fallbackEndMs;
+}
+
 function parseJoeAvailabilityTimeToMinutes(value) {
   const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})$/);
   if (!match) {
@@ -1506,10 +1526,15 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const availableNowEndIso = typeof rawState?.availableNowEndIso === "string"
     ? rawState.availableNowEndIso
     : "";
-  const availableNowEndDate = availableNowEndIso ? parseJoeAvailabilityDate(availableNowEndIso) : null;
-  const availableNowEndMs = availableNowEndDate && !Number.isNaN(availableNowEndDate.getTime())
-    ? availableNowEndDate.getTime()
-    : Number.NaN;
+  const availableNowEndMs = getJoeAvailabilityIsoMs(availableNowEndIso);
+  const nextBusyStartIso = typeof rawState?.nextBusyStartIso === "string"
+    ? rawState.nextBusyStartIso
+    : "";
+  const nextBusyStartMs = getJoeAvailabilityIsoMs(nextBusyStartIso);
+  const nextOpenSlotWorkingWindowEndIso = typeof rawState?.nextOpenSlotWorkingWindowEndIso === "string"
+    ? rawState.nextOpenSlotWorkingWindowEndIso
+    : "";
+  const nextOpenSlotWorkingWindowEndMs = getJoeAvailabilityIsoMs(nextOpenSlotWorkingWindowEndIso);
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
@@ -1549,7 +1574,13 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   }
 
   if (status === "available_now") {
-    const effectiveAvailableNowEndMs = Number.isFinite(availableNowEndMs) ? availableNowEndMs : nextOpenSlotEndMs;
+    const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
+      availableNowEndMs,
+      nextBusyStartMs,
+      nextOpenSlotWorkingWindowEndMs,
+      nextOpenSlotEndMs,
+      nowMs
+    );
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
       ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
       : "";
@@ -1596,10 +1627,15 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const availableNowEndIso = typeof rawState?.availableNowEndIso === "string"
     ? rawState.availableNowEndIso
     : "";
-  const availableNowEndDate = availableNowEndIso ? parseJoeAvailabilityDate(availableNowEndIso) : null;
-  const availableNowEndMs = availableNowEndDate && !Number.isNaN(availableNowEndDate.getTime())
-    ? availableNowEndDate.getTime()
-    : Number.NaN;
+  const availableNowEndMs = getJoeAvailabilityIsoMs(availableNowEndIso);
+  const nextBusyStartIso = typeof rawState?.nextBusyStartIso === "string"
+    ? rawState.nextBusyStartIso
+    : "";
+  const nextBusyStartMs = getJoeAvailabilityIsoMs(nextBusyStartIso);
+  const nextOpenSlotWorkingWindowEndIso = typeof rawState?.nextOpenSlotWorkingWindowEndIso === "string"
+    ? rawState.nextOpenSlotWorkingWindowEndIso
+    : "";
+  const nextOpenSlotWorkingWindowEndMs = getJoeAvailabilityIsoMs(nextOpenSlotWorkingWindowEndIso);
   const nextOpenSlotIso = typeof rawState?.nextOpenSlotIso === "string"
     ? rawState.nextOpenSlotIso
     : "";
@@ -1613,7 +1649,13 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const nowMs = Date.now();
 
   if (normalizedState.status === "available_now") {
-    const effectiveAvailableNowEndMs = Number.isFinite(availableNowEndMs) ? availableNowEndMs : nextOpenSlotEndMs;
+    const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
+      availableNowEndMs,
+      nextBusyStartMs,
+      nextOpenSlotWorkingWindowEndMs,
+      nextOpenSlotEndMs,
+      nowMs
+    );
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
       ? formatJoeAvailabilityCompactUntilLabel(new Date(effectiveAvailableNowEndMs).toISOString(), timezone, new Date(nowMs))
       : "";

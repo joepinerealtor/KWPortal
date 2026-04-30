@@ -383,6 +383,39 @@ function Get-CalendlyBusyRanges {
     Sort-Object Start
 }
 
+function Get-AvailableNowEnd {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$Now,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$SlotEnd,
+    $WorkingWindow,
+    [Parameter(Mandatory = $true)]
+    [array]$BusyRanges,
+    [bool]$CanUseBusyRanges
+  )
+
+  $availableEnd = $SlotEnd
+
+  if ($CanUseBusyRanges -and $WorkingWindow -and $WorkingWindow.End -gt $Now) {
+    $availableEnd = $WorkingWindow.End
+    $nextBusyRange = $BusyRanges |
+      Where-Object { $_.Start -gt $Now -and $_.Start -lt $availableEnd } |
+      Sort-Object Start |
+      Select-Object -First 1
+
+    if ($nextBusyRange) {
+      $availableEnd = $nextBusyRange.Start
+    }
+  }
+
+  if ($availableEnd -le $Now) {
+    return $SlotEnd
+  }
+
+  return $availableEnd
+}
+
 $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
 $resolvedOutputDirectory = Split-Path $resolvedOutputPath -Parent
 if (-not (Test-Path $resolvedOutputDirectory)) {
@@ -401,12 +434,16 @@ if (Test-Path $resolvedOutputPath) {
 $timeZone = "America/New_York"
 $durationMinutes = $DefaultDurationMinutes
 $nextOpenSlotIso = ""
+$nextOpenSlotWorkingWindowEndIso = ""
 $busyNowStartIso = ""
 $busyNowEndIso = ""
+$nextBusyStartIso = ""
+$nextBusyEndIso = ""
 $availableNowEndIso = ""
 $currentUtcNow = [DateTimeOffset]::UtcNow
 $resolvedCalendlyHeaders = $null
 $didResolveAvailabilityFromApi = $false
+$didResolveBusyRangesFromApi = $false
 $busyRanges = @()
 
 if (-not [string]::IsNullOrWhiteSpace($CalendlyPersonalAccessToken)) {
@@ -466,6 +503,7 @@ if ($resolvedCalendlyHeaders) {
   try {
     $resolvedCalendlyUserUri = Resolve-CalendlyUserUri -ConfiguredUserUri $CalendlyUserUri -Headers $resolvedCalendlyHeaders
     $busyRanges = @(Get-CalendlyBusyRanges -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow)
+    $didResolveBusyRangesFromApi = $true
     $activeBusyRange = $busyRanges |
       Where-Object { $_.Start -le $currentUtcNow -and $_.End -gt $currentUtcNow } |
       Sort-Object Start |
@@ -474,6 +512,16 @@ if ($resolvedCalendlyHeaders) {
     if ($activeBusyRange) {
       $busyNowStartIso = Format-UtcIsoForPortal -Value $activeBusyRange.Start
       $busyNowEndIso = Format-UtcIsoForPortal -Value $activeBusyRange.End
+    }
+
+    $nextBusyRange = $busyRanges |
+      Where-Object { $_.Start -gt $currentUtcNow } |
+      Sort-Object Start |
+      Select-Object -First 1
+
+    if ($nextBusyRange) {
+      $nextBusyStartIso = Format-UtcIsoForPortal -Value $nextBusyRange.Start
+      $nextBusyEndIso = Format-UtcIsoForPortal -Value $nextBusyRange.End
     }
   } catch {
     Write-Warning "Could not refresh Joe busy-time status from Calendly API: $($_.Exception.Message)"
@@ -494,6 +542,17 @@ if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpe
     }
   } catch {
     # If the previous feed has an older timestamp format, ignore it and use the fresh Calendly result.
+  }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
+  try {
+    $nextOpenSlotWindow = Get-JoeWorkingWindowForUtcTime -UtcTime ([DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()) -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
+    if ($nextOpenSlotWindow) {
+      $nextOpenSlotWorkingWindowEndIso = Format-UtcIsoForPortal -Value $nextOpenSlotWindow.End
+    }
+  } catch {
+    $nextOpenSlotWorkingWindowEndIso = ""
   }
 }
 
@@ -544,7 +603,8 @@ if (-not $isBusyNow) {
 
     if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
       $status = "available_now"
-      $availableNowEndIso = Format-UtcIsoForPortal -Value $slotEnd
+      $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $slotEnd -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $didResolveBusyRangesFromApi
+      $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
     }
   }
 }
@@ -554,9 +614,12 @@ $payload = [ordered]@{
   timezone = $timeZone
   eventDurationMinutes = $durationMinutes
   nextOpenSlotIso = $nextOpenSlotIso
+  nextOpenSlotWorkingWindowEndIso = $nextOpenSlotWorkingWindowEndIso
   availableNowEndIso = $availableNowEndIso
   busyNowStartIso = $busyNowStartIso
   busyNowEndIso = $busyNowEndIso
+  nextBusyStartIso = $nextBusyStartIso
+  nextBusyEndIso = $nextBusyEndIso
   workingHours = @(
     $JoeWorkingHours | ForEach-Object {
       [ordered]@{
