@@ -1665,7 +1665,7 @@ function updateJoeAvailabilityAction(action, type) {
   action.href = isMobileBubbleAction || !isCallAction ? JOE_TECH_BOOKING_URL : JOE_TECH_PHONE_URL;
 
   if (!isMobileBubbleAction) {
-    action.textContent = isCallAction ? "Call Joe" : "Schedule time";
+    action.textContent = isCallAction ? "Call Joe" : "Schedule a time with Joe";
   }
 
   if (isCallAction) {
@@ -1691,8 +1691,8 @@ function syncJoeAvailabilityActions(ref, state) {
     return;
   }
 
-  updateJoeAvailabilityAction(ref.primaryAction, isAvailableNow ? "call" : "book");
-  updateJoeAvailabilityAction(ref.secondaryAction, isAvailableNow ? "book" : "call");
+  updateJoeAvailabilityAction(ref.primaryAction, "book");
+  updateJoeAvailabilityAction(ref.secondaryAction, "call");
 
   if (ref.secondaryAction) {
     ref.secondaryAction.hidden = !isAvailableNow;

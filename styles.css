@@ -1017,7 +1017,7 @@ img {
 
 .content-strip-tech-support {
   display: flex;
-  flex: 0 1 450px;
+  flex: 0 1 520px;
   min-width: min(100%, 320px);
   max-width: 100%;
 }
