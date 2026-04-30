@@ -1,15 +1,15 @@
 {
-  "status": "available_now",
+  "status": "unavailable",
   "timezone": "America/New_York",
   "eventDurationMinutes": 30,
-  "nextOpenSlotIso": "2026-04-30T14:00:00.000Z",
+  "nextOpenSlotIso": "2026-04-30T19:00:00.000Z",
   "nextOpenSlotWorkingWindowEndIso": "2026-04-30T21:00:00.000Z",
-  "availableNowEndIso": "2026-04-30T16:00:00.000Z",
+  "availableNowEndIso": "",
   "busyNowStartIso": "",
   "busyNowEndIso": "",
-  "nextBusyStartIso": "2026-04-30T16:00:00.000Z",
+  "nextBusyStartIso": "",
   "nextBusyEndIso": "",
-  "nextAppointmentAvailableIso": "2026-04-30T18:00:00.000Z",
+  "nextAppointmentAvailableIso": "",
   "workingHours": [
     {
       "day": "Wednesday",
