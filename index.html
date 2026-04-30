@@ -121,7 +121,10 @@
                     </div>
                   </div>
                 </div>
-                <a class="content-strip-tech-button" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer">Book Me</a>
+                <div class="joe-availability-actions joe-availability-actions--compact">
+                  <a class="content-strip-tech-button" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer" data-joe-primary-action>Schedule time</a>
+                  <a class="joe-availability-secondary-action" href="tel:+14013270888" data-joe-secondary-action hidden>Call Joe</a>
+                </div>
               </div>
             </div>
           </div>
@@ -548,22 +551,25 @@
         <article class="leadership-support-card" id="leadership-support" data-joe-availability-card data-joe-availability-src="data/joe-tech-status.json">
           <img src="team/joe-pine-chair.jpg" alt="Joe Pine sitting in a chair" class="leadership-support-photo">
           <div class="leadership-support-copy">
-            <p class="eyebrow small">Tech Help</p>
-            <h3>Need tech help with Joe?</h3>
-            <p class="leadership-support-summary">Use Joe's calendar to view availability and book one-on-one help with KW Command, DocuSign, Canva, social media, and other day-to-day real estate tech tools.</p>
+            <p class="eyebrow small">Tech Help with Joe</p>
+            <h3>Schedule a one-on-one with Joe</h3>
+            <p class="leadership-support-summary">Use Joe's calendar for live help with KW Command, DocuSign, Canva, social media, and day-to-day real estate tech tools.</p>
             <div class="joe-support-contact-list">
               <a class="joe-support-contact-link" href="tel:+14013270888">401-327-0888</a>
               <a class="joe-support-contact-link" href="mailto:JoePine@KW.com?subject=KW%20Tech%20Question">JoePine@KW.com</a>
             </div>
           </div>
-          <div class="joe-availability-panel" data-status="unavailable" aria-live="polite">
+          <div class="joe-availability-panel joe-availability-panel--leadership" data-status="unavailable" aria-live="polite">
             <span class="joe-availability-light" data-joe-availability-light aria-hidden="true"></span>
             <div class="joe-availability-copy">
               <p class="joe-availability-label" data-joe-availability-label>Joe is unavailable</p>
               <p class="joe-availability-summary" data-joe-availability-summary>No open tech-help slots are listed right now.</p>
             </div>
           </div>
-          <a class="button secondary leadership-support-button" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer">Book Tech Help with Joe</a>
+          <div class="leadership-support-actions">
+            <a class="button secondary leadership-support-button" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer" data-joe-primary-action>Schedule time</a>
+            <a class="joe-availability-secondary-action" href="tel:+14013270888" data-joe-secondary-action hidden>Call Joe</a>
+          </div>
         </article>
       </section>
 
@@ -739,6 +745,19 @@
       </div>
     </div>
   </div>
+
+  <a class="mobile-tech-help-bubble" href="https://calendly.com/joepinerealtor/tech-meeting-with-joe" target="_blank" rel="noreferrer" data-joe-availability-card data-joe-availability-src="data/joe-tech-status.json" data-joe-primary-action aria-label="Open tech help with Joe">
+    <span class="joe-availability-panel joe-availability-panel--mobile-bubble" data-status="unavailable" aria-live="polite">
+      <span class="mobile-tech-help-avatar" data-joe-availability-light aria-hidden="true">
+        <img src="team/joe-pine-chair.jpg" alt="">
+      </span>
+      <span class="joe-availability-copy">
+        <span class="mobile-tech-help-kicker">Tech Help with Joe</span>
+        <span class="joe-availability-label" data-joe-availability-label>Schedule a time with Joe</span>
+        <span class="joe-availability-summary" data-joe-availability-summary>Tap to schedule a time</span>
+      </span>
+    </span>
+  </a>
 
   <div class="calendar-modal" id="fullCalendarModal" data-calendar-modal hidden>
     <div class="calendar-modal__backdrop" data-calendar-modal-close></div>

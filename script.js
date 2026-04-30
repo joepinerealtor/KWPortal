@@ -3,6 +3,7 @@ const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
 const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".page-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
+const leadershipAvailabilityPanel = document.querySelector("#leadership-support .joe-availability-panel");
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
@@ -83,7 +84,13 @@ const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availabilit
     panel: card.querySelector(".joe-availability-panel"),
     light: card.querySelector("[data-joe-availability-light]"),
     label: card.querySelector("[data-joe-availability-label]"),
-    summary: card.querySelector("[data-joe-availability-summary]")
+    summary: card.querySelector("[data-joe-availability-summary]"),
+    primaryAction: card.matches("[data-joe-primary-action]")
+      ? card
+      : card.querySelector("[data-joe-primary-action]"),
+    secondaryAction: card.matches("[data-joe-secondary-action]")
+      ? card
+      : card.querySelector("[data-joe-secondary-action]")
   }))
   .filter((ref) => ref.panel && ref.light && ref.label && ref.summary);
 const joeAvailabilitySourceUrl = joeAvailabilityRefs[0]?.card.dataset.joeAvailabilitySrc || "";
@@ -114,6 +121,7 @@ let scrollTicking = false;
 let ratesRefreshInFlight = false;
 let riMarketRefreshInFlight = false;
 let joeAvailabilityRefreshInFlight = false;
+let currentJoeAvailabilityState = { status: "unavailable" };
 let calendarModalLastTrigger = null;
 let calendarModalCloseTimer = 0;
 let hasLoadedCalendarModalContent = false;
@@ -126,6 +134,10 @@ const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("porta
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
+const JOE_TECH_BOOKING_URL = "https://calendly.com/joepinerealtor/tech-meeting-with-joe";
+const JOE_TECH_PHONE_URL = "tel:+14013270888";
+const JOE_TECH_TEXT_URL = "sms:+14013270888";
+const JOE_TECH_EMAIL_URL = "mailto:JoePine@KW.com?subject=KW%20Tech%20Question";
 const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
 const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
 const PORTAL_ACCESS_SUPPORT_BODY = [
@@ -682,6 +694,36 @@ function syncSectionScrollOffset() {
   document.documentElement.style.setProperty("--portal-section-scroll-offset", `${nextOffset}px`);
 }
 
+function isElementVisibleInActiveViewport(element, minVisiblePx = 24) {
+  if (!element) {
+    return false;
+  }
+
+  const rect = element.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return false;
+  }
+
+  const viewport = usesInternalSectionScroll() && scrollContainer
+    ? scrollContainer.getBoundingClientRect()
+    : {
+        top: 0,
+        right: window.innerWidth || document.documentElement.clientWidth || 0,
+        bottom: window.innerHeight || document.documentElement.clientHeight || 0,
+        left: 0
+      };
+  const visibleWidth = Math.min(rect.right, viewport.right) - Math.max(rect.left, viewport.left);
+  const visibleHeight = Math.min(rect.bottom, viewport.bottom) - Math.max(rect.top, viewport.top);
+
+  return visibleWidth > 0 && visibleHeight >= Math.min(minVisiblePx, rect.height);
+}
+
+function syncLeadershipTechHelpVisibility() {
+  const isLeadershipTechVisible = isElementVisibleInActiveViewport(leadershipAvailabilityPanel);
+  contentStrip?.classList.toggle("is-leadership-tech-visible", isLeadershipTechVisible);
+  document.body.classList.toggle("is-leadership-tech-visible", isLeadershipTechVisible);
+}
+
 function setActiveSection(id) {
   sectionLinks.forEach((link) => {
     const isActive = link.getAttribute("href") === `#${id}`;
@@ -693,8 +735,6 @@ function setActiveSection(id) {
       link.removeAttribute("aria-current");
     }
   });
-
-  contentStrip?.classList.toggle("is-leadership-active", id === "leadership");
 }
 
 function updateActiveSectionFromScroll() {
@@ -744,12 +784,12 @@ function readScrollTop() {
 }
 
 function syncContentStripVisibility() {
-  if (!contentStrip) {
-    return;
+  if (contentStrip) {
+    const isCollapsed = readScrollTop() > 24;
+    contentStrip.classList.toggle("is-market-collapsed", isCollapsed);
   }
 
-  const isCollapsed = readScrollTop() > 24;
-  contentStrip.classList.toggle("is-market-collapsed", isCollapsed);
+  syncLeadershipTechHelpVisibility();
 }
 
 function requestActiveSectionUpdate() {
@@ -921,6 +961,7 @@ function createRoomBookingModal() {
         </div>
         <button type="button" class="button secondary compact room-booking-close">Close</button>
       </div>
+      <div class="room-booking-quick-actions" data-room-booking-quick-actions hidden></div>
       <div class="room-booking-frame-shell">
         <iframe class="room-booking-frame" title="Booking calendar" src="about:blank" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
@@ -960,6 +1001,7 @@ function initializeRoomBookingModal() {
   const title = modal.querySelector(".room-booking-title");
   const summary = modal.querySelector(".room-booking-summary");
   const eyebrow = modal.querySelector(".room-booking-eyebrow");
+  const quickActions = modal.querySelector("[data-room-booking-quick-actions]");
   const closeButton = modal.querySelector(".room-booking-close");
   const iframe = modal.querySelector(".room-booking-frame");
   let lastTrigger = null;
@@ -981,12 +1023,45 @@ function initializeRoomBookingModal() {
     }, 180);
   };
 
+  const createQuickAction = (label, href) => {
+    const action = document.createElement("a");
+    action.className = "room-booking-quick-action";
+    action.href = href;
+    action.textContent = label;
+    return action;
+  };
+
+  const renderJoeBookingActions = (isJoeBooking) => {
+    if (!quickActions) {
+      return;
+    }
+
+    quickActions.replaceChildren();
+    if (!isJoeBooking) {
+      quickActions.hidden = true;
+      return;
+    }
+
+    const isAvailableNow = currentJoeAvailabilityState?.status === "available_now";
+    const actions = isAvailableNow
+      ? [
+          createQuickAction("Call Joe", JOE_TECH_PHONE_URL),
+          createQuickAction("Text Joe", JOE_TECH_TEXT_URL)
+        ]
+      : [
+          createQuickAction("Email Joe", JOE_TECH_EMAIL_URL)
+        ];
+
+    quickActions.append(...actions);
+    quickActions.hidden = false;
+  };
+
   const openModal = (trigger) => {
     const href = trigger.getAttribute("href") || "";
     const isJoeBooking = href.includes("calendly.com/joepinerealtor/tech-meeting-with-joe");
     const bookingUrl = getCalendlyEmbedUrl(trigger.dataset.roomBookingUrl || href);
-    const bookingLabel = trigger.dataset.roomBookingLabel || (isJoeBooking ? "Book Time with Joe" : "Conference Room");
-    const bookingEyebrow = trigger.dataset.roomBookingEyebrow || (isJoeBooking ? "Tech Help Booking" : "Conference Room Booking");
+    const bookingLabel = trigger.dataset.roomBookingLabel || (isJoeBooking ? "Schedule a Time with Joe" : "Conference Room");
+    const bookingEyebrow = trigger.dataset.roomBookingEyebrow || (isJoeBooking ? "Tech Help Scheduling" : "Conference Room Booking");
     const bookingSummary = trigger.dataset.roomBookingSummary || (isJoeBooking
       ? "Choose an available tech-help time with Joe in Calendly."
       : `Complete the ${bookingLabel.toLowerCase()} reservation in Calendly.`);
@@ -1000,6 +1075,7 @@ function initializeRoomBookingModal() {
     eyebrow.textContent = bookingEyebrow;
     title.textContent = bookingLabel;
     summary.textContent = bookingSummary;
+    renderJoeBookingActions(isJoeBooking);
     iframe.hidden = false;
     iframe.setAttribute("title", bookingLabel);
     iframe.setAttribute("src", bookingUrl);
@@ -1016,6 +1092,11 @@ function initializeRoomBookingModal() {
   triggers.forEach((trigger) => {
     trigger.addEventListener("click", (event) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      const bookingSource = trigger.dataset.roomBookingUrl || trigger.getAttribute("href") || "";
+      if (!bookingSource.includes("calendly.com")) {
         return;
       }
 
@@ -1560,23 +1641,89 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   };
 }
 
+function getMobileBubbleJoeAvailabilityState(normalizedState = {}) {
+  if (normalizedState.status === "available_now") {
+    return {
+      label: "Joe is available now",
+      summary: "Tap for call, text, or scheduling"
+    };
+  }
+
+  return {
+    label: "Schedule a time with Joe",
+    summary: "Tap to schedule a time"
+  };
+}
+
+function updateJoeAvailabilityAction(action, type) {
+  if (!action) {
+    return;
+  }
+
+  const isCallAction = type === "call";
+  const isMobileBubbleAction = action.classList.contains("mobile-tech-help-bubble");
+  action.href = isMobileBubbleAction || !isCallAction ? JOE_TECH_BOOKING_URL : JOE_TECH_PHONE_URL;
+
+  if (!isMobileBubbleAction) {
+    action.textContent = isCallAction ? "Call Joe" : "Schedule time";
+  }
+
+  if (isCallAction) {
+    action.removeAttribute("target");
+    action.removeAttribute("rel");
+  } else {
+    action.setAttribute("target", "_blank");
+    action.setAttribute("rel", "noreferrer");
+  }
+
+  if (isMobileBubbleAction) {
+    action.setAttribute("target", "_blank");
+    action.setAttribute("rel", "noreferrer");
+    action.setAttribute("aria-label", isCallAction ? "Open tech help options with Joe" : "Schedule tech help with Joe");
+  }
+}
+
+function syncJoeAvailabilityActions(ref, state) {
+  const isAvailableNow = state.status === "available_now";
+
+  if (ref.card.classList.contains("mobile-tech-help-bubble")) {
+    updateJoeAvailabilityAction(ref.primaryAction, isAvailableNow ? "call" : "book");
+    return;
+  }
+
+  updateJoeAvailabilityAction(ref.primaryAction, isAvailableNow ? "call" : "book");
+  updateJoeAvailabilityAction(ref.secondaryAction, isAvailableNow ? "book" : "call");
+
+  if (ref.secondaryAction) {
+    ref.secondaryAction.hidden = !isAvailableNow;
+  }
+}
+
 function writeJoeAvailability(rawState = {}) {
   if (!hasJoeAvailabilityTargets) {
     return;
   }
 
   const state = normalizeJoeAvailabilityState(rawState);
+  currentJoeAvailabilityState = state;
 
   joeAvailabilityRefs.forEach((ref) => {
     const isCompactHeaderWidget = ref.panel.classList.contains("joe-availability-panel--compact");
-    const compactState = isCompactHeaderWidget ? getCompactJoeAvailabilityState(rawState, state) : null;
+    const isLeadershipSupportWidget = ref.card.classList.contains("leadership-support-card");
+    const isMobileBubbleWidget = ref.card.classList.contains("mobile-tech-help-bubble");
+    const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget
+      ? getCompactJoeAvailabilityState(rawState, state)
+      : null;
+    const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(state) : null;
+    const displayState = bubbleState || ctaState;
 
     ref.panel.dataset.status = state.status;
     ref.panel.hidden = false;
-    ref.label.textContent = compactState ? compactState.label : state.label;
-    const summaryText = compactState ? compactState.summary : state.summary;
+    ref.label.textContent = displayState ? displayState.label : state.label;
+    const summaryText = displayState ? displayState.summary : state.summary;
     ref.summary.textContent = summaryText;
     ref.summary.hidden = false;
+    syncJoeAvailabilityActions(ref, state);
   });
 }
 
