@@ -345,14 +345,6 @@ img {
   text-align: center;
 }
 
-.mobile-sidebar-cta {
-  width: 100%;
-}
-
-.mobile-dashboard-link {
-  width: 100%;
-}
-
 .portal-lock {
   position: fixed;
   inset: 0;
@@ -2152,6 +2144,10 @@ body.portal-protected .mobile-tech-help-bubble {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.overview-resource-list {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .overview-link {
   display: grid;
   gap: 5px;
@@ -2894,6 +2890,97 @@ body.portal-protected .mobile-tech-help-bubble {
 
 .leader-contact-link:hover {
   color: var(--kw-red);
+}
+
+.alc-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--kw-border);
+  border-top: 4px solid var(--kw-red);
+  background:
+    linear-gradient(135deg, rgba(180, 1, 1, 0.08), rgba(255, 255, 255, 0) 34%),
+    var(--kw-paper-soft);
+}
+
+.alc-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.alc-card h3 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.32rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.alc-card-summary {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: var(--kw-gray);
+  line-height: 1.55;
+}
+
+.alc-poster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.alc-poster-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--kw-border);
+  background: var(--kw-white);
+  color: var(--kw-black);
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.alc-poster-card:hover,
+.alc-poster-card:focus-visible {
+  border-color: rgba(180, 1, 1, 0.42);
+  box-shadow: 0 14px 28px rgba(22, 22, 22, 0.12);
+  transform: translateY(-2px);
+}
+
+.alc-poster-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: top center;
+  background: #eee8df;
+}
+
+.alc-poster-copy {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 12px;
+}
+
+.alc-poster-copy strong {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.alc-poster-copy span {
+  color: var(--kw-gray);
+  font-size: 0.85rem;
+  line-height: 1.35;
 }
 
 .leadership-support-card {
@@ -3974,21 +4061,12 @@ body.has-calendar-modal .page-content {
     z-index: 2;
   }
 
-  .mobile-menu-summary,
-  .mobile-dashboard-link {
+  .mobile-menu-summary {
     width: 100%;
     min-height: 46px;
     padding: 0.64rem 2rem;
     font-size: 0.72rem;
     letter-spacing: 0.09em;
-  }
-
-  .mobile-sidebar-cta {
-    width: 100%;
-  }
-
-  .mobile-dashboard-link {
-    height: 100%;
   }
 
   .mobile-menu-links {
@@ -4133,8 +4211,7 @@ body.has-calendar-modal .page-content {
     font-size: 0.68rem;
   }
 
-  .mobile-menu-summary,
-  .mobile-dashboard-link {
+  .mobile-menu-summary {
     min-height: 64px;
     padding: 0.54rem 1.7rem;
     font-size: 0.68rem;
@@ -4293,10 +4370,6 @@ body.has-calendar-modal .page-content {
     position: sticky;
     top: 12px;
     z-index: 45;
-  }
-
-  .mobile-sidebar-cta {
-    grid-column: 1 / -1;
   }
 
   .mobile-menu-panel + .mobile-menu-panel {
