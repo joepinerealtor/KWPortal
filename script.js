@@ -18,6 +18,26 @@ const handbookModalCloseButton = handbookModal?.querySelector(".calendar-modal__
 const handbookModalTriggers = [...document.querySelectorAll("[data-handbook-modal-trigger]")];
 const mobileSidebarMenus = document.querySelector(".mobile-sidebar-menus");
 const mobileMenuPanels = [...document.querySelectorAll(".mobile-menu-panel")];
+const leadershipGrid = document.querySelector("[data-leadership-grid]");
+const alcGrid = document.querySelector("[data-alc-grid]");
+const vendorGrids = {
+  core: document.querySelector('[data-vendor-grid="core"]'),
+  services: document.querySelector('[data-vendor-grid="services"]')
+};
+const portalLogoutButton = document.querySelector("[data-portal-logout]");
+const adminLoginButton = document.querySelector("[data-admin-login]");
+const adminModal = document.querySelector("[data-portal-admin-modal]");
+const adminCloseButtons = [...document.querySelectorAll("[data-admin-close]")];
+const adminExportButton = document.querySelector("[data-admin-export]");
+const adminStatus = document.querySelector("[data-admin-status]");
+const adminTabs = [...document.querySelectorAll("[data-admin-tab]")];
+const adminPanels = [...document.querySelectorAll("[data-admin-panel]")];
+const adminLists = {
+  leadership: document.querySelector('[data-admin-list="leadership"]'),
+  vendors: document.querySelector('[data-admin-list="vendors"]')
+};
+const adminAddButtons = [...document.querySelectorAll("[data-admin-add]")];
+const adminSettingsForm = document.querySelector("[data-admin-settings-form]");
 const sectionLinks = [...document.querySelectorAll(".section-nav-link")].filter((link) => {
   const href = link.getAttribute("href") || "";
   return href.startsWith("#");
@@ -148,7 +168,11 @@ let hasLoadedHandbookModalContent = false;
 const PORTAL_SECTION_SCROLL_GAP_PX = 22;
 const PORTAL_SECTION_SCROLL_FALLBACK_PX = 32;
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
+const PORTAL_ADMIN_STORAGE_KEY = "kw-leading-edge-portal.admin.v1";
+const PORTAL_CONTENT_DRAFT_STORAGE_KEY = "kw-leading-edge-portal.content-draft.v1";
+const PORTAL_CONTENT_URL = "data/portal-content.json";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
+const PORTAL_ADMIN_PASSCODE_HASH = "86516DAF1AE4AA4E75CBDFB076D10652F6453B5D4DA91D45C6D485EFDF1D6054";
 const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("portalLock");
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
@@ -234,6 +258,216 @@ const RATE_PROGRAMS = {
     sourceUrl: "https://www.mortgagenewsdaily.com/mortgage-rates/30-year-jumbo"
   }
 };
+
+let portalContent = {
+  settings: {
+    viewerPasscode: "0715",
+    adminPasscodeHash: PORTAL_ADMIN_PASSCODE_HASH
+  },
+  leadership: [],
+  vendors: []
+};
+
+function cloneContent(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function normalizeId(value, fallback = "item") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || `${fallback}-${Date.now()}`;
+}
+
+function toPhoneHref(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits ? `tel:+1${digits.length === 10 ? digits : digits.replace(/^1/, "")}` : "";
+}
+
+function getStoredPortalContentDraft() {
+  try {
+    const raw = window.localStorage.getItem(PORTAL_CONTENT_DRAFT_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePortalContentDraft() {
+  try {
+    window.localStorage.setItem(PORTAL_CONTENT_DRAFT_STORAGE_KEY, JSON.stringify(portalContent));
+  } catch {
+    setAdminStatus("Draft could not be saved in this browser.");
+  }
+}
+
+async function loadPortalContent() {
+  const draft = getStoredPortalContentDraft();
+  if (draft?.leadership && draft?.vendors) {
+    portalContent = draft;
+    return;
+  }
+
+  try {
+    const response = await fetch(`${PORTAL_CONTENT_URL}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error("Portal content unavailable");
+    }
+    portalContent = await response.json();
+  } catch {
+    // Keep the built-in defaults when the content file is not reachable.
+  }
+}
+
+function getActiveLeadership(group) {
+  return (portalContent.leadership || [])
+    .filter((person) => person.active !== false && person.group === group);
+}
+
+function getActiveVendors(section) {
+  return (portalContent.vendors || [])
+    .filter((vendor) => vendor.active !== false && vendor.section === section);
+}
+
+function createLeaderCard(person) {
+  const email = person.email
+    ? `<a href="mailto:${escapeHtml(person.email)}" class="leader-contact-link">${escapeHtml(person.email)}</a>`
+    : "";
+  const phoneHref = toPhoneHref(person.phone);
+  const phone = person.phone && phoneHref
+    ? `<a href="${phoneHref}" class="leader-contact-link">${escapeHtml(person.phone)}</a>`
+    : "";
+  const notes = person.notes
+    ? `<p class="leader-notes">${escapeHtml(person.notes)}</p>`
+    : "";
+
+  return `
+    <article class="leader-card${person.featured ? " leader-card-highlight" : ""}">
+      <img src="${escapeHtml(person.photo)}" alt="${escapeHtml(person.name)}" class="leader-photo">
+      <div class="leader-copy">
+        <span class="leader-role">${escapeHtml(person.role)}</span>
+        <h3>${escapeHtml(person.name)}</h3>
+        ${notes}
+        <div class="leader-contact-list">
+          ${email}
+          ${phone}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function createAlcCard(person) {
+  return `
+    <a class="alc-poster-card" href="${escapeHtml(person.photo)}" target="_blank" rel="noreferrer" aria-label="Open ${escapeHtml(person.name)} ${escapeHtml(person.role)} ALC poster">
+      <img src="${escapeHtml(person.photo)}" alt="${escapeHtml(person.name)} ${escapeHtml(person.role)} poster" loading="lazy" decoding="async">
+      <span class="alc-poster-copy">
+        <strong>${escapeHtml(person.name)}</strong>
+        <span>${escapeHtml(person.role || person.notes)}</span>
+      </span>
+    </a>
+  `;
+}
+
+function createVendorCard(vendor) {
+  const phoneHref = toPhoneHref(vendor.phone);
+  const phone = vendor.phone && phoneHref
+    ? `<a href="${phoneHref}">${escapeHtml(vendor.phone)}</a>`
+    : escapeHtml(vendor.phone || "");
+  const email = vendor.email
+    ? `<a href="mailto:${escapeHtml(vendor.email)}">${escapeHtml(vendor.email)}</a>`
+    : "";
+  const featuredClass = vendor.section === "core" ? " vendor-card-featured" : "";
+
+  return `
+    <article class="vendor-card${featuredClass}">
+      <div class="vendor-brand">
+        <img class="vendor-logo" src="${escapeHtml(vendor.logo)}" alt="${escapeHtml(vendor.business || vendor.name)} logo">
+      </div>
+      <dl class="vendor-details">
+        <div><dt>Business</dt><dd>${escapeHtml(vendor.business || "")}</dd></div>
+        <div><dt>Name</dt><dd>${escapeHtml(vendor.name || "")}</dd></div>
+        <div><dt>Phone</dt><dd>${phone}</dd></div>
+        <div><dt>E-mail</dt><dd>${email}</dd></div>
+        <div><dt>Notes</dt><dd>${escapeHtml(vendor.notes || "")}</dd></div>
+      </dl>
+    </article>
+  `;
+}
+
+function renderPortalContent() {
+  if (leadershipGrid) {
+    leadershipGrid.innerHTML = getActiveLeadership("office").map(createLeaderCard).join("");
+  }
+
+  if (alcGrid) {
+    alcGrid.innerHTML = getActiveLeadership("alc").map(createAlcCard).join("");
+  }
+
+  Object.entries(vendorGrids).forEach(([section, grid]) => {
+    if (grid) {
+      grid.innerHTML = getActiveVendors(section).map(createVendorCard).join("");
+    }
+  });
+}
+
+function setAdminStatus(message) {
+  if (adminStatus) {
+    adminStatus.textContent = message || "";
+  }
+}
+
+function isPortalAdminUnlocked() {
+  try {
+    return window.localStorage.getItem(PORTAL_ADMIN_STORAGE_KEY) === PORTAL_ADMIN_PASSCODE_HASH;
+  } catch {
+    return false;
+  }
+}
+
+function storePortalAdminAccess() {
+  try {
+    window.localStorage.setItem(PORTAL_ADMIN_STORAGE_KEY, PORTAL_ADMIN_PASSCODE_HASH);
+  } catch {
+    // Ignore storage failures and keep access for this page load only.
+  }
+}
+
+function clearPortalCookie(name) {
+  document.cookie = `${name}=; Max-Age=0; path=/`;
+  document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+}
+
+function logoutPortal() {
+  try {
+    window.localStorage.removeItem(PORTAL_ACCESS_STORAGE_KEY);
+    window.localStorage.removeItem(PORTAL_ADMIN_STORAGE_KEY);
+    window.sessionStorage.clear();
+  } catch {
+    // Ignore storage failures while still returning to the lock screen.
+  }
+
+  [
+    "kw-leading-edge-portal-access",
+    "kw-leading-edge-portal-admin",
+    "portal-access",
+    "portal-admin"
+  ].forEach(clearPortalCookie);
+
+  window.location.href = `${window.location.pathname}?portalLock=1`;
+}
 
 function removePortalGate() {
   cleanupPortalUnlockTransition();
@@ -470,44 +704,20 @@ function startPortalUnlockTransition(overlay) {
 }
 
 function createPortalLockLeadershipMarkup() {
-  const leaders = [
-    {
-      role: "Operating Principal",
-      name: "Lou Barrows",
-      photo: "team/lou-barrows.jpg",
-      email: "louisbarrows@kw.com",
-      phoneHref: "tel:+14016403520",
-      phoneLabel: "401-640-3520"
-    },
-    {
-      role: "Market Center Operations",
-      name: "Kim Barrows",
-      photo: "team/kim-barrows.jpg",
-      email: "klrw715@kw.com",
-      phoneHref: "tel:+14013334900",
-      phoneLabel: "401-333-4900"
-    },
-    {
-      role: "Team Leader",
-      name: "Matt Brown",
-      photo: "team/matt-brown.png",
-      email: "mbrown715@kw.com",
-      phoneHref: "tel:+14014992978",
-      phoneLabel: "401-499-2978"
-    }
-  ];
+  const leaders = getActiveLeadership("office");
 
   return leaders
     .map((leader) => {
+      const phoneHref = toPhoneHref(leader.phone);
       return `
         <article class="leader-card">
-          <img src="${leader.photo}" alt="${leader.name}" class="leader-photo">
+          <img src="${escapeHtml(leader.photo)}" alt="${escapeHtml(leader.name)}" class="leader-photo">
           <div class="leader-copy">
-            <span class="leader-role">${leader.role}</span>
-            <h3>${leader.name}</h3>
+            <span class="leader-role">${escapeHtml(leader.role)}</span>
+            <h3>${escapeHtml(leader.name)}</h3>
             <div class="leader-contact-list">
-              <a href="mailto:${leader.email}" class="leader-contact-link">${leader.email}</a>
-              <a href="${leader.phoneHref}" class="leader-contact-link">${leader.phoneLabel}</a>
+              ${leader.email ? `<a href="mailto:${escapeHtml(leader.email)}" class="leader-contact-link">${escapeHtml(leader.email)}</a>` : ""}
+              ${leader.phone && phoneHref ? `<a href="${phoneHref}" class="leader-contact-link">${escapeHtml(leader.phone)}</a>` : ""}
             </div>
           </div>
         </article>
@@ -610,7 +820,12 @@ async function ensurePortalAccess() {
       const attemptedPasscode = input?.value.trim() || "";
       const attemptedHash = await hashPasscode(attemptedPasscode);
 
-      if (attemptedHash === PORTAL_PASSCODE_HASH || attemptedPasscode === "0715") {
+      const viewerPasscode = String(portalContent.settings?.viewerPasscode || "0715").trim();
+      const adminPasscodeHash = String(portalContent.settings?.adminPasscodeHash || PORTAL_ADMIN_PASSCODE_HASH).trim();
+      const isViewerCode = attemptedHash === PORTAL_PASSCODE_HASH || attemptedPasscode === viewerPasscode;
+      const isAdminCode = attemptedHash === PORTAL_ADMIN_PASSCODE_HASH || attemptedHash === adminPasscodeHash;
+
+      if (isViewerCode || isAdminCode) {
         isUnlocking = true;
         form?.setAttribute("aria-busy", "true");
         if (input) {
@@ -623,8 +838,14 @@ async function ensurePortalAccess() {
           error.textContent = "";
         }
         storePortalAccess();
+        if (isAdminCode) {
+          storePortalAdminAccess();
+        }
         startPortalUnlockTransition(overlay);
         resolve();
+        if (isAdminCode) {
+          window.setTimeout(openAdminModal, PORTAL_UNLOCK_OVERLAY_FADE_MS + 40);
+        }
         return;
       }
 
@@ -648,6 +869,355 @@ async function ensurePortalAccess() {
         input.focus();
       }
     });
+  });
+}
+
+function createAdminInput(name, label, value, type = "text") {
+  return `
+    <label>
+      <span>${label}</span>
+      <input name="${name}" type="${type}" value="${escapeHtml(value || "")}" autocomplete="off">
+    </label>
+  `;
+}
+
+function renderAdminLeadershipList() {
+  if (!adminLists.leadership) {
+    return;
+  }
+
+  adminLists.leadership.innerHTML = (portalContent.leadership || [])
+    .map((person, index) => `
+      <form class="portal-admin-card" data-admin-editor="leadership" data-index="${index}">
+        <div class="portal-admin-card__head">
+          <strong>${escapeHtml(person.name || "New person")}</strong>
+          <button class="portal-admin-delete" type="button" data-admin-delete>Delete</button>
+        </div>
+        <div class="portal-admin-form-grid">
+          ${createAdminInput("name", "Name", person.name)}
+          ${createAdminInput("role", "Role / title", person.role)}
+          <label>
+            <span>Group</span>
+            <select name="group">
+              <option value="office"${person.group === "office" ? " selected" : ""}>Office leadership</option>
+              <option value="alc"${person.group === "alc" ? " selected" : ""}>ALC board</option>
+            </select>
+          </label>
+          <label>
+            <span>Photo / poster path</span>
+            <input name="photo" type="text" value="${escapeHtml(person.photo || "")}" autocomplete="off">
+            <input class="portal-admin-file" type="file" accept="image/*" data-admin-file="photo">
+          </label>
+          ${createAdminInput("email", "Email", person.email, "email")}
+          ${createAdminInput("phone", "Phone", person.phone, "tel")}
+          ${createAdminInput("notes", "Notes", person.notes)}
+          <label class="portal-admin-check">
+            <input name="featured" type="checkbox"${person.featured ? " checked" : ""}>
+            <span>Highlight card</span>
+          </label>
+          <label class="portal-admin-check">
+            <input name="active" type="checkbox"${person.active !== false ? " checked" : ""}>
+            <span>Active</span>
+          </label>
+        </div>
+        <button class="button primary compact" type="submit">Save Person</button>
+      </form>
+    `)
+    .join("");
+}
+
+function renderAdminVendorList() {
+  if (!adminLists.vendors) {
+    return;
+  }
+
+  adminLists.vendors.innerHTML = (portalContent.vendors || [])
+    .map((vendor, index) => `
+      <form class="portal-admin-card" data-admin-editor="vendors" data-index="${index}">
+        <div class="portal-admin-card__head">
+          <strong>${escapeHtml(vendor.business || vendor.name || "New vendor")}</strong>
+          <button class="portal-admin-delete" type="button" data-admin-delete>Delete</button>
+        </div>
+        <div class="portal-admin-form-grid">
+          ${createAdminInput("business", "Business / logo alt name", vendor.business)}
+          ${createAdminInput("name", "Contact name", vendor.name)}
+          <label>
+            <span>Section</span>
+            <select name="section">
+              <option value="core"${vendor.section === "core" ? " selected" : ""}>Vendors agents reach for constantly</option>
+              <option value="services"${vendor.section === "services" ? " selected" : ""}>Rest of vendor directory</option>
+            </select>
+          </label>
+          <label>
+            <span>Logo path</span>
+            <input name="logo" type="text" value="${escapeHtml(vendor.logo || "")}" autocomplete="off">
+            <input class="portal-admin-file" type="file" accept="image/*" data-admin-file="logo">
+          </label>
+          ${createAdminInput("phone", "Phone", vendor.phone, "tel")}
+          ${createAdminInput("email", "Email", vendor.email, "email")}
+          ${createAdminInput("notes", "Notes", vendor.notes)}
+          <label class="portal-admin-check">
+            <input name="active" type="checkbox"${vendor.active !== false ? " checked" : ""}>
+            <span>Active</span>
+          </label>
+        </div>
+        <button class="button primary compact" type="submit">Save Vendor</button>
+      </form>
+    `)
+    .join("");
+}
+
+function renderAdminSettings() {
+  if (!adminSettingsForm) {
+    return;
+  }
+
+  adminSettingsForm.viewerPasscode.value = portalContent.settings?.viewerPasscode || "0715";
+  adminSettingsForm.adminPasscode.value = "";
+}
+
+function renderAdminEditor() {
+  renderAdminLeadershipList();
+  renderAdminVendorList();
+  renderAdminSettings();
+}
+
+function openAdminModal() {
+  if (!adminModal) {
+    return;
+  }
+
+  renderAdminEditor();
+  setAdminStatus("Admin mode is active.");
+  adminModal.hidden = false;
+  document.body.classList.add("portal-admin-open");
+  adminModal.querySelector(".portal-admin-tab")?.focus();
+}
+
+function closeAdminModal() {
+  if (!adminModal) {
+    return;
+  }
+
+  adminModal.hidden = true;
+  document.body.classList.remove("portal-admin-open");
+}
+
+async function promptForAdminAccess() {
+  if (isPortalAdminUnlocked()) {
+    openAdminModal();
+    return;
+  }
+
+  const attemptedPasscode = window.prompt("Enter the editor code.");
+  if (!attemptedPasscode) {
+    return;
+  }
+
+  const attemptedHash = await hashPasscode(attemptedPasscode);
+  const adminPasscodeHash = String(portalContent.settings?.adminPasscodeHash || PORTAL_ADMIN_PASSCODE_HASH).trim();
+
+  if (attemptedHash === PORTAL_ADMIN_PASSCODE_HASH || attemptedHash === adminPasscodeHash) {
+    storePortalAdminAccess();
+    openAdminModal();
+    return;
+  }
+
+  window.alert("Incorrect editor code.");
+}
+
+function switchAdminTab(tabName) {
+  adminTabs.forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.adminTab === tabName);
+  });
+
+  adminPanels.forEach((panel) => {
+    panel.classList.toggle("is-active", panel.dataset.adminPanel === tabName);
+  });
+}
+
+function applyAdminForm(form) {
+  const collection = form.dataset.adminEditor;
+  const index = Number.parseInt(form.dataset.index, 10);
+  const formData = new FormData(form);
+
+  if (collection === "leadership" && portalContent.leadership[index]) {
+    const nextName = String(formData.get("name") || "").trim();
+    portalContent.leadership[index] = {
+      ...portalContent.leadership[index],
+      id: portalContent.leadership[index].id || normalizeId(nextName, "leader"),
+      name: nextName,
+      role: String(formData.get("role") || "").trim(),
+      group: String(formData.get("group") || "office"),
+      photo: String(formData.get("photo") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      notes: String(formData.get("notes") || "").trim(),
+      featured: formData.has("featured"),
+      active: formData.has("active")
+    };
+  }
+
+  if (collection === "vendors" && portalContent.vendors[index]) {
+    const nextBusiness = String(formData.get("business") || "").trim();
+    portalContent.vendors[index] = {
+      ...portalContent.vendors[index],
+      id: portalContent.vendors[index].id || normalizeId(nextBusiness, "vendor"),
+      business: nextBusiness,
+      name: String(formData.get("name") || "").trim(),
+      section: String(formData.get("section") || "services"),
+      logo: String(formData.get("logo") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      notes: String(formData.get("notes") || "").trim(),
+      active: formData.has("active")
+    };
+  }
+
+  savePortalContentDraft();
+  renderPortalContent();
+  renderAdminEditor();
+  setAdminStatus("Draft saved in this browser. Export Data when you are ready to publish.");
+}
+
+function deleteAdminItem(button) {
+  const form = button.closest("[data-admin-editor]");
+  const collection = form?.dataset.adminEditor;
+  const index = Number.parseInt(form?.dataset.index || "", 10);
+
+  if (!collection || !Number.isInteger(index)) {
+    return;
+  }
+
+  if (!window.confirm("Delete this item from the draft?")) {
+    return;
+  }
+
+  portalContent[collection].splice(index, 1);
+  savePortalContentDraft();
+  renderPortalContent();
+  renderAdminEditor();
+  setAdminStatus("Item deleted from the draft.");
+}
+
+function addAdminItem(collection) {
+  if (collection === "leadership") {
+    portalContent.leadership.push({
+      id: `leader-${Date.now()}`,
+      group: "office",
+      role: "",
+      name: "New Person",
+      photo: "",
+      email: "",
+      phone: "",
+      notes: "",
+      featured: false,
+      active: true
+    });
+  }
+
+  if (collection === "vendors") {
+    portalContent.vendors.push({
+      id: `vendor-${Date.now()}`,
+      section: "services",
+      business: "New Vendor",
+      logo: "",
+      name: "",
+      phone: "",
+      email: "",
+      notes: "",
+      active: true
+    });
+  }
+
+  savePortalContentDraft();
+  renderPortalContent();
+  renderAdminEditor();
+  setAdminStatus("New item added to the draft.");
+}
+
+function exportPortalContent() {
+  const blob = new Blob([`${JSON.stringify(portalContent, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "portal-content.json";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setAdminStatus("Data exported. Replace data/portal-content.json with this file to publish the draft.");
+}
+
+function handleAdminImageUpload(input) {
+  const targetName = input.dataset.adminFile;
+  const form = input.closest("form");
+  const target = form?.elements?.[targetName];
+  const file = input.files?.[0];
+
+  if (!target || !file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    target.value = String(reader.result || "");
+    setAdminStatus("Image loaded into the draft. Save the item to keep it.");
+  });
+  reader.readAsDataURL(file);
+}
+
+function initializeAdminTools() {
+  portalLogoutButton?.addEventListener("click", logoutPortal);
+  adminLoginButton?.addEventListener("click", promptForAdminAccess);
+  adminCloseButtons.forEach((button) => button.addEventListener("click", closeAdminModal));
+  adminExportButton?.addEventListener("click", exportPortalContent);
+
+  adminTabs.forEach((tab) => {
+    tab.addEventListener("click", () => switchAdminTab(tab.dataset.adminTab));
+  });
+
+  adminAddButtons.forEach((button) => {
+    button.addEventListener("click", () => addAdminItem(button.dataset.adminAdd));
+  });
+
+  adminModal?.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-admin-editor]");
+    if (!form) {
+      return;
+    }
+
+    event.preventDefault();
+    applyAdminForm(form);
+  });
+
+  adminModal?.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest("[data-admin-delete]");
+    if (deleteButton) {
+      deleteAdminItem(deleteButton);
+    }
+  });
+
+  adminModal?.addEventListener("change", (event) => {
+    const fileInput = event.target.closest("[data-admin-file]");
+    if (fileInput) {
+      handleAdminImageUpload(fileInput);
+    }
+  });
+
+  adminSettingsForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const nextAdminPasscode = adminSettingsForm.adminPasscode.value.trim();
+    portalContent.settings = {
+      ...portalContent.settings,
+      viewerPasscode: adminSettingsForm.viewerPasscode.value.trim() || "0715",
+      adminPasscodeHash: nextAdminPasscode
+        ? await hashPasscode(nextAdminPasscode)
+        : (portalContent.settings?.adminPasscodeHash || PORTAL_ADMIN_PASSCODE_HASH)
+    };
+    adminSettingsForm.adminPasscode.value = "";
+    savePortalContentDraft();
+    setAdminStatus("Settings saved in this browser draft.");
   });
 }
 
@@ -2802,6 +3372,10 @@ async function refreshRiMarket() {
 }
 
 async function initializePortal() {
+  await loadPortalContent();
+  renderPortalContent();
+  initializeAdminTools();
+
   if (!IS_PORTAL_PUBLIC_PAGE) {
     document.body.classList.add("portal-protected");
     await ensurePortalAccess();

@@ -1,0 +1,240 @@
+{
+  "settings": {
+    "viewerPasscode": "0715",
+    "adminPasscodeHash": "86516DAF1AE4AA4E75CBDFB076D10652F6453B5D4DA91D45C6D485EFDF1D6054"
+  },
+  "leadership": [
+    {
+      "id": "lou-barrows",
+      "group": "office",
+      "role": "Operating Principal",
+      "name": "Lou Barrows",
+      "photo": "team/lou-barrows.jpg",
+      "email": "louisbarrows@kw.com",
+      "phone": "401-640-3520",
+      "notes": "",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "matt-brown",
+      "group": "office",
+      "role": "Team Leader",
+      "name": "Matt Brown",
+      "photo": "team/matt-brown.png",
+      "email": "mbrown715@kw.com",
+      "phone": "401-499-2978",
+      "notes": "",
+      "featured": true,
+      "active": true
+    },
+    {
+      "id": "kim-barrows",
+      "group": "office",
+      "role": "Market Center Operations",
+      "name": "Kim Barrows",
+      "photo": "team/kim-barrows.jpg",
+      "email": "klrw715@kw.com",
+      "phone": "401-333-4900",
+      "notes": "",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "alc-board",
+      "group": "alc",
+      "role": "Board of Directors",
+      "name": "2026 ALC Board",
+      "photo": "images/alc/alc-2026-board-of-directors.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Board of Directors",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "holly-bellucci",
+      "group": "alc",
+      "role": "Culture Committee",
+      "name": "Holly Bellucci",
+      "photo": "images/alc/holly-bellucci-culture-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Culture Committee",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "pete-dufresne",
+      "group": "alc",
+      "role": "Financial Planning Committee",
+      "name": "Pete Dufresne",
+      "photo": "images/alc/pete-dufresne-financial-planning-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Financial Planning Committee",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "melanie-ruiz",
+      "group": "alc",
+      "role": "Career Development Committee",
+      "name": "Melanie Ruiz",
+      "photo": "images/alc/melanie-ruiz-career-development-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Career Development Committee",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "michael-leboeuf",
+      "group": "alc",
+      "role": "Agent Advocate + Safety Committee",
+      "name": "Michael LeBoeuf",
+      "photo": "images/alc/michael-leboeuf-agent-advocate-safety-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Agent Advocate + Safety Committee",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "alessa-alvarez",
+      "group": "alc",
+      "role": "Technology Committee",
+      "name": "Alessa Alvarez",
+      "photo": "images/alc/alessa-alvarez-technology-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "Technology Committee",
+      "featured": false,
+      "active": true
+    },
+    {
+      "id": "liz-jimenez",
+      "group": "alc",
+      "role": "CHISPA / Inclusion Committee",
+      "name": "Liz Jimenez",
+      "photo": "images/alc/liz-jimenez-chispa-inclusion-committee.jpg",
+      "email": "",
+      "phone": "",
+      "notes": "CHISPA / Inclusion Committee",
+      "featured": false,
+      "active": true
+    }
+  ],
+  "vendors": [
+    {
+      "id": "ferranti-loandepot",
+      "section": "core",
+      "business": "The Ferranti Group of loanDepot",
+      "logo": "images/vendors/ferranti-loandepot.png",
+      "name": "Aaron Kloss",
+      "phone": "401-275-3149",
+      "email": "akloss@loandepot.com",
+      "notes": "Lender",
+      "active": true
+    },
+    {
+      "id": "percy-law-group",
+      "section": "core",
+      "business": "Percy Law Group, PC",
+      "logo": "images/vendors/percy-law-group.png",
+      "name": "Tom Percy",
+      "phone": "401-237-5350",
+      "email": "tpercy@percylawgroup.com",
+      "notes": "Attorney and Title",
+      "active": true
+    },
+    {
+      "id": "comparion-insurance",
+      "section": "core",
+      "business": "Comparion Insurance Agency",
+      "logo": "images/vendors/comparion-insurance.png",
+      "name": "Chris Chappell",
+      "phone": "401-824-1114",
+      "email": "Christopher.Chappell@Comparioninsurance.com",
+      "notes": "Insurance",
+      "active": true
+    },
+    {
+      "id": "koala-home-inspections",
+      "section": "services",
+      "business": "Koala Home Inspections LLC",
+      "logo": "images/vendors/koala-home-inspections.png",
+      "name": "Ryan Colby",
+      "phone": "401-332-8387",
+      "email": "ryan@koalainspections.com",
+      "notes": "Home Inspections",
+      "active": true
+    },
+    {
+      "id": "b-roll-productions",
+      "section": "services",
+      "business": "B-Roll Productions",
+      "logo": "images/vendors/b-roll-productions.png",
+      "name": "Brandon Barrayo",
+      "phone": "401-327-8661",
+      "email": "brollproductionsri@gmail.com",
+      "notes": "Videography and Photography",
+      "active": true
+    },
+    {
+      "id": "true-living-home-services",
+      "section": "services",
+      "business": "True Living Home Services",
+      "logo": "images/vendors/true-living-home-services.png",
+      "name": "Damian Ruiz",
+      "phone": "774-328-6149",
+      "email": "truelivinghandyman@gmail.com",
+      "notes": "Construction & Restoration",
+      "active": true
+    },
+    {
+      "id": "chopy-media",
+      "section": "services",
+      "business": "Chopy Media",
+      "logo": "images/vendors/chopy-media.png",
+      "name": "Joshua Chopy",
+      "phone": "401-426-7530",
+      "email": "Josh@chopymedia.com",
+      "notes": "Videography and Photography",
+      "active": true
+    },
+    {
+      "id": "maid-believable",
+      "section": "services",
+      "business": "Maid Believable",
+      "logo": "images/vendors/maid-believable.png",
+      "name": "Crystal Girard",
+      "phone": "401-309-7440",
+      "email": "maidbelievable@gmail.com",
+      "notes": "Cleaning Services",
+      "active": true
+    },
+    {
+      "id": "crum-relocation",
+      "section": "services",
+      "business": "Crum Relocation",
+      "logo": "images/vendors/crum-relocation.png",
+      "name": "Carmine Deluca",
+      "phone": "401-450-4659",
+      "email": "Carmine@crumrelo.com",
+      "notes": "Moving Company",
+      "active": true
+    },
+    {
+      "id": "air-guardian",
+      "section": "services",
+      "business": "Air Guardian Inc.",
+      "logo": "images/vendors/air-guardian.png",
+      "name": "Tanner Guimond",
+      "phone": "",
+      "email": "Tanner@airguardianinc.com",
+      "notes": "Mold Remediation",
+      "active": true
+    }
+  ]
+}
