@@ -9,7 +9,7 @@
   "busyNowEndIso": "",
   "nextBusyStartIso": "",
   "nextBusyEndIso": "",
-  "nextAppointmentAvailableIso": "2026-05-01T18:00:00.000Z",
+  "nextAppointmentAvailableIso": "2026-05-01T18:30:00.000Z",
   "workingHours": [
     {
       "day": "Wednesday",
