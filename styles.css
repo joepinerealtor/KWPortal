@@ -4036,7 +4036,7 @@ body.has-calendar-modal .page-content {
   .mobile-sidebar-menus {
     display: grid;
     width: 100%;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.58fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     align-items: stretch;
     align-self: start;
@@ -4122,6 +4122,10 @@ body.has-calendar-modal .page-content {
     display: none;
   }
 
+  .sidebar-utility {
+    display: none;
+  }
+
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(20px, env(safe-area-inset-right));
@@ -4166,7 +4170,7 @@ body.has-calendar-modal .page-content {
 
   .mobile-sidebar-menus {
     grid-area: menus;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.72fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     min-height: 64px;
     top: 10px;
   }
