@@ -2010,9 +2010,13 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     const busyUntilLabel = isBusyNow
       ? formatJoeAvailabilityUntilLabel(busyNowEndIso, timezone, new Date(nowMs))
       : "";
-    const nextLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs && isNextSlotWithinWorkingHours
+    const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
+      ? formatJoeAvailabilityNextSlotLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
+      : "";
+    const nextSlotLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs && isNextSlotWithinWorkingHours
       ? formatJoeAvailabilityNextSlotLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
+    const nextLabel = nextAppointmentLabel || nextSlotLabel;
 
     return {
       status,
@@ -2107,9 +2111,13 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     const busyUntilLabel = isBusyNow
       ? formatJoeAvailabilityCompactUntilLabel(busyNowEndIso, timezone, new Date(nowMs))
       : "";
-    const untilLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
+    const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
+      ? formatJoeAvailabilityCompactUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
+      : "";
+    const nextSlotLabel = Number.isFinite(nextOpenSlotMs) && nextOpenSlotMs > nowMs
       ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
+    const untilLabel = nextAppointmentLabel || nextSlotLabel;
 
     return {
       label: busyUntilLabel
