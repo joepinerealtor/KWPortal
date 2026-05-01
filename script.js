@@ -86,8 +86,12 @@ const riMarketRefs = {
     inventory: [...document.querySelectorAll('[data-ri-market-trend="inventory"]')]
   }
 };
-const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availability-card]")]
-  .map((card) => ({
+function getJoeAvailabilityRef(card) {
+  if (!card) {
+    return null;
+  }
+
+  const ref = {
     card,
     panel: card.querySelector(".joe-availability-panel"),
     light: card.querySelector("[data-joe-availability-light]"),
@@ -96,8 +100,14 @@ const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availabilit
     primaryAction: card.matches("[data-joe-primary-action]")
       ? card
       : card.querySelector("[data-joe-primary-action]")
-  }))
-  .filter((ref) => ref.panel && ref.light && ref.label && ref.summary);
+  };
+
+  return ref.panel && ref.light && ref.label && ref.summary ? ref : null;
+}
+
+const joeAvailabilityRefs = [...document.querySelectorAll("[data-joe-availability-card]")]
+  .map(getJoeAvailabilityRef)
+  .filter(Boolean);
 const joeAvailabilitySourceUrl = joeAvailabilityRefs[0]?.card.dataset.joeAvailabilitySrc || "";
 const hasRateTargets = [
   ...rateRefs.conventional,
@@ -126,6 +136,7 @@ let scrollTicking = false;
 let ratesRefreshInFlight = false;
 let riMarketRefreshInFlight = false;
 let joeAvailabilityRefreshInFlight = false;
+let currentJoeAvailabilityRawState = {};
 let currentJoeAvailabilityState = { status: "unavailable" };
 let calendarModalLastTrigger = null;
 let calendarModalCloseTimer = 0;
@@ -1113,6 +1124,15 @@ function createRoomBookingModal() {
           <h2 class="room-booking-title" id="roomBookingTitle">Book a Room</h2>
           <p class="room-booking-summary">Choose an available time and complete the reservation without leaving the portal.</p>
         </div>
+        <div class="room-booking-availability" data-room-booking-availability data-joe-availability-card data-joe-availability-src="data/joe-tech-status.json" hidden>
+          <div class="joe-availability-panel joe-availability-panel--modal" data-status="unavailable" aria-live="polite">
+            <span class="joe-availability-light" data-joe-availability-light aria-hidden="true"></span>
+            <div class="joe-availability-copy">
+              <p class="joe-availability-label" data-joe-availability-label>Joe is unavailable</p>
+              <p class="joe-availability-summary" data-joe-availability-summary>No open tech-help slots are listed right now.</p>
+            </div>
+          </div>
+        </div>
         <button type="button" class="button secondary compact room-booking-close">Close</button>
       </div>
       <div class="room-booking-quick-actions" data-room-booking-quick-actions hidden></div>
@@ -1140,6 +1160,20 @@ function getCalendlyEmbedUrl(url) {
   }
 }
 
+function registerJoeAvailabilityCard(card) {
+  if (!hasJoeAvailabilityTargets || !card || joeAvailabilityRefs.some((ref) => ref.card === card)) {
+    return;
+  }
+
+  const ref = getJoeAvailabilityRef(card);
+  if (!ref) {
+    return;
+  }
+
+  joeAvailabilityRefs.push(ref);
+  writeJoeAvailability(currentJoeAvailabilityRawState);
+}
+
 function initializeRoomBookingModal() {
   const triggers = [
     ...document.querySelectorAll(".room-booking-trigger[data-room-booking-url]"),
@@ -1151,10 +1185,12 @@ function initializeRoomBookingModal() {
 
   const modal = createRoomBookingModal();
   document.body.append(modal);
+  registerJoeAvailabilityCard(modal.querySelector("[data-room-booking-availability]"));
 
   const title = modal.querySelector(".room-booking-title");
   const summary = modal.querySelector(".room-booking-summary");
   const eyebrow = modal.querySelector(".room-booking-eyebrow");
+  const availability = modal.querySelector("[data-room-booking-availability]");
   const quickActions = modal.querySelector("[data-room-booking-quick-actions]");
   const closeButton = modal.querySelector(".room-booking-close");
   const iframe = modal.querySelector(".room-booking-frame");
@@ -1205,6 +1241,9 @@ function initializeRoomBookingModal() {
     eyebrow.textContent = bookingEyebrow;
     title.textContent = bookingLabel;
     summary.textContent = bookingSummary;
+    if (availability) {
+      availability.hidden = !isJoeBooking;
+    }
     renderJoeBookingActions(isJoeBooking);
     iframe.hidden = false;
     iframe.setAttribute("title", bookingLabel);
@@ -1909,14 +1948,16 @@ function writeJoeAvailability(rawState = {}) {
     return;
   }
 
+  currentJoeAvailabilityRawState = rawState;
   const state = normalizeJoeAvailabilityState(rawState);
   currentJoeAvailabilityState = state;
 
   joeAvailabilityRefs.forEach((ref) => {
     const isCompactHeaderWidget = ref.panel.classList.contains("joe-availability-panel--compact");
     const isLeadershipSupportWidget = ref.card.classList.contains("leadership-support-card");
+    const isModalHeaderWidget = ref.panel.classList.contains("joe-availability-panel--modal");
     const isMobileBubbleWidget = ref.card.classList.contains("mobile-tech-help-bubble");
-    const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget
+    const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
       ? getCompactJoeAvailabilityState(rawState, state)
       : null;
     const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(state) : null;

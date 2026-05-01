@@ -3728,8 +3728,10 @@ body.has-handbook-modal .page-content {
 }
 
 .room-booking-copy {
+  flex: 1 1 340px;
   display: grid;
   gap: 8px;
+  min-width: min(100%, 300px);
 }
 
 .room-booking-copy .eyebrow,
@@ -3748,6 +3750,46 @@ body.has-handbook-modal .page-content {
 .room-booking-summary {
   color: var(--kw-gray);
   line-height: 1.6;
+}
+
+.room-booking-availability {
+  flex: 0 1 330px;
+  min-width: min(100%, 280px);
+  margin-left: auto;
+}
+
+.room-booking-availability[hidden] {
+  display: none;
+}
+
+.joe-availability-panel--modal {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.joe-availability-panel--modal .joe-availability-light {
+  width: 12px;
+  height: 12px;
+  margin-top: 0;
+}
+
+.joe-availability-panel--modal .joe-availability-copy {
+  gap: 3px;
+}
+
+.joe-availability-panel--modal .joe-availability-label {
+  font-size: 0.82rem;
+  letter-spacing: 0;
+  line-height: 1.12;
+  text-transform: none;
+}
+
+.joe-availability-panel--modal .joe-availability-summary {
+  font-size: 0.76rem;
+  line-height: 1.24;
 }
 
 .room-booking-quick-actions {
@@ -4552,6 +4594,12 @@ body.has-handbook-modal .page-content {
   .calendar-modal__footer,
   .room-booking-header {
     flex-direction: column;
+  }
+
+  .room-booking-availability {
+    width: 100%;
+    flex-basis: auto;
+    margin-left: 0;
   }
 
   .calendar-modal__embed-shell,
