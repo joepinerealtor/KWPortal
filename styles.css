@@ -1741,9 +1741,10 @@ body.portal-protected .mobile-tech-help-bubble {
 }
 
 .dashboard-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(250, 246, 241, 0.92)),
-    radial-gradient(circle at top right, rgba(180, 1, 1, 0.08), transparent 28%);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .dashboard-head,
