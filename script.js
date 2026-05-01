@@ -12,6 +12,10 @@ const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
 const calendarModalTriggers = [...document.querySelectorAll("[data-calendar-modal-trigger]")];
+const handbookModal = document.querySelector("[data-handbook-modal]");
+const handbookModalShell = handbookModal?.querySelector("[data-handbook-modal-shell]");
+const handbookModalCloseButton = handbookModal?.querySelector(".calendar-modal__close");
+const handbookModalTriggers = [...document.querySelectorAll("[data-handbook-modal-trigger]")];
 const mobileSidebarMenus = document.querySelector(".mobile-sidebar-menus");
 const mobileMenuPanels = [...document.querySelectorAll(".mobile-menu-panel")];
 const sectionLinks = [...document.querySelectorAll(".section-nav-link")].filter((link) => {
@@ -126,6 +130,9 @@ let currentJoeAvailabilityState = { status: "unavailable" };
 let calendarModalLastTrigger = null;
 let calendarModalCloseTimer = 0;
 let hasLoadedCalendarModalContent = false;
+let handbookModalLastTrigger = null;
+let handbookModalCloseTimer = 0;
+let hasLoadedHandbookModalContent = false;
 
 const PORTAL_SECTION_SCROLL_GAP_PX = 22;
 const PORTAL_SECTION_SCROLL_FALLBACK_PX = 32;
@@ -135,6 +142,7 @@ const FORCE_PORTAL_LOCK = new URLSearchParams(window.location.search).has("porta
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
+const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
 const JOE_TECH_BOOKING_URL = "https://calendly.com/joepinerealtor/tech-meeting-with-joe";
 const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
 const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
@@ -999,6 +1007,96 @@ function initializeCalendarModal() {
     if (event.key === "Escape" && !calendarModal.hidden) {
       event.preventDefault();
       closeCalendarModal();
+    }
+  });
+}
+
+function ensureHandbookModalContent() {
+  if (!handbookModalShell || hasLoadedHandbookModalContent) {
+    return;
+  }
+
+  handbookModalShell.innerHTML = `
+    <iframe
+      class="calendar-modal__iframe"
+      src="${AGENT_HANDBOOK_URL}#toolbar=1&navpanes=0"
+      title="KW Leading Edge Agent Handbook"
+      loading="lazy"
+    ></iframe>
+  `;
+
+  hasLoadedHandbookModalContent = true;
+}
+
+function closeHandbookModal() {
+  if (!handbookModal || handbookModal.hidden) {
+    return;
+  }
+
+  handbookModal.classList.remove("is-open");
+  document.body.classList.remove("has-handbook-modal");
+
+  const returnFocusTarget = handbookModalLastTrigger;
+
+  window.clearTimeout(handbookModalCloseTimer);
+  handbookModalCloseTimer = window.setTimeout(() => {
+    if (!handbookModal.classList.contains("is-open")) {
+      handbookModal.hidden = true;
+    }
+
+    if (returnFocusTarget instanceof HTMLElement) {
+      returnFocusTarget.focus();
+    }
+  }, 180);
+}
+
+function openHandbookModal(trigger = null) {
+  if (!handbookModal) {
+    return;
+  }
+
+  handbookModalLastTrigger = trigger instanceof HTMLElement
+    ? trigger
+    : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+
+  window.clearTimeout(handbookModalCloseTimer);
+  handbookModal.hidden = false;
+  document.body.classList.add("has-handbook-modal");
+
+  requestAnimationFrame(() => {
+    handbookModal.classList.add("is-open");
+    ensureHandbookModalContent();
+    (handbookModalCloseButton || handbookModal)?.focus?.();
+  });
+}
+
+function initializeHandbookModal() {
+  if (!handbookModal || !handbookModalTriggers.length) {
+    return;
+  }
+
+  handbookModalTriggers.forEach((trigger) => {
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      openHandbookModal(trigger);
+    });
+  });
+
+  handbookModal.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest("[data-handbook-modal-close]")) {
+      closeHandbookModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !handbookModal.hidden) {
+      event.preventDefault();
+      closeHandbookModal();
     }
   });
 }
@@ -2672,6 +2770,7 @@ async function initializePortal() {
   setInterval(updateDateTime, 30000);
   initializeMobileMenus();
   initializeCalendarModal();
+  initializeHandbookModal();
   initializeRoomBookingModal();
   syncSectionScrollOffset();
   window.requestAnimationFrame(syncSectionScrollOffset);

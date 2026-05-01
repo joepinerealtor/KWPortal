@@ -1299,6 +1299,7 @@ body.is-header-tech-floating .mobile-tech-help-bubble .mobile-tech-help-avatar {
 body.is-header-tech-floating.is-leadership-tech-visible .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-room-booking-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-calendar-modal .mobile-tech-help-bubble,
+body.is-header-tech-floating.has-handbook-modal .mobile-tech-help-bubble,
 body.portal-protected .mobile-tech-help-bubble {
   display: none;
 }
@@ -3551,15 +3552,18 @@ body.has-room-booking-modal .page-content {
   overflow: hidden;
 }
 
-body.has-calendar-modal {
+body.has-calendar-modal,
+body.has-handbook-modal {
   overflow: hidden;
 }
 
-body.has-calendar-modal .portal-content {
+body.has-calendar-modal .portal-content,
+body.has-handbook-modal .portal-content {
   overflow: hidden;
 }
 
-body.has-calendar-modal .page-content {
+body.has-calendar-modal .page-content,
+body.has-handbook-modal .page-content {
   overflow: hidden;
 }
 
@@ -3575,7 +3579,7 @@ body.has-calendar-modal .page-content {
   overflow: auto;
   overscroll-behavior: contain;
   transition: opacity 180ms ease;
-  z-index: 58;
+  z-index: 140;
 }
 
 .calendar-modal.is-open {
@@ -3597,7 +3601,7 @@ body.has-calendar-modal .page-content {
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid rgba(221, 212, 200, 0.92);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 246, 241, 0.94)),
+    linear-gradient(180deg, #fff, #faf6f1),
     radial-gradient(circle at top right, rgba(180, 1, 1, 0.08), transparent 28%);
   box-shadow: 0 28px 54px -34px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -3615,11 +3619,12 @@ body.has-calendar-modal .page-content {
 
 .calendar-modal__head {
   border-bottom: 1px solid rgba(221, 212, 200, 0.92);
+  background: #fff;
 }
 
 .calendar-modal__footer {
   border-top: 1px solid rgba(221, 212, 200, 0.92);
-  background: rgba(255, 255, 255, 0.78);
+  background: #fff;
 }
 
 .calendar-modal__copy {
@@ -4149,6 +4154,7 @@ body.has-calendar-modal .page-content {
   body.is-leadership-tech-visible .mobile-tech-help-bubble,
   body.has-room-booking-modal .mobile-tech-help-bubble,
   body.has-calendar-modal .mobile-tech-help-bubble,
+  body.has-handbook-modal .mobile-tech-help-bubble,
   body.portal-protected .mobile-tech-help-bubble {
     display: none;
   }
@@ -4345,6 +4351,7 @@ body.has-calendar-modal .page-content {
   body.is-leadership-tech-visible .mobile-tech-help-bubble,
   body.has-room-booking-modal .mobile-tech-help-bubble,
   body.has-calendar-modal .mobile-tech-help-bubble,
+  body.has-handbook-modal .mobile-tech-help-bubble,
   body.portal-protected .mobile-tech-help-bubble {
     display: none;
   }
