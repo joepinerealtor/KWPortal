@@ -659,38 +659,34 @@ $currentWorkingWindow = if ($isWithinWorkingHoursNow) {
   $null
 }
 
-if (-not $isBusyNow) {
-  $currentAvailableInterval = Get-AvailableIntervalContainingTime -SlotStarts $availableSlotStarts -ReferenceTime $now -DurationMinutes $durationMinutes -AllowNearFutureStart:($didResolveBusyRangesFromApi -and -not $isBusyNow)
+if (-not $isBusyNow -and $didResolveBusyRangesFromApi -and $isWithinWorkingHoursNow -and $currentWorkingWindow) {
+  $status = "available_now"
+  $nextBusyRangeDuringCurrentWindow = $busyRanges |
+    Where-Object { $_.Start -gt $now -and $_.Start -lt $currentWorkingWindow.End } |
+    Sort-Object Start |
+    Select-Object -First 1
 
-  if ($currentAvailableInterval) {
-    $status = "available_now"
-    $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $currentAvailableInterval.End -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $didResolveBusyRangesFromApi
-    $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
-    $nextAppointmentAvailable = $availableSlotStarts |
-      Where-Object { $_ -gt $currentAvailableInterval.End.AddSeconds(60) } |
-      Sort-Object |
-      Select-Object -First 1
+  $availableNowEnd = if ($nextBusyRangeDuringCurrentWindow) {
+    $nextBusyRangeDuringCurrentWindow.Start
+  } else {
+    $currentWorkingWindow.End
+  }
+  $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
 
-    if ($nextAppointmentAvailable) {
-      $nextAppointmentAvailableIso = Format-UtcIsoForPortal -Value $nextAppointmentAvailable
-    }
+  $nextAppointmentSearchStart = $availableNowEnd
+  if ($nextBusyRangeDuringCurrentWindow) {
+    $nextBusyStartIso = Format-UtcIsoForPortal -Value $nextBusyRangeDuringCurrentWindow.Start
+    $nextBusyEndIso = Format-UtcIsoForPortal -Value $nextBusyRangeDuringCurrentWindow.End
+    $nextAppointmentSearchStart = $nextBusyRangeDuringCurrentWindow.End
+  }
 
-    if ([string]::IsNullOrWhiteSpace($nextBusyStartIso) -and $availableNowEnd -gt $now) {
-      $nextBusyStartIso = Format-UtcIsoForPortal -Value $availableNowEnd
-    }
-  } elseif (-not $didResolveAvailabilityFromApi -and $didResolveBusyRangesFromApi -and $isWithinWorkingHoursNow -and $currentWorkingWindow) {
-    $status = "available_now"
-    $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $currentWorkingWindow.End -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $true
-    $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
-  } elseif (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
-    $slotStart = [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime()
-    $slotEnd = $slotStart.AddMinutes($durationMinutes)
+  $nextAppointmentAvailable = $availableSlotStarts |
+    Where-Object { $_ -ge $nextAppointmentSearchStart.AddSeconds(-1) } |
+    Sort-Object |
+    Select-Object -First 1
 
-    if ($isWithinWorkingHoursNow -and $now -ge $slotStart -and $now -lt $slotEnd) {
-      $status = "available_now"
-      $availableNowEnd = Get-AvailableNowEnd -Now $now -SlotEnd $slotEnd -WorkingWindow $currentWorkingWindow -BusyRanges $busyRanges -CanUseBusyRanges $didResolveBusyRangesFromApi
-      $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
-    }
+  if ($nextAppointmentAvailable) {
+    $nextAppointmentAvailableIso = Format-UtcIsoForPortal -Value $nextAppointmentAvailable
   }
 } else {
   $nextAppointmentAvailable = $availableSlotStarts |

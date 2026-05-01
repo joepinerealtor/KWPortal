@@ -170,6 +170,15 @@ const PORTAL_SECTION_SCROLL_FALLBACK_PX = 32;
 const PORTAL_ACCESS_STORAGE_KEY = "kw-leading-edge-portal.access.v1";
 const PORTAL_ADMIN_STORAGE_KEY = "kw-leading-edge-portal.admin.v1";
 const PORTAL_CONTENT_DRAFT_STORAGE_KEY = "kw-leading-edge-portal.content-draft.v1";
+const PORTAL_ACCESS_COOKIE_NAME = "kw-leading-edge-portal-access";
+const PORTAL_ADMIN_COOKIE_NAME = "kw-leading-edge-portal-admin";
+const PORTAL_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+const PORTAL_COOKIE_NAMES = [
+  PORTAL_ACCESS_COOKIE_NAME,
+  PORTAL_ADMIN_COOKIE_NAME,
+  "portal-access",
+  "portal-admin"
+];
 const PORTAL_CONTENT_URL = "data/portal-content.json";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const PORTAL_ADMIN_PASSCODE_HASH = "86516DAF1AE4AA4E75CBDFB076D10652F6453B5D4DA91D45C6D485EFDF1D6054";
@@ -429,11 +438,64 @@ function setAdminStatus(message) {
   }
 }
 
+function getPortalCookie(name) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : "";
+}
+
+function setPortalCookie(name, value) {
+  const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${PORTAL_COOKIE_MAX_AGE_SECONDS}; path=/; SameSite=Lax${secureFlag}`;
+}
+
+function getCookiePathVariants() {
+  const paths = new Set(["/"]);
+  const parts = window.location.pathname.split("/").filter(Boolean);
+
+  parts.forEach((part, index) => {
+    if (index === parts.length - 1 && part.includes(".")) {
+      return;
+    }
+
+    const path = `/${parts.slice(0, index + 1).join("/")}`;
+    paths.add(path);
+    paths.add(`${path}/`);
+  });
+
+  return [...paths];
+}
+
+function getCookieDomainVariants() {
+  const hostname = window.location.hostname;
+  const domains = [""];
+
+  if (!hostname || hostname === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    return domains;
+  }
+
+  const rootDomain = hostname.replace(/^www\./, "");
+  domains.push(`; domain=${hostname}`);
+  domains.push(`; domain=.${rootDomain}`);
+
+  if (rootDomain !== hostname) {
+    domains.push(`; domain=${rootDomain}`);
+  }
+
+  return [...new Set(domains)];
+}
+
 function isPortalAdminUnlocked() {
+  const hasAdminCookie = getPortalCookie(PORTAL_ADMIN_COOKIE_NAME) === PORTAL_ADMIN_PASSCODE_HASH;
+
   try {
-    return window.localStorage.getItem(PORTAL_ADMIN_STORAGE_KEY) === PORTAL_ADMIN_PASSCODE_HASH;
+    return window.localStorage.getItem(PORTAL_ADMIN_STORAGE_KEY) === PORTAL_ADMIN_PASSCODE_HASH || hasAdminCookie;
   } catch {
-    return false;
+    return hasAdminCookie;
   }
 }
 
@@ -443,11 +505,31 @@ function storePortalAdminAccess() {
   } catch {
     // Ignore storage failures and keep access for this page load only.
   }
+  setPortalCookie(PORTAL_ADMIN_COOKIE_NAME, PORTAL_ADMIN_PASSCODE_HASH);
 }
 
 function clearPortalCookie(name) {
-  document.cookie = `${name}=; Max-Age=0; path=/`;
-  document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+  getCookiePathVariants().forEach((path) => {
+    getCookieDomainVariants().forEach((domain) => {
+      document.cookie = `${name}=; Max-Age=0; path=${path}${domain}`;
+      document.cookie = `${name}=; Max-Age=0; path=${path}; SameSite=Lax${domain}`;
+    });
+  });
+}
+
+function clearPortalCookies() {
+  PORTAL_COOKIE_NAMES.forEach(clearPortalCookie);
+}
+
+function clearAllAccessibleCookies() {
+  const cookieNames = new Set(PORTAL_COOKIE_NAMES);
+  document.cookie
+    .split(";")
+    .map((part) => part.trim().split("=")[0])
+    .filter(Boolean)
+    .forEach((name) => cookieNames.add(name));
+
+  cookieNames.forEach(clearPortalCookie);
 }
 
 function logoutPortal() {
@@ -459,13 +541,7 @@ function logoutPortal() {
     // Ignore storage failures while still returning to the lock screen.
   }
 
-  [
-    "kw-leading-edge-portal-access",
-    "kw-leading-edge-portal-admin",
-    "portal-access",
-    "portal-admin"
-  ].forEach(clearPortalCookie);
-
+  clearAllAccessibleCookies();
   window.location.href = `${window.location.pathname}?portalLock=1`;
 }
 
@@ -476,10 +552,12 @@ function removePortalGate() {
 }
 
 function isPortalUnlocked() {
+  const hasAccessCookie = getPortalCookie(PORTAL_ACCESS_COOKIE_NAME) === PORTAL_PASSCODE_HASH;
+
   try {
-    return window.localStorage.getItem(PORTAL_ACCESS_STORAGE_KEY) === PORTAL_PASSCODE_HASH;
+    return window.localStorage.getItem(PORTAL_ACCESS_STORAGE_KEY) === PORTAL_PASSCODE_HASH || hasAccessCookie;
   } catch {
-    return false;
+    return hasAccessCookie;
   }
 }
 
@@ -489,6 +567,7 @@ function storePortalAccess() {
   } catch {
     // Ignore storage failures and keep access for this page load only.
   }
+  setPortalCookie(PORTAL_ACCESS_COOKIE_NAME, PORTAL_PASSCODE_HASH);
 }
 
 async function hashPasscode(value) {
@@ -837,6 +916,9 @@ async function ensurePortalAccess() {
         if (error) {
           error.textContent = "";
         }
+        if (isAdminCode) {
+          clearPortalCookies();
+        }
         storePortalAccess();
         if (isAdminCode) {
           storePortalAdminAccess();
@@ -1018,6 +1100,8 @@ async function promptForAdminAccess() {
   const adminPasscodeHash = String(portalContent.settings?.adminPasscodeHash || PORTAL_ADMIN_PASSCODE_HASH).trim();
 
   if (attemptedHash === PORTAL_ADMIN_PASSCODE_HASH || attemptedHash === adminPasscodeHash) {
+    clearPortalCookies();
+    storePortalAccess();
     storePortalAdminAccess();
     openAdminModal();
     return;
@@ -2314,20 +2398,12 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   ].includes(rawState?.status)
     ? rawState.status
     : "unavailable";
-  let status = baseStatus === "available" ? "unavailable" : baseStatus;
+  let status = "unavailable";
 
   if (isBusyNow) {
     status = "unavailable";
   } else if (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs) {
     status = "available_now";
-  } else if (Number.isFinite(nextOpenSlotMs) && Number.isFinite(nextOpenSlotEndMs) && isNextSlotWithinWorkingHours) {
-    if (isWithinWorkingHoursNow && nowMs >= nextOpenSlotMs && nowMs < nextOpenSlotEndMs) {
-      status = "available_now";
-    } else if (nowMs < nextOpenSlotMs) {
-      status = "unavailable";
-    } else {
-      status = "unavailable";
-    }
   }
 
   if (status === "available_now") {
@@ -2348,11 +2424,13 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     return {
       status,
       label: availableNowLabel,
-      summary: nextAppointmentLabel
+      summary: nextAppointmentLabel && endLabel
+        ? `Current availability runs until ${endLabel}. Next appointment available at ${nextAppointmentLabel}.`
+        : (nextAppointmentLabel
         ? `Next appointment available at ${nextAppointmentLabel}.`
         : (rawState?.availableNowSummary || (endLabel
         ? `Schedule an appointment with Joe. Current availability runs until ${endLabel}.`
-        : "Schedule an appointment with Joe."))
+        : "Schedule an appointment with Joe.")))
     };
   }
 
