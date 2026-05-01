@@ -550,7 +550,6 @@
           </p>
           <p class="site-footer-item site-footer-item--right site-footer-actions">
             <a href="tel:+14013334900">401-333-4900</a>
-            <button class="site-footer-logout" type="button" data-admin-login>Admin</button>
             <button class="site-footer-logout" type="button" data-portal-logout>Logout</button>
           </p>
         </footer>
@@ -613,60 +612,6 @@
         <div class="calendar-modal__actions">
           <a class="button compact" href="downloads/kwle-agent-handbook-march-2026.pdf" target="_blank" rel="noreferrer">Open PDF</a>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="portal-admin-modal" data-portal-admin-modal hidden>
-    <div class="portal-admin-modal__backdrop" data-admin-close></div>
-    <div class="portal-admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="portalAdminTitle">
-      <div class="portal-admin-modal__head">
-        <div>
-          <p class="eyebrow small">Admin Mode</p>
-          <h2 id="portalAdminTitle">Portal Content Editor</h2>
-        </div>
-        <div class="portal-admin-modal__actions">
-          <button class="button secondary compact" type="button" data-admin-export>Export Data</button>
-          <button class="button secondary compact" type="button" data-admin-close>Close</button>
-        </div>
-      </div>
-      <p class="portal-admin-status" data-admin-status aria-live="polite"></p>
-      <div class="portal-admin-tabs" role="tablist" aria-label="Editable portal sections">
-        <button class="portal-admin-tab is-active" type="button" data-admin-tab="leadership">Leadership</button>
-        <button class="portal-admin-tab" type="button" data-admin-tab="vendors">Vendors</button>
-        <button class="portal-admin-tab" type="button" data-admin-tab="settings">Settings</button>
-      </div>
-      <div class="portal-admin-modal__body">
-        <section class="portal-admin-panel is-active" data-admin-panel="leadership">
-          <div class="portal-admin-list-head">
-            <h3>Leadership + ALC Board</h3>
-            <button class="button primary compact" type="button" data-admin-add="leadership">Add Person</button>
-          </div>
-          <div class="portal-admin-list" data-admin-list="leadership"></div>
-        </section>
-        <section class="portal-admin-panel" data-admin-panel="vendors">
-          <div class="portal-admin-list-head">
-            <h3>Vendor Directory</h3>
-            <button class="button primary compact" type="button" data-admin-add="vendors">Add Vendor</button>
-          </div>
-          <div class="portal-admin-list" data-admin-list="vendors"></div>
-        </section>
-        <section class="portal-admin-panel" data-admin-panel="settings">
-          <form class="portal-admin-form" data-admin-settings-form>
-            <label>
-              <span>Viewer code</span>
-              <input name="viewerPasscode" type="text" inputmode="numeric" autocomplete="off">
-            </label>
-            <label>
-              <span>New editor code</span>
-              <input name="adminPasscode" type="text" inputmode="numeric" autocomplete="off" placeholder="Leave blank to keep current">
-            </label>
-            <button class="button primary compact" type="submit">Save Settings</button>
-          </form>
-        </section>
-      </div>
-      <div class="portal-admin-modal__footer">
-        <p>Edits are saved in this browser as a draft. Use Export Data to create the updated content file for publishing.</p>
       </div>
     </div>
   </div>
