@@ -3862,32 +3862,65 @@ body.has-docusign-modal .page-content {
 
 .docusign-reminder-modal__countdown,
 .docusign-reminder-modal__status,
+.docusign-reminder-modal__articles,
 .docusign-reminder-modal__actions {
   grid-column: 2;
 }
 
 .docusign-reminder-modal__countdown {
   color: #fff;
+  max-width: 430px;
 }
 
 .docusign-reminder-modal__countdown span {
   border-color: rgba(180, 1, 1, 0.18);
   background:
     linear-gradient(135deg, #b40101 0%, #7c0101 52%, #111111 100%);
+  padding: 6px 5px;
 }
 
 .docusign-reminder-modal__countdown strong {
-  font-size: 2.3rem;
+  font-size: 1.55rem;
+}
+
+.docusign-reminder-modal__countdown small {
+  font-size: 0.58rem;
+}
+
+.docusign-reminder-modal__articles {
+  display: grid;
+  gap: 8px;
+}
+
+.docusign-reminder-modal__article-link {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--kw-border);
+  background: var(--kw-paper-soft);
+  color: var(--kw-ink);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.docusign-reminder-modal__article-link:hover,
+.docusign-reminder-modal__article-link:focus-visible {
+  border-color: rgba(180, 1, 1, 0.32);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .docusign-reminder-modal__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.docusign-reminder-modal__resource {
-  flex-basis: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3931,38 +3964,6 @@ body.has-docusign-modal .page-content {
   height: clamp(380px, calc(100vh - 260px), 680px);
   border: 0;
   background: var(--kw-white);
-}
-
-.lone-wolf-resource-list {
-  display: grid;
-  gap: 12px;
-  padding: 20px;
-  background: var(--kw-white);
-}
-
-.lone-wolf-resource-link {
-  display: flex;
-  align-items: center;
-  min-height: 56px;
-  padding: 14px 16px;
-  border: 1px solid var(--kw-border);
-  background: var(--kw-paper-soft);
-  color: var(--kw-ink);
-  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
-  font-size: 0.96rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.15;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: transform var(--transition), border-color var(--transition), background var(--transition);
-}
-
-.lone-wolf-resource-link:hover,
-.lone-wolf-resource-link:focus-visible {
-  border-color: rgba(180, 1, 1, 0.32);
-  background: #fff;
-  transform: translateY(-1px);
 }
 
 .calendar-modal__actions {
@@ -4957,6 +4958,7 @@ body.has-docusign-modal .page-content {
   .docusign-reminder-modal__signal,
   .docusign-reminder-modal__countdown,
   .docusign-reminder-modal__status,
+  .docusign-reminder-modal__articles,
   .docusign-reminder-modal__actions {
     grid-column: 1;
   }
@@ -5158,11 +5160,11 @@ body.has-docusign-modal .page-content {
   }
 
   .docusign-reminder-modal__countdown span {
-    padding: 8px 4px;
+    padding: 6px 4px;
   }
 
   .docusign-reminder-modal__countdown strong {
-    font-size: 1.82rem;
+    font-size: 1.35rem;
   }
 
   .calendar-modal__embed-shell,

@@ -412,8 +412,12 @@
         </span>
       </div>
       <p class="docusign-reminder-modal__status" data-docusign-countdown-status>Countdown to July 14, 2026.</p>
+      <div class="docusign-reminder-modal__articles" aria-label="Helpful Lone Wolf Transact articles">
+        <a class="docusign-reminder-modal__article-link" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer" data-lone-wolf-modal-trigger aria-haspopup="dialog" aria-controls="loneWolfModal">Create a Lone Wolf Transaction from an Opportunity</a>
+        <a class="docusign-reminder-modal__article-link" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer" data-lone-wolf-modal-trigger aria-haspopup="dialog" aria-controls="loneWolfModal">Lone Wolf Transact and Command Workflow</a>
+        <a class="docusign-reminder-modal__article-link" href="https://answers.kw.com/hc/en-us/articles/49198810019347-Access-the-Lone-Wolf-Transaction-Linked-to-an-Opportunity" target="_blank" rel="noreferrer" data-lone-wolf-modal-trigger aria-haspopup="dialog" aria-controls="loneWolfModal">Access the Lone Wolf Transaction Linked to an Opportunity</a>
+      </div>
       <div class="docusign-reminder-modal__actions">
-        <a class="button primary compact docusign-reminder-modal__resource" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer" data-lone-wolf-modal-trigger aria-haspopup="dialog" aria-controls="loneWolfModal">View Helpful Articles</a>
         <button class="button primary compact" type="button" data-docusign-reminder-close data-docusign-reminder-action="read">Got It</button>
         <button class="button secondary compact" type="button" data-docusign-reminder-close data-docusign-reminder-action="tomorrow">Remind Me Tomorrow</button>
       </div>
@@ -426,22 +430,18 @@
       <div class="calendar-modal__head">
         <div class="calendar-modal__copy">
           <p class="eyebrow small">Lone Wolf Transition</p>
-          <h2 id="loneWolfModalTitle">Helpful Lone Wolf Transact Articles</h2>
-          <p class="calendar-modal__summary">Review these KW Answers articles as you begin preparing for the DocuSign Rooms transition.</p>
+          <h2 id="loneWolfModalTitle" data-lone-wolf-modal-title>Helpful Lone Wolf Transact Article</h2>
+          <p class="calendar-modal__summary">Review this KW Answers article without leaving the portal.</p>
         </div>
         <button class="button secondary compact calendar-modal__close" type="button" data-lone-wolf-modal-close>Close</button>
       </div>
       <div class="calendar-modal__body">
-        <div class="lone-wolf-resource-list" aria-label="Helpful Lone Wolf Transact articles">
-          <a class="lone-wolf-resource-link" href="https://answers.kw.com/hc/en-us/articles/48965630043923-Create-a-Lone-Wolf-Transaction-from-an-Opportunity" target="_blank" rel="noreferrer">Create a Lone Wolf Transaction from an Opportunity</a>
-          <a class="lone-wolf-resource-link" href="https://answers.kw.com/hc/en-us/articles/49176410572435-Lone-Wolf-Transact-and-Command-Workflow" target="_blank" rel="noreferrer">Lone Wolf Transact and Command Workflow</a>
-          <a class="lone-wolf-resource-link" href="https://answers.kw.com/hc/en-us/articles/49198810019347-Access-the-Lone-Wolf-Transaction-Linked-to-an-Opportunity" target="_blank" rel="noreferrer">Access the Lone Wolf Transaction Linked to an Opportunity</a>
-        </div>
+        <div class="calendar-modal__embed-shell" data-lone-wolf-modal-shell aria-label="KW Answers Lone Wolf Transact article"></div>
       </div>
       <div class="calendar-modal__footer">
-        <p class="calendar-modal__note">Articles open from KW Answers in a new tab so agents can sign in if prompted.</p>
+        <p class="calendar-modal__note">If KW Answers does not load in the portal, open the article in a new tab.</p>
         <div class="calendar-modal__actions">
-          <a class="button compact" href="https://answers.kw.com/hc/en-us/search?query=lone%20wolf" target="_blank" rel="noreferrer">Search KW Answers</a>
+          <a class="button compact" href="https://answers.kw.com/hc/en-us/search?query=lone%20wolf" target="_blank" rel="noreferrer" data-lone-wolf-modal-open>Open In New Tab</a>
         </div>
       </div>
     </div>
@@ -450,8 +450,6 @@
   <script src="script.js"></script>
 </body>
 </html>
-
-
 
 
 

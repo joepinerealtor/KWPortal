@@ -26,6 +26,8 @@ const handbookModalTriggers = [...document.querySelectorAll("[data-handbook-moda
 const loneWolfModal = document.querySelector("[data-lone-wolf-modal]");
 const loneWolfModalShell = loneWolfModal?.querySelector("[data-lone-wolf-modal-shell]");
 const loneWolfModalCloseButton = loneWolfModal?.querySelector(".calendar-modal__close");
+const loneWolfModalTitle = loneWolfModal?.querySelector("[data-lone-wolf-modal-title]");
+const loneWolfModalOpenLink = loneWolfModal?.querySelector("[data-lone-wolf-modal-open]");
 const loneWolfModalTriggers = [...document.querySelectorAll("[data-lone-wolf-modal-trigger]")];
 const docuSignReminderModal = document.querySelector("[data-docusign-reminder-modal]");
 const docuSignReminderCloseButtons = [...document.querySelectorAll("[data-docusign-reminder-close]")];
@@ -166,7 +168,6 @@ let handbookModalCloseTimer = 0;
 let hasLoadedHandbookModalContent = false;
 let loneWolfModalLastTrigger = null;
 let loneWolfModalCloseTimer = 0;
-let hasLoadedLoneWolfModalContent = false;
 let docuSignReminderLastFocus = null;
 let docuSignReminderCloseTimer = 0;
 let docuSignReminderRetryTimer = 0;
@@ -188,7 +189,6 @@ const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
 const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
-const LONE_WOLF_SETUP_URL = "https://answers.kw.com/hc/en-us/articles/48891055092499-Create-Connect-Your-Lone-Wolf-Transact-Account-in-Command";
 const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00").getTime();
 const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
 const DOCUSIGN_REMINDER_RETRY_DELAY_MS = 1000;
@@ -1488,22 +1488,28 @@ function initializeHandbookModal() {
   });
 }
 
-function ensureLoneWolfModalContent() {
-  if (!loneWolfModalShell || hasLoadedLoneWolfModalContent) {
+function renderLoneWolfModalContent(articleUrl, articleTitle) {
+  if (!loneWolfModalShell || !articleUrl) {
     return;
+  }
+
+  if (loneWolfModalTitle) {
+    loneWolfModalTitle.textContent = articleTitle || "Helpful Lone Wolf Transact Article";
+  }
+
+  if (loneWolfModalOpenLink) {
+    loneWolfModalOpenLink.href = articleUrl;
   }
 
   loneWolfModalShell.innerHTML = `
     <iframe
       class="calendar-modal__iframe"
-      src="${LONE_WOLF_SETUP_URL}"
-      title="Create and connect your Lone Wolf Transact account in Command"
+      src="${escapeHtml(articleUrl)}"
+      title="${escapeHtml(articleTitle || "Helpful Lone Wolf Transact Article")}"
       loading="lazy"
       referrerpolicy="strict-origin-when-cross-origin"
     ></iframe>
   `;
-
-  hasLoadedLoneWolfModalContent = true;
 }
 
 function closeLoneWolfModal() {
@@ -1536,14 +1542,20 @@ function openLoneWolfModal(trigger = null) {
   loneWolfModalLastTrigger = trigger instanceof HTMLElement
     ? trigger
     : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  const articleUrl = trigger instanceof HTMLAnchorElement
+    ? trigger.href
+    : "";
+  const articleTitle = trigger instanceof HTMLElement
+    ? trigger.textContent.trim()
+    : "Helpful Lone Wolf Transact Article";
 
   window.clearTimeout(loneWolfModalCloseTimer);
+  renderLoneWolfModalContent(articleUrl, articleTitle);
   loneWolfModal.hidden = false;
   document.body.classList.add("has-lone-wolf-modal");
 
   requestAnimationFrame(() => {
     loneWolfModal.classList.add("is-open");
-    ensureLoneWolfModalContent();
     (loneWolfModalCloseButton || loneWolfModal)?.focus?.();
   });
 }
