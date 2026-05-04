@@ -193,7 +193,7 @@ const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00")
 const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
 const DOCUSIGN_REMINDER_RETRY_DELAY_MS = 1000;
 const DOCUSIGN_REMINDER_READ_SUPPRESS_DAYS = 7;
-const DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS = 1;
+const DOCUSIGN_REMINDER_TOMORROW_SUPPRESS_DAYS = 1;
 const DOCUSIGN_DAY_MS = 24 * 60 * 60 * 1000;
 const DOCUSIGN_HOUR_MS = 60 * 60 * 1000;
 const DOCUSIGN_MINUTE_MS = 60 * 1000;
@@ -1045,8 +1045,9 @@ function getDocuSignReminderCloseAction(target) {
   const trigger = target instanceof Element
     ? target.closest("[data-docusign-reminder-close]")
     : null;
+  const action = trigger?.dataset.docusignReminderAction || "";
 
-  return trigger?.dataset.docusignReminderAction === "read" ? "read" : "later";
+  return action === "read" ? "read" : "tomorrow";
 }
 
 function scheduleDocuSignReminder(delayMs = DOCUSIGN_REMINDER_OPEN_DELAY_MS) {
@@ -1578,7 +1579,7 @@ function initializeLoneWolfModal() {
   });
 }
 
-function closeDocuSignReminderModal(action = "later") {
+function closeDocuSignReminderModal(action = "tomorrow") {
   if (!docuSignReminderModal || docuSignReminderModal.hidden) {
     return;
   }
@@ -1587,7 +1588,7 @@ function closeDocuSignReminderModal(action = "later") {
     storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_READ_SUPPRESS_DAYS);
     window.clearTimeout(docuSignReminderOpenTimer);
   } else {
-    storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS);
+    storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_TOMORROW_SUPPRESS_DAYS);
     window.clearTimeout(docuSignReminderOpenTimer);
   }
 
@@ -1667,7 +1668,7 @@ function initializeDocuSignReminder() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !docuSignReminderModal.hidden) {
       event.preventDefault();
-      closeDocuSignReminderModal("later");
+      closeDocuSignReminderModal("tomorrow");
     }
   });
 
