@@ -861,6 +861,17 @@ img {
   text-align: center;
 }
 
+.docusign-countdown-card--link {
+  text-decoration: none;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.docusign-countdown-card--link:hover,
+.docusign-countdown-card--link:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 38px -24px rgba(17, 17, 17, 0.92);
+}
+
 .docusign-countdown-card::before {
   content: "";
   position: absolute;
@@ -937,6 +948,26 @@ img {
   color: rgba(255, 255, 255, 0.86);
   font-size: 0.82rem;
   line-height: 1.35;
+}
+
+.docusign-countdown-card__cta {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0.42rem 0.68rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 @keyframes docusign-attention-pulse {
@@ -5205,6 +5236,129 @@ body.has-docusign-modal .page-content {
   max-width: 14ch;
 }
 
+.transition-page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.transition-page-hero__copy,
+.transition-page-hero__note,
+.transition-training-copy {
+  min-width: 0;
+}
+
+.transition-page-hero__copy {
+  display: grid;
+  gap: 16px;
+}
+
+.transition-page-hero__copy h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: clamp(2.7rem, 6vw, 6.4rem);
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.transition-page-hero__note {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid rgba(180, 1, 1, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(180, 1, 1, 0.1), transparent 34%),
+    linear-gradient(180deg, #fffefe, #faf6f1);
+}
+
+.transition-page-hero__note h2,
+.transition-training-copy h3 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.transition-page-hero__note p,
+.transition-training-copy p {
+  margin: 0;
+  color: var(--kw-gray);
+  line-height: 1.6;
+}
+
+.transition-training-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.transition-training-flyer {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--kw-border);
+  background: #fff;
+  box-shadow: var(--kw-shadow);
+}
+
+.transition-training-flyer img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.transition-training-copy {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--kw-border);
+  background:
+    radial-gradient(circle at top right, rgba(180, 1, 1, 0.08), transparent 34%),
+    linear-gradient(180deg, #fffefe, #faf6f1);
+}
+
+.transition-article-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.transition-article-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--kw-border);
+  background: linear-gradient(180deg, #ffffff, #faf6f1);
+  color: var(--kw-ink);
+  text-decoration: none;
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.transition-article-card:hover,
+.transition-article-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(180, 1, 1, 0.26);
+  box-shadow: var(--kw-shadow);
+}
+
+.transition-article-card strong {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.12rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.transition-article-card p {
+  margin: 0;
+  color: var(--kw-gray);
+  line-height: 1.55;
+}
+
 .transition-checklist,
 .transition-mini-list {
   list-style: none;
@@ -5531,6 +5685,11 @@ body.has-docusign-modal .page-content {
 }
 
 @media (max-width: 1180px) {
+  .transition-page-hero,
+  .transition-training-layout {
+    grid-template-columns: 1fr;
+  }
+
   .transition-phase-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
