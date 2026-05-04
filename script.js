@@ -1,5 +1,12 @@
 const headerClockRefs = [...document.querySelectorAll("[data-header-clock]")];
 const headerDateRefs = [...document.querySelectorAll("[data-header-date]")];
+const docuSignCountdownRefs = {
+  cards: [...document.querySelectorAll("[data-docusign-countdown-card]")],
+  days: [...document.querySelectorAll("[data-docusign-days]")],
+  hours: [...document.querySelectorAll("[data-docusign-hours]")],
+  minutes: [...document.querySelectorAll("[data-docusign-minutes]")],
+  statuses: [...document.querySelectorAll("[data-docusign-countdown-status]")]
+};
 const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".page-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
@@ -16,6 +23,14 @@ const handbookModal = document.querySelector("[data-handbook-modal]");
 const handbookModalShell = handbookModal?.querySelector("[data-handbook-modal-shell]");
 const handbookModalCloseButton = handbookModal?.querySelector(".calendar-modal__close");
 const handbookModalTriggers = [...document.querySelectorAll("[data-handbook-modal-trigger]")];
+const loneWolfModal = document.querySelector("[data-lone-wolf-modal]");
+const loneWolfModalShell = loneWolfModal?.querySelector("[data-lone-wolf-modal-shell]");
+const loneWolfModalCloseButton = loneWolfModal?.querySelector(".calendar-modal__close");
+const loneWolfModalTitle = loneWolfModal?.querySelector("[data-lone-wolf-modal-title]");
+const loneWolfModalOpenLink = loneWolfModal?.querySelector("[data-lone-wolf-modal-open]");
+const loneWolfModalTriggers = [...document.querySelectorAll("[data-lone-wolf-modal-trigger]")];
+const docuSignReminderModal = document.querySelector("[data-docusign-reminder-modal]");
+const docuSignReminderCloseButtons = [...document.querySelectorAll("[data-docusign-reminder-close]")];
 const mobileSidebarMenus = document.querySelector(".mobile-sidebar-menus");
 const mobileMenuPanels = [...document.querySelectorAll(".mobile-menu-panel")];
 const leadershipGrid = document.querySelector("[data-leadership-grid]");
@@ -151,6 +166,12 @@ let hasLoadedCalendarModalContent = false;
 let handbookModalLastTrigger = null;
 let handbookModalCloseTimer = 0;
 let hasLoadedHandbookModalContent = false;
+let loneWolfModalLastTrigger = null;
+let loneWolfModalCloseTimer = 0;
+let docuSignReminderLastFocus = null;
+let docuSignReminderCloseTimer = 0;
+let docuSignReminderRetryTimer = 0;
+let docuSignReminderOpenTimer = 0;
 
 const PORTAL_SECTION_SCROLL_GAP_PX = 22;
 const PORTAL_SECTION_SCROLL_FALLBACK_PX = 32;
@@ -161,12 +182,21 @@ const PORTAL_COOKIE_NAMES = [
   PORTAL_ACCESS_COOKIE_NAME,
   "portal-access"
 ];
+const DOCUSIGN_REMINDER_STORAGE_KEY = "kw-leading-edge-portal.docusign-reminder.v1";
 const PORTAL_CONTENT_URL = "data/portal-content.json";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
 const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
+const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00").getTime();
+const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
+const DOCUSIGN_REMINDER_RETRY_DELAY_MS = 1000;
+const DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE = "acknowledged";
+const DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS = 14;
+const DOCUSIGN_DAY_MS = 24 * 60 * 60 * 1000;
+const DOCUSIGN_HOUR_MS = 60 * 60 * 1000;
+const DOCUSIGN_MINUTE_MS = 60 * 1000;
 const JOE_TECH_BOOKING_URL = "https://calendly.com/joepinerealtor/tech-meeting-with-joe";
 const PORTAL_ACCESS_SUPPORT_EMAIL = "mbrown715@kw.com";
 const PORTAL_ACCESS_SUPPORT_SUBJECT = "Agent Portal Access Request";
@@ -906,6 +936,138 @@ function updateDateTime() {
   if (currentYear) {
     currentYear.textContent = String(now.getFullYear());
   }
+
+  updateDocuSignCountdown(now);
+}
+
+function getDocuSignCountdownState(now = new Date()) {
+  const remainingMs = DOCUSIGN_DISCONTINUATION_TARGET_MS - now.getTime();
+
+  if (remainingMs <= -DOCUSIGN_DAY_MS) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      status: "DocuSign was scheduled to be discontinued on July 14, 2026."
+    };
+  }
+
+  if (remainingMs <= 0) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      status: "DocuSign discontinuation day is today. Please use the transition plan now."
+    };
+  }
+
+  const days = Math.floor(remainingMs / DOCUSIGN_DAY_MS);
+  const hours = Math.floor((remainingMs % DOCUSIGN_DAY_MS) / DOCUSIGN_HOUR_MS);
+  const minutes = Math.floor((remainingMs % DOCUSIGN_HOUR_MS) / DOCUSIGN_MINUTE_MS);
+  const dayLabel = days === 1 ? "day" : "days";
+
+  return {
+    days,
+    hours,
+    minutes,
+    status: `${days} ${dayLabel} remaining until DocuSign is discontinued on July 14, 2026.`
+  };
+}
+
+function setDocuSignCountdownText(refs, value) {
+  refs.forEach((ref) => {
+    ref.textContent = value;
+  });
+}
+
+function updateDocuSignCountdown(now = new Date()) {
+  const hasCountdownTargets = docuSignCountdownRefs.days.length
+    || docuSignCountdownRefs.hours.length
+    || docuSignCountdownRefs.minutes.length
+    || docuSignCountdownRefs.statuses.length;
+
+  if (!hasCountdownTargets) {
+    return;
+  }
+
+  const countdown = getDocuSignCountdownState(now);
+  setDocuSignCountdownText(docuSignCountdownRefs.days, String(countdown.days));
+  setDocuSignCountdownText(docuSignCountdownRefs.hours, String(countdown.hours).padStart(2, "0"));
+  setDocuSignCountdownText(docuSignCountdownRefs.minutes, String(countdown.minutes).padStart(2, "0"));
+  setDocuSignCountdownText(docuSignCountdownRefs.statuses, countdown.status);
+
+  docuSignCountdownRefs.cards.forEach((card) => {
+    card.setAttribute("aria-label", `DocuSign countdown: ${countdown.status}`);
+  });
+}
+
+function getDocuSignReminderDateKey(now = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "America/New_York"
+    }).formatToParts(now);
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+function getFutureDocuSignReminderDateKey(days, now = new Date()) {
+  return getDocuSignReminderDateKey(new Date(now.getTime() + (days * DOCUSIGN_DAY_MS)));
+}
+
+function getDocuSignReminderSuppressUntilDateKey() {
+  try {
+    return window.localStorage.getItem(DOCUSIGN_REMINDER_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function isDocuSignReminderSuppressed(now = new Date()) {
+  const suppressUntilDateKey = getDocuSignReminderSuppressUntilDateKey();
+  if (suppressUntilDateKey === DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE) {
+    return true;
+  }
+
+  return Boolean(suppressUntilDateKey) && suppressUntilDateKey > getDocuSignReminderDateKey(now);
+}
+
+function storeDocuSignReminderSuppressDays(days) {
+  try {
+    window.localStorage.setItem(DOCUSIGN_REMINDER_STORAGE_KEY, getFutureDocuSignReminderDateKey(days));
+  } catch {
+    // If storage is unavailable, the reminder remains visible for this visit.
+  }
+}
+
+function storeDocuSignReminderAcknowledged() {
+  try {
+    window.localStorage.setItem(DOCUSIGN_REMINDER_STORAGE_KEY, DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE);
+  } catch {
+    // If storage is unavailable, the reminder remains visible for this visit.
+  }
+}
+
+function getDocuSignReminderCloseAction(target) {
+  const trigger = target instanceof Element
+    ? target.closest("[data-docusign-reminder-close]")
+    : null;
+  const action = trigger?.dataset.docusignReminderAction || "";
+
+  return action === "read" ? "read" : "later";
+}
+
+function scheduleDocuSignReminder(delayMs = DOCUSIGN_REMINDER_OPEN_DELAY_MS) {
+  window.clearTimeout(docuSignReminderOpenTimer);
+  docuSignReminderOpenTimer = window.setTimeout(
+    openDocuSignReminderModal,
+    Math.max(DOCUSIGN_REMINDER_OPEN_DELAY_MS, delayMs)
+  );
 }
 
 function usesInternalSectionScroll() {
@@ -1336,6 +1498,207 @@ function initializeHandbookModal() {
       closeHandbookModal();
     }
   });
+}
+
+function renderLoneWolfModalContent(articleUrl, articleTitle) {
+  if (!loneWolfModalShell || !articleUrl) {
+    return;
+  }
+
+  if (loneWolfModalTitle) {
+    loneWolfModalTitle.textContent = articleTitle || "Helpful Lone Wolf Transact Article";
+  }
+
+  if (loneWolfModalOpenLink) {
+    loneWolfModalOpenLink.href = articleUrl;
+  }
+
+  loneWolfModalShell.innerHTML = `
+    <iframe
+      class="calendar-modal__iframe"
+      src="${escapeHtml(articleUrl)}"
+      title="${escapeHtml(articleTitle || "Helpful Lone Wolf Transact Article")}"
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
+  `;
+}
+
+function closeLoneWolfModal() {
+  if (!loneWolfModal || loneWolfModal.hidden) {
+    return;
+  }
+
+  loneWolfModal.classList.remove("is-open");
+  document.body.classList.remove("has-lone-wolf-modal");
+
+  const returnFocusTarget = loneWolfModalLastTrigger;
+
+  window.clearTimeout(loneWolfModalCloseTimer);
+  loneWolfModalCloseTimer = window.setTimeout(() => {
+    if (!loneWolfModal.classList.contains("is-open")) {
+      loneWolfModal.hidden = true;
+    }
+
+    if (returnFocusTarget instanceof HTMLElement) {
+      returnFocusTarget.focus();
+    }
+  }, 180);
+}
+
+function openLoneWolfModal(trigger = null) {
+  if (!loneWolfModal) {
+    return;
+  }
+
+  loneWolfModalLastTrigger = trigger instanceof HTMLElement
+    ? trigger
+    : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  const articleUrl = trigger instanceof HTMLAnchorElement
+    ? trigger.href
+    : "";
+  const articleTitle = trigger instanceof HTMLElement
+    ? trigger.textContent.trim()
+    : "Helpful Lone Wolf Transact Article";
+
+  window.clearTimeout(loneWolfModalCloseTimer);
+  renderLoneWolfModalContent(articleUrl, articleTitle);
+  loneWolfModal.hidden = false;
+  document.body.classList.add("has-lone-wolf-modal");
+
+  requestAnimationFrame(() => {
+    loneWolfModal.classList.add("is-open");
+    (loneWolfModalCloseButton || loneWolfModal)?.focus?.();
+  });
+}
+
+function initializeLoneWolfModal() {
+  if (!loneWolfModal || !loneWolfModalTriggers.length) {
+    return;
+  }
+
+  loneWolfModalTriggers.forEach((trigger) => {
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      openLoneWolfModal(trigger);
+    });
+  });
+
+  loneWolfModal.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest("[data-lone-wolf-modal-close]")) {
+      closeLoneWolfModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !loneWolfModal.hidden) {
+      event.preventDefault();
+      closeLoneWolfModal();
+    }
+  });
+}
+
+function closeDocuSignReminderModal(action = "later") {
+  if (!docuSignReminderModal || docuSignReminderModal.hidden) {
+    return;
+  }
+
+  if (action === "read") {
+    storeDocuSignReminderAcknowledged();
+    window.clearTimeout(docuSignReminderOpenTimer);
+  } else {
+    storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS);
+    window.clearTimeout(docuSignReminderOpenTimer);
+  }
+
+  docuSignReminderModal.classList.remove("is-open");
+  document.body.classList.remove("has-docusign-modal");
+
+  const returnFocusTarget = docuSignReminderLastFocus;
+
+  window.clearTimeout(docuSignReminderCloseTimer);
+  docuSignReminderCloseTimer = window.setTimeout(() => {
+    if (!docuSignReminderModal.classList.contains("is-open")) {
+      docuSignReminderModal.hidden = true;
+    }
+
+    if (returnFocusTarget instanceof HTMLElement) {
+      returnFocusTarget.focus();
+    }
+  }, 180);
+}
+
+function openDocuSignReminderModal() {
+  if (!docuSignReminderModal || !docuSignReminderModal.hidden) {
+    return;
+  }
+
+  if (isDocuSignReminderSuppressed()) {
+    return;
+  }
+
+  if (document.body.classList.contains("portal-admin-open")) {
+    window.clearTimeout(docuSignReminderRetryTimer);
+    docuSignReminderRetryTimer = window.setTimeout(openDocuSignReminderModal, DOCUSIGN_REMINDER_RETRY_DELAY_MS);
+    return;
+  }
+
+  docuSignReminderLastFocus = document.activeElement instanceof HTMLElement
+    ? document.activeElement
+    : null;
+
+  updateDocuSignCountdown();
+  window.clearTimeout(docuSignReminderCloseTimer);
+  docuSignReminderModal.hidden = false;
+  document.body.classList.add("has-docusign-modal");
+
+  requestAnimationFrame(() => {
+    docuSignReminderModal.classList.add("is-open");
+    const primaryButton = docuSignReminderModal.querySelector(".button.primary");
+    (primaryButton || docuSignReminderModal)?.focus?.();
+  });
+}
+
+function initializeDocuSignReminder() {
+  updateDocuSignCountdown();
+
+  if (!docuSignReminderModal) {
+    return;
+  }
+
+  docuSignReminderCloseButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeDocuSignReminderModal(getDocuSignReminderCloseAction(event.currentTarget));
+    });
+  });
+
+  docuSignReminderModal.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest("[data-docusign-reminder-close]")) {
+      closeDocuSignReminderModal(getDocuSignReminderCloseAction(target));
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !docuSignReminderModal.hidden) {
+      event.preventDefault();
+      closeDocuSignReminderModal("later");
+    }
+  });
+
+  if (!isDocuSignReminderSuppressed()) {
+    scheduleDocuSignReminder(DOCUSIGN_REMINDER_OPEN_DELAY_MS);
+  }
 }
 
 function createRoomBookingModal() {
@@ -3044,6 +3407,8 @@ async function initializePortal() {
   initializeMobileMenus();
   initializeCalendarModal();
   initializeHandbookModal();
+  initializeLoneWolfModal();
+  initializeDocuSignReminder();
   initializeRoomBookingModal();
   syncSectionScrollOffset();
   window.requestAnimationFrame(syncSectionScrollOffset);
