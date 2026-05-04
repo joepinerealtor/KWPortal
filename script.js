@@ -192,7 +192,7 @@ const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
 const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00").getTime();
 const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
 const DOCUSIGN_REMINDER_RETRY_DELAY_MS = 1000;
-const DOCUSIGN_REMINDER_READ_SUPPRESS_DAYS = 7;
+const DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE = "acknowledged";
 const DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS = 14;
 const DOCUSIGN_DAY_MS = 24 * 60 * 60 * 1000;
 const DOCUSIGN_HOUR_MS = 60 * 60 * 1000;
@@ -1030,12 +1030,24 @@ function getDocuSignReminderSuppressUntilDateKey() {
 
 function isDocuSignReminderSuppressed(now = new Date()) {
   const suppressUntilDateKey = getDocuSignReminderSuppressUntilDateKey();
+  if (suppressUntilDateKey === DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE) {
+    return true;
+  }
+
   return Boolean(suppressUntilDateKey) && suppressUntilDateKey > getDocuSignReminderDateKey(now);
 }
 
 function storeDocuSignReminderSuppressDays(days) {
   try {
     window.localStorage.setItem(DOCUSIGN_REMINDER_STORAGE_KEY, getFutureDocuSignReminderDateKey(days));
+  } catch {
+    // If storage is unavailable, the reminder remains visible for this visit.
+  }
+}
+
+function storeDocuSignReminderAcknowledged() {
+  try {
+    window.localStorage.setItem(DOCUSIGN_REMINDER_STORAGE_KEY, DOCUSIGN_REMINDER_ACKNOWLEDGED_VALUE);
   } catch {
     // If storage is unavailable, the reminder remains visible for this visit.
   }
@@ -1597,7 +1609,7 @@ function closeDocuSignReminderModal(action = "later") {
   }
 
   if (action === "read") {
-    storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_READ_SUPPRESS_DAYS);
+    storeDocuSignReminderAcknowledged();
     window.clearTimeout(docuSignReminderOpenTimer);
   } else {
     storeDocuSignReminderSuppressDays(DOCUSIGN_REMINDER_LATER_SUPPRESS_DAYS);
