@@ -3917,6 +3917,11 @@ body.has-docusign-modal .page-content {
   transform: translateY(-1px);
 }
 
+.docusign-reminder-modal__article-link--training {
+  border-color: rgba(180, 1, 1, 0.26);
+  background: #fff;
+}
+
 .docusign-reminder-modal__actions {
   display: flex;
   flex-wrap: wrap;
