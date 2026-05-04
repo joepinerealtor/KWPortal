@@ -845,6 +845,117 @@ img {
   display: grid;
 }
 
+.docusign-countdown-card {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  width: min(100%, 250px);
+  margin: 0 auto;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background:
+    linear-gradient(135deg, #b40101 0%, #7c0101 48%, #111111 100%);
+  color: #fff;
+  box-shadow: 0 18px 32px -26px rgba(17, 17, 17, 0.86);
+  text-align: center;
+}
+
+.docusign-countdown-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.docusign-countdown-card__badge {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0.25rem 0.56rem;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: #ffe8a3;
+  color: #4a0505;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  animation: docusign-attention-pulse 1800ms ease-in-out infinite;
+}
+
+.docusign-countdown-card > strong {
+  position: relative;
+  z-index: 1;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.24rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.docusign-countdown-card__timer,
+.docusign-reminder-modal__countdown {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.docusign-countdown-card__timer span,
+.docusign-reminder-modal__countdown span {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(17, 17, 17, 0.32);
+}
+
+.docusign-countdown-card__timer strong,
+.docusign-reminder-modal__countdown strong {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.46rem;
+  line-height: 1;
+}
+
+.docusign-countdown-card__timer small,
+.docusign-reminder-modal__countdown small {
+  color: rgba(255, 255, 255, 0.78);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.docusign-countdown-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+@keyframes docusign-attention-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 0 rgba(255, 232, 163, 0.42);
+  }
+
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 7px rgba(255, 232, 163, 0);
+  }
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -1300,6 +1411,8 @@ body.is-header-tech-floating.is-leadership-tech-visible .mobile-tech-help-bubble
 body.is-header-tech-floating.has-room-booking-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-calendar-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-handbook-modal .mobile-tech-help-bubble,
+body.is-header-tech-floating.has-lone-wolf-modal .mobile-tech-help-bubble,
+body.is-header-tech-floating.has-docusign-modal .mobile-tech-help-bubble,
 body.portal-protected .mobile-tech-help-bubble {
   display: none;
 }
@@ -3553,17 +3666,23 @@ body.has-room-booking-modal .page-content {
 }
 
 body.has-calendar-modal,
-body.has-handbook-modal {
+body.has-handbook-modal,
+body.has-lone-wolf-modal,
+body.has-docusign-modal {
   overflow: hidden;
 }
 
 body.has-calendar-modal .portal-content,
-body.has-handbook-modal .portal-content {
+body.has-handbook-modal .portal-content,
+body.has-lone-wolf-modal .portal-content,
+body.has-docusign-modal .portal-content {
   overflow: hidden;
 }
 
 body.has-calendar-modal .page-content,
-body.has-handbook-modal .page-content {
+body.has-handbook-modal .page-content,
+body.has-lone-wolf-modal .page-content,
+body.has-docusign-modal .page-content {
   overflow: hidden;
 }
 
@@ -3585,6 +3704,10 @@ body.has-handbook-modal .page-content {
 .calendar-modal.is-open {
   opacity: 1;
   pointer-events: auto;
+}
+
+.lone-wolf-modal {
+  z-index: 170;
 }
 
 .calendar-modal__backdrop {
@@ -3638,6 +3761,140 @@ body.has-handbook-modal .page-content {
   margin: 0;
 }
 
+.docusign-reminder-modal[hidden] {
+  display: none;
+}
+
+.docusign-reminder-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 17, 17, 0.76);
+  opacity: 0;
+  pointer-events: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  transition: opacity 180ms ease;
+}
+
+.docusign-reminder-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.docusign-reminder-modal__backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.docusign-reminder-modal__panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 18px;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background:
+    linear-gradient(180deg, #fff, #faf6f1);
+  box-shadow: 0 28px 54px -34px rgba(0, 0, 0, 0.5);
+}
+
+.docusign-reminder-modal__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 8px;
+  background: var(--kw-red);
+}
+
+.docusign-reminder-modal__signal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-top: 6px;
+  border: 2px solid rgba(180, 1, 1, 0.18);
+  background: var(--kw-red);
+  color: #fff;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.docusign-reminder-modal__copy,
+.docusign-reminder-modal__actions {
+  min-width: 0;
+}
+
+.docusign-reminder-modal__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.docusign-reminder-modal__copy .eyebrow,
+.docusign-reminder-modal__copy h2,
+.docusign-reminder-modal__copy p,
+.docusign-reminder-modal__status {
+  margin: 0;
+}
+
+.docusign-reminder-modal__copy h2 {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 2.5rem;
+  line-height: 0.96;
+  text-transform: uppercase;
+}
+
+.docusign-reminder-modal__copy p,
+.docusign-reminder-modal__status {
+  color: var(--kw-gray);
+  line-height: 1.6;
+}
+
+.docusign-reminder-modal__countdown,
+.docusign-reminder-modal__status,
+.docusign-reminder-modal__actions {
+  grid-column: 2;
+}
+
+.docusign-reminder-modal__countdown {
+  color: #fff;
+}
+
+.docusign-reminder-modal__countdown span {
+  border-color: rgba(180, 1, 1, 0.18);
+  background:
+    linear-gradient(135deg, #b40101 0%, #7c0101 52%, #111111 100%);
+}
+
+.docusign-reminder-modal__countdown strong {
+  font-size: 2.3rem;
+}
+
+.docusign-reminder-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.docusign-reminder-modal__resource {
+  flex-basis: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docusign-countdown-card__badge {
+    animation: none;
+  }
+}
 .calendar-modal__copy h2 {
   margin: 0;
   font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
@@ -3674,6 +3931,38 @@ body.has-handbook-modal .page-content {
   height: clamp(380px, calc(100vh - 260px), 680px);
   border: 0;
   background: var(--kw-white);
+}
+
+.lone-wolf-resource-list {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  background: var(--kw-white);
+}
+
+.lone-wolf-resource-link {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid var(--kw-border);
+  background: var(--kw-paper-soft);
+  color: var(--kw-ink);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.lone-wolf-resource-link:hover,
+.lone-wolf-resource-link:focus-visible {
+  border-color: rgba(180, 1, 1, 0.32);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .calendar-modal__actions {
@@ -3936,7 +4225,8 @@ body.has-handbook-modal .page-content {
 .section-nav-link:focus-visible,
 .content-strip-link:focus-visible,
 .content-rate-pill:focus-visible,
-.content-strip-refresh:focus-visible {
+.content-strip-refresh:focus-visible,
+.docusign-countdown-card:focus-visible {
   outline: 3px solid rgba(180, 1, 1, 0.24);
   outline-offset: 3px;
 }
@@ -4190,6 +4480,27 @@ body.has-handbook-modal .page-content {
     font-size: 0.76rem;
   }
 
+  .site-header .docusign-countdown-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding: 12px 14px;
+  }
+
+  .site-header .docusign-countdown-card__badge {
+    min-height: 22px;
+    font-size: 0.64rem;
+  }
+
+  .site-header .docusign-countdown-card > strong {
+    font-size: 1.02rem;
+  }
+
+  .site-header .docusign-countdown-card__timer {
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
   .portal-content > .content-strip {
     display: none;
   }
@@ -4222,6 +4533,8 @@ body.has-handbook-modal .page-content {
   body.has-room-booking-modal .mobile-tech-help-bubble,
   body.has-calendar-modal .mobile-tech-help-bubble,
   body.has-handbook-modal .mobile-tech-help-bubble,
+  body.has-lone-wolf-modal .mobile-tech-help-bubble,
+  body.has-docusign-modal .mobile-tech-help-bubble,
   body.portal-protected .mobile-tech-help-bubble {
     display: none;
   }
@@ -4419,6 +4732,8 @@ body.has-handbook-modal .page-content {
   body.has-room-booking-modal .mobile-tech-help-bubble,
   body.has-calendar-modal .mobile-tech-help-bubble,
   body.has-handbook-modal .mobile-tech-help-bubble,
+  body.has-lone-wolf-modal .mobile-tech-help-bubble,
+  body.has-docusign-modal .mobile-tech-help-bubble,
   body.portal-protected .mobile-tech-help-bubble {
     display: none;
   }
@@ -4493,6 +4808,19 @@ body.has-handbook-modal .page-content {
 
   .site-header .header-time-card span:last-child {
     font-size: 0.78rem;
+  }
+
+  .site-header .docusign-countdown-card {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .site-header .docusign-countdown-card > strong {
+    font-size: 1.08rem;
+  }
+
+  .site-header .docusign-countdown-card__timer strong {
+    font-size: 1.28rem;
   }
 
   .portal-content > .content-strip {
@@ -4619,6 +4947,25 @@ body.has-handbook-modal .page-content {
   .calendar-modal__footer,
   .room-booking-header {
     flex-direction: column;
+  }
+
+  .docusign-reminder-modal__panel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .docusign-reminder-modal__signal,
+  .docusign-reminder-modal__countdown,
+  .docusign-reminder-modal__status,
+  .docusign-reminder-modal__actions {
+    grid-column: 1;
+  }
+
+  .docusign-reminder-modal__signal {
+    width: 52px;
+    height: 52px;
+    margin-top: 0;
+    font-size: 1.8rem;
   }
 
   .room-booking-availability {
@@ -4793,6 +5140,31 @@ body.has-handbook-modal .page-content {
     padding: 16px;
   }
 
+  .docusign-reminder-modal {
+    padding: 16px;
+  }
+
+  .docusign-reminder-modal__panel {
+    max-height: calc(100vh - 32px);
+    padding: 20px 16px;
+  }
+
+  .docusign-reminder-modal__copy h2 {
+    font-size: 1.72rem;
+  }
+
+  .docusign-reminder-modal__countdown {
+    gap: 6px;
+  }
+
+  .docusign-reminder-modal__countdown span {
+    padding: 8px 4px;
+  }
+
+  .docusign-reminder-modal__countdown strong {
+    font-size: 1.82rem;
+  }
+
   .calendar-modal__embed-shell,
   .calendar-modal__iframe,
   .calendar-modal__embed iframe,
@@ -4806,6 +5178,10 @@ body.has-handbook-modal .page-content {
   }
 
   .calendar-modal__actions .button {
+    width: 100%;
+  }
+
+  .docusign-reminder-modal__actions .button {
     width: 100%;
   }
 
