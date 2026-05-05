@@ -4552,10 +4552,11 @@ body.has-docusign-modal .page-content {
 
 @media (min-width: 1180px) and (max-width: 1366px) and (min-aspect-ratio: 5/4) {
   .portal-frame {
-    grid-template-columns: minmax(430px, 0.9fr) minmax(0, 1fr);
+    grid-template-columns: 1fr;
     grid-template-areas:
-      "header menus"
-      "content content";
+      "header"
+      "menus"
+      "content";
     gap: 10px 12px;
     align-items: start;
   }
@@ -4606,6 +4607,22 @@ body.has-docusign-modal .page-content {
 
   .site-header .header-time-card span:last-child {
     font-size: 0.68rem;
+  }
+
+  .site-header .docusign-countdown-card {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 16px;
+    text-align: left;
+  }
+
+  .site-header .docusign-countdown-card__badge,
+  .site-header .docusign-countdown-card__cta {
+    justify-self: start;
+  }
+
+  .site-header .docusign-countdown-card p {
+    max-width: none;
   }
 
   .mobile-menu-summary {
