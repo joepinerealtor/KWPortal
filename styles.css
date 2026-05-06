@@ -2869,6 +2869,71 @@ body.portal-protected .mobile-tech-help-bubble {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.kw-connect-resource {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--kw-border);
+  background:
+    radial-gradient(circle at top right, rgba(180, 1, 1, 0.08), transparent 36%),
+    linear-gradient(180deg, #fffefe, #fbf7f2);
+}
+
+.kw-connect-resource-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.kw-connect-resource-copy h3 {
+  margin: 14px 0 0;
+  font-size: 1.35rem;
+}
+
+.kw-connect-resource-copy p {
+  margin: 12px 0 0;
+  line-height: 1.6;
+}
+
+.kw-connect-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kw-connect-tile {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.kw-connect-tile span {
+  color: var(--kw-red);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kw-connect-tile strong {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.kw-connect-tile p {
+  margin: 0;
+  color: var(--kw-gray);
+  line-height: 1.55;
+}
+
 .launch-card,
 .course-card,
 .support-card,
@@ -4272,6 +4337,7 @@ body.has-docusign-modal .page-content {
   .overview-grid,
   .office-grid,
   .content-split,
+  .kw-connect-resource,
   .launch-grid,
   .vision-grid,
   .vendor-hero {
@@ -4931,6 +4997,7 @@ body.has-docusign-modal .page-content {
   }
 
   .course-grid,
+  .kw-connect-tile-grid,
   .dashboard-status-grid,
   .directory-summary-grid,
   .asset-grid,
