@@ -187,7 +187,7 @@ const PORTAL_CONTENT_URL = "data/portal-content.json";
 const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7FB3029CCA1D6E1";
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
-const TRAINING_CALENDAR_URL = "https://agent.kwleadingedge.com/training-calendar/";
+const TRAINING_CALENDAR_URL = "https://tockify.com/leading.edge/pinboard";
 const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
 const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00").getTime();
 const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
