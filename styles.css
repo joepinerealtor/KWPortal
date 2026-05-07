@@ -2372,6 +2372,58 @@ body.portal-protected .mobile-tech-help-bubble {
   gap: 18px;
 }
 
+.office-info-card {
+  gap: 18px;
+}
+
+.office-info-head {
+  display: grid;
+  gap: 8px;
+}
+
+.office-info-address {
+  margin: 0;
+  color: var(--kw-gray);
+  font-style: normal;
+  line-height: 1.55;
+}
+
+.office-info-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.office-info-list div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--kw-border);
+  background: linear-gradient(180deg, #ffffff, var(--kw-paper-soft));
+}
+
+.office-info-list dt {
+  color: var(--kw-gray);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.office-info-list dd {
+  margin: 0;
+  color: var(--kw-black);
+  font-size: 1.03rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .office-operations-block {
   display: grid;
   gap: 12px;
@@ -5067,6 +5119,10 @@ body.has-docusign-modal .page-content {
     margin-left: 0;
   }
 
+  .office-info-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .calendar-modal__embed-shell,
   .calendar-modal__iframe,
   .calendar-modal__embed iframe,
@@ -5227,6 +5283,10 @@ body.has-docusign-modal .page-content {
 
   .room-booking-modal {
     padding: 16px;
+  }
+
+  .office-info-list {
+    grid-template-columns: 1fr;
   }
 
   .calendar-modal {
