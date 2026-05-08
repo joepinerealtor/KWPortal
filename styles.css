@@ -2473,22 +2473,30 @@ body.portal-protected .mobile-tech-help-bubble {
 }
 
 .office-holiday-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
 }
 
 .office-holiday-list li {
   max-width: 100%;
-  padding: 7px 12px;
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
   border: 1px solid rgba(221, 212, 200, 0.92);
-  border-radius: 999px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.84);
 }
 
-.office-holiday-list li {
-  color: var(--kw-gray);
+.office-holiday-list strong {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
   font-size: 0.93rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.office-holiday-list span {
+  color: var(--kw-gray);
+  font-size: 0.9rem;
   line-height: 1.25;
 }
 
