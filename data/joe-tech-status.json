@@ -1,32 +1,16 @@
 {
-  "status": "unavailable",
+  "status": "available_now",
   "timezone": "America/New_York",
   "eventDurationMinutes": 30,
-  "nextOpenSlotIso": "2026-05-08T13:00:00.000Z",
-  "nextOpenSlotWorkingWindowEndIso": "2026-05-08T20:00:00.000Z",
-  "availableNowEndIso": "",
+  "nextOpenSlotIso": "2026-05-08T14:00:00.000Z",
+  "nextOpenSlotWorkingWindowEndIso": "",
+  "availableNowEndIso": "2026-05-08T14:30:00.000Z",
   "busyNowStartIso": "",
   "busyNowEndIso": "",
   "nextBusyStartIso": "",
   "nextBusyEndIso": "",
-  "nextAppointmentAvailableIso": "2026-05-08T13:00:00.000Z",
-  "workingHours": [
-    {
-      "day": "Wednesday",
-      "start": "09:00",
-      "end": "17:00"
-    },
-    {
-      "day": "Thursday",
-      "start": "09:00",
-      "end": "17:00"
-    },
-    {
-      "day": "Friday",
-      "start": "09:00",
-      "end": "16:00"
-    }
-  ],
+  "nextAppointmentAvailableIso": "2026-05-08T18:00:00.000Z",
+  "workingHours": [],
   "availableNowLabel": "Joe is available to chat",
   "availableNowSummary": "Schedule an appointment with Joe.",
   "busyNowLabel": "Joe is in another appointment",

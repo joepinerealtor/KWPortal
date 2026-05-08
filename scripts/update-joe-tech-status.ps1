@@ -10,11 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$JoeWorkingHours = @(
-  [ordered]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00" },
-  [ordered]@{ Day = "Thursday"; Start = "09:00"; End = "17:00" },
-  [ordered]@{ Day = "Friday"; Start = "09:00"; End = "16:00" }
-)
+$JoeWorkingHours = @()
 
 function Get-CalendlyHeaders {
   param(
@@ -178,6 +174,7 @@ function Test-IsWithinJoeWorkingHours {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -217,6 +214,7 @@ function Test-IsWithinJoeWorkingHoursNow {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -248,6 +246,7 @@ function Get-JoeWorkingWindowForUtcTime {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -305,6 +304,7 @@ function Get-NextPublicCalendlySlot {
     [string]$BookingUrl,
     [int]$FallbackDurationMinutes,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -506,7 +506,6 @@ $availableNowEndIso = ""
 $currentUtcNow = [DateTimeOffset]::UtcNow
 $resolvedCalendlyHeaders = $null
 $didResolveAvailabilityFromApi = $false
-$didResolveBusyRangesFromApi = $false
 $busyRanges = @()
 $availableSlotStarts = @()
 
@@ -581,7 +580,6 @@ if ($resolvedCalendlyHeaders) {
   try {
     $resolvedCalendlyUserUri = Resolve-CalendlyUserUri -ConfiguredUserUri $CalendlyUserUri -Headers $resolvedCalendlyHeaders
     $busyRanges = @(Get-CalendlyBusyRanges -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow)
-    $didResolveBusyRangesFromApi = $true
     $activeBusyRange = $busyRanges |
       Where-Object { $_.Start -le $currentUtcNow -and $_.End -gt $currentUtcNow } |
       Sort-Object Start |
@@ -637,7 +635,6 @@ if (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
 
 $status = "unavailable"
 $now = [DateTimeOffset]::UtcNow
-$isWithinWorkingHoursNow = Test-IsWithinJoeWorkingHoursNow -UtcNow $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
 $isBusyNow = $false
 
 if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
@@ -653,23 +650,19 @@ if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
   }
 }
 
-$currentWorkingWindow = if ($isWithinWorkingHoursNow) {
-  Get-JoeWorkingWindowForUtcTime -UtcTime $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
-} else {
-  $null
-}
+$currentAvailableInterval = Get-AvailableIntervalContainingTime -SlotStarts $availableSlotStarts -ReferenceTime $now -DurationMinutes $durationMinutes -AllowNearFutureStart $false
 
-if (-not $isBusyNow -and $didResolveBusyRangesFromApi -and $isWithinWorkingHoursNow -and $currentWorkingWindow) {
+if (-not $isBusyNow -and $currentAvailableInterval) {
   $status = "available_now"
   $nextBusyRangeDuringCurrentWindow = $busyRanges |
-    Where-Object { $_.Start -gt $now -and $_.Start -lt $currentWorkingWindow.End } |
+    Where-Object { $_.Start -gt $now -and $_.Start -lt $currentAvailableInterval.End } |
     Sort-Object Start |
     Select-Object -First 1
 
   $availableNowEnd = if ($nextBusyRangeDuringCurrentWindow) {
     $nextBusyRangeDuringCurrentWindow.Start
   } else {
-    $currentWorkingWindow.End
+    $currentAvailableInterval.End
   }
   $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
 

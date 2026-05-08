@@ -2121,8 +2121,8 @@ function parseJoeAvailabilityTimeToMinutes(value) {
   return (hours * 60) + minutes;
 }
 
-function normalizeJoeWorkingHours(rawHours = []) {
-  const source = Array.isArray(rawHours) && rawHours.length
+function normalizeJoeWorkingHours(rawHours) {
+  const source = Array.isArray(rawHours)
     ? rawHours
     : JOE_AVAILABILITY_DEFAULT_WORKING_HOURS;
 
@@ -2160,10 +2160,14 @@ function formatJoeAvailabilityMinutes(minutes) {
   return `${hours12}${minuteLabel} ${period}`;
 }
 
-function formatJoeAvailabilityOfficeHours(rawHours = []) {
+function formatJoeAvailabilityOfficeHours(rawHours) {
+  if (Array.isArray(rawHours) && rawHours.length === 0) {
+    return "Availability from Calendly";
+  }
+
   const workingHours = normalizeJoeWorkingHours(rawHours);
   if (!workingHours.length) {
-    return "Office hours available by appointment";
+    return "Availability from Calendly";
   }
 
   const orderedHours = [...workingHours].sort((left, right) => left.dayIndex - right.dayIndex);
