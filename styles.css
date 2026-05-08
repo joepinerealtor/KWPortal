@@ -5434,6 +5434,130 @@ body.has-docusign-modal .page-content {
   line-height: 1.6;
 }
 
+.transition-priority-panel {
+  display: grid;
+  gap: 18px;
+  border-color: rgba(180, 1, 1, 0.22);
+  background:
+    linear-gradient(135deg, rgba(180, 1, 1, 0.07), rgba(180, 1, 1, 0) 34%),
+    linear-gradient(180deg, #fffefe, #faf6f1);
+}
+
+.transition-priority-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.transition-priority-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--kw-border);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.transition-priority-card h3 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.34rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.transition-priority-card--timing {
+  grid-column: 1 / -1;
+}
+
+.transition-timing-intro {
+  max-width: 78ch;
+  margin: 0;
+  color: var(--kw-gray);
+  line-height: 1.6;
+}
+
+.transition-timing-intro strong {
+  color: var(--kw-ink);
+}
+
+.transition-timing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.transition-timing-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  background: #b40101;
+  color: #fff;
+}
+
+.transition-timing-card h4 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.transition-timing-card p,
+.transition-timing-card strong {
+  margin: 0;
+  color: #fff;
+  line-height: 1.45;
+}
+
+.transition-timing-card strong {
+  font-weight: 900;
+}
+
+.transition-checklist--compact {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.transition-checklist--compact li {
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.transition-checklist--compact li strong {
+  font-size: 0.92rem;
+}
+
+.transition-terminology-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(27, 31, 38, 0.72);
+  background: #fff;
+}
+
+.transition-terminology-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  color: var(--kw-ink);
+}
+
+.transition-terminology-table th,
+.transition-terminology-table td {
+  padding: 10px 12px;
+  border: 1px solid rgba(27, 31, 38, 0.72);
+  text-align: left;
+  vertical-align: top;
+}
+
+.transition-terminology-table th {
+  background: #fbf8f4;
+  font-weight: 900;
+}
+
 .transition-training-layout {
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
@@ -5548,6 +5672,147 @@ body.has-docusign-modal .page-content {
 .transition-checklist li span {
   color: var(--kw-gray);
   line-height: 1.55;
+}
+
+.transition-faq-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.transition-faq-group {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.transition-faq-group h3 {
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(221, 212, 200, 0.92);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.26rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.transition-faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.transition-faq-item {
+  border: 1px solid var(--kw-border);
+  background: linear-gradient(180deg, #ffffff, #fbf8f4);
+}
+
+.transition-faq-item[open] {
+  border-color: rgba(180, 1, 1, 0.24);
+  box-shadow: 0 14px 30px rgba(27, 31, 38, 0.07);
+}
+
+.transition-faq-item summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 12px;
+  align-items: center;
+  min-height: 58px;
+  padding: 14px 16px;
+  color: var(--kw-ink);
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1.25;
+  list-style: none;
+}
+
+.transition-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.transition-faq-item summary::after {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(180, 1, 1, 0.22);
+  border-radius: 999px;
+  color: var(--kw-red);
+  background: rgba(180, 1, 1, 0.06);
+  font-size: 1.12rem;
+  line-height: 1;
+}
+
+.transition-faq-item[open] summary::after {
+  content: "-";
+}
+
+.transition-faq-item summary:focus-visible {
+  outline: 3px solid rgba(180, 1, 1, 0.28);
+  outline-offset: 2px;
+}
+
+.transition-faq-answer {
+  padding: 0 16px 16px;
+}
+
+.transition-faq-answer p,
+.transition-faq-answer li,
+.transition-glossary-intro,
+.transition-glossary-table td {
+  color: var(--kw-gray);
+  line-height: 1.65;
+}
+
+.transition-faq-answer p {
+  margin: 0;
+}
+
+.transition-faq-answer ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.transition-glossary-intro {
+  margin: 0;
+}
+
+.transition-glossary-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--kw-border);
+  background: #fff;
+}
+
+.transition-glossary-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.transition-glossary-table th,
+.transition-glossary-table td {
+  padding: 12px 14px;
+  border: 1px solid var(--kw-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.transition-glossary-table th {
+  color: var(--kw-ink);
+  background: #fbf8f4;
+  font-weight: 900;
+}
+
+.transition-glossary-table td {
+  margin: 0;
+}
+
+.transition-glossary-table td:first-child,
+.transition-glossary-table td:nth-child(2) {
+  color: var(--kw-ink);
+  font-weight: 800;
 }
 
 .transition-phase-grid {
@@ -5830,6 +6095,7 @@ body.has-docusign-modal .page-content {
 
 @media (max-width: 1180px) {
   .transition-page-hero,
+  .transition-priority-grid,
   .transition-training-layout {
     grid-template-columns: 1fr;
   }
@@ -5859,6 +6125,10 @@ body.has-docusign-modal .page-content {
   .transition-step-list li::before {
     width: 42px;
     height: 42px;
+  }
+
+  .transition-timing-grid {
+    grid-template-columns: 1fr;
   }
 
   .transition-resource-summary {
