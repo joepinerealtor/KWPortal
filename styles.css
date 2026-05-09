@@ -1217,6 +1217,36 @@ img {
   border-radius: 999px;
 }
 
+@media (min-width: 700px) {
+  .content-strip-row--links {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(240px, 320px);
+    align-items: center;
+    justify-content: stretch;
+  }
+
+  .content-strip-links {
+    min-width: 0;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+  }
+
+  .content-strip-link {
+    flex: 0 0 auto;
+  }
+
+  .content-strip-tech-support {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    justify-self: end;
+  }
+}
+
 .content-strip-market-line .content-strip-rates {
   flex-wrap: wrap;
 }
@@ -5119,8 +5149,10 @@ body.has-docusign-modal .page-content {
   }
 
   .content-strip-row--links {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(220px, 278px);
+    align-items: center;
+    justify-content: stretch;
     gap: 10px 12px;
   }
 
@@ -5130,11 +5162,17 @@ body.has-docusign-modal .page-content {
 
   .content-strip-links {
     flex: 1 1 auto;
+    min-width: 0;
     gap: 7px;
     justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
   }
 
   .content-strip-link {
+    flex: 0 0 auto;
     min-height: 34px;
     padding: 0.52rem 0.64rem;
     font-size: 0.7rem;
@@ -5142,9 +5180,11 @@ body.has-docusign-modal .page-content {
   }
 
   .content-strip-tech-support {
-    flex: 0 0 278px;
+    flex: none;
     min-width: 0;
-    max-width: 278px;
+    width: 100%;
+    max-width: none;
+    justify-self: end;
   }
 
   .content-strip-tech-support .joe-availability-panel--compact {

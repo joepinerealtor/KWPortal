@@ -11,7 +11,6 @@ const currentYear = document.getElementById("currentYear");
 const scrollContainer = document.querySelector(".page-content");
 const contentStrip = document.querySelector(".content-strip--sticky");
 const contentStripLinksRow = document.querySelector(".content-strip-row--links");
-const contentStripHeadingLinks = document.querySelector(".content-strip-heading--links");
 const contentStripHeaderLinks = document.querySelector(".content-strip-links");
 const contentStripTechSupport = document.querySelector(".content-strip-tech-support");
 const featuredTechAvailabilityPanel = document.querySelector("#tech-help-joe .joe-availability-panel");
@@ -1446,33 +1445,13 @@ function syncHeaderTechHelpPlacement() {
 
   const supportRect = contentStripTechSupport.getBoundingClientRect();
   const linksRect = contentStripHeaderLinks.getBoundingClientRect();
-  const headingRect = contentStripHeadingLinks?.getBoundingClientRect();
 
   if (supportRect.width <= 0 || supportRect.height <= 0 || linksRect.width <= 0 || linksRect.height <= 0) {
     return;
   }
 
-  const inlineReferenceRects = [linksRect, headingRect].filter(Boolean);
-  const firstLineTop = Math.min(...inlineReferenceRects.map((rect) => rect.top));
-  const firstLineBottom = Math.max(...inlineReferenceRects.map((rect) => rect.bottom));
-  const firstLineCenter = firstLineTop + ((firstLineBottom - firstLineTop) / 2);
-  const supportCenter = supportRect.top + (supportRect.height / 2);
-  const rowGap = parseFloat(window.getComputedStyle(contentStripLinksRow).rowGap) || 0;
-  const quickLinkRects = [...contentStripHeaderLinks.children]
-    .map((child) => child.getBoundingClientRect())
-    .filter((rect) => rect.width > 0 && rect.height > 0);
-  const tallestQuickLink = quickLinkRects.length
-    ? Math.max(...quickLinkRects.map((rect) => rect.height))
-    : linksRect.height;
-  const quickLinksWrapped = linksRect.height > tallestQuickLink + Math.max(5, rowGap / 2);
-  const supportDroppedBelowLinks = supportRect.top > firstLineBottom + Math.max(3, rowGap / 2);
-  const supportCenterDrift = Math.abs(supportCenter - firstLineCenter);
-  const supportIsOnDifferentLine = supportCenterDrift > Math.max(12, Math.min(26, supportRect.height * 0.45));
   const supportOverflowsStrip = supportRect.right > stripRect.right + 1 || supportRect.left < stripRect.left - 1;
-  const shouldFloatHeaderTech = quickLinksWrapped
-    || supportDroppedBelowLinks
-    || supportIsOnDifferentLine
-    || supportOverflowsStrip;
+  const shouldFloatHeaderTech = supportOverflowsStrip;
 
   contentStrip.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
   document.body.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
