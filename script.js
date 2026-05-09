@@ -2721,6 +2721,7 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
   const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
+  const compactSummarySuffix = officeHoursLabel ? ` | ${officeHoursLabel}` : "";
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -2766,6 +2767,9 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
     ? rawState.availabilitySummary.trim()
     : "";
+  const compactAvailabilitySummary = availabilitySummary
+    ? `${availabilitySummary}${compactSummarySuffix}`
+    : "";
 
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
@@ -2784,8 +2788,8 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
 
     return {
       label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
-      summary: availabilitySummary || (nextAppointmentLabel
-        ? `Next appointment available at ${nextAppointmentLabel}`
+      summary: compactAvailabilitySummary || (nextAppointmentLabel
+        ? `Next appointment available at ${nextAppointmentLabel}.${compactSummarySuffix}`
         : officeHoursLabel)
     };
   }
@@ -2801,10 +2805,13 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
       ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
     const untilLabel = nextAppointmentLabel || nextSlotLabel;
+    const nextAvailabilitySummary = compactAvailabilitySummary || (untilLabel
+      ? `Next appointment available at ${untilLabel}.${compactSummarySuffix}`
+      : officeHoursLabel);
 
     return {
       label: "Schedule a time with Joe",
-      summary: officeHoursLabel
+      summary: nextAvailabilitySummary
     };
   }
 
