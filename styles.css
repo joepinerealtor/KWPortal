@@ -5244,10 +5244,10 @@ body.has-docusign-modal .page-content {
 
   body.is-header-tech-inline .header-tech-help-tracker {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 4;
     display: block;
     width: 100%;
-    max-width: 360px;
+    max-width: none;
     align-self: auto;
     justify-self: stretch;
   }
@@ -5281,7 +5281,7 @@ body.has-docusign-modal .page-content {
 
   body.is-header-tech-inline .site-header .docusign-countdown-card {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 3;
     justify-self: stretch;
   }
 

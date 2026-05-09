@@ -1400,6 +1400,7 @@ function syncHeaderTechHelpPlacement() {
     const timeRect = headerTimeCard.getBoundingClientRect();
     const headerStyle = window.getComputedStyle(siteHeader);
     const headerContentRight = headerRect.right - (parseFloat(headerStyle.paddingRight) || 0);
+    const usesStackedHeaderTracker = window.matchMedia?.("(max-aspect-ratio: 5/4) and (max-width: 699px)")?.matches;
     const rectsOverlap = (firstRect, secondRect, tolerance = 2) => firstRect.left < secondRect.right - tolerance
       && firstRect.right > secondRect.left + tolerance
       && firstRect.top < secondRect.bottom - tolerance
@@ -1410,7 +1411,7 @@ function syncHeaderTechHelpPlacement() {
       && trackerRect.right <= headerRect.right + 1
       && trackerRect.top >= headerRect.top - 1
       && trackerRect.bottom <= headerRect.bottom + 1
-      && trackerRect.right >= headerContentRight - 3
+      && (usesStackedHeaderTracker || trackerRect.right >= headerContentRight - 3)
       && !rectsOverlap(trackerRect, brandRect)
       && !rectsOverlap(trackerRect, timeRect);
 
