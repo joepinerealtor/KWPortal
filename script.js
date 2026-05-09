@@ -19,6 +19,7 @@ const siteHeader = document.querySelector(".site-header");
 const headerBrandLink = siteHeader?.querySelector(".brand-link");
 const headerTimeCard = siteHeader?.querySelector(".header-time-card");
 const headerTechHelpTracker = siteHeader?.querySelector(".header-tech-help-tracker");
+let headerTechHelpPlacementFrame = null;
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
@@ -1372,6 +1373,7 @@ function syncLeadershipTechHelpVisibility() {
 
 function syncHeaderTechHelpPlacement() {
   document.body.classList.remove("is-header-tech-inline");
+  document.body.classList.remove("is-header-tech-out-of-view");
   if (!contentStrip || !contentStripLinksRow || !contentStripHeaderLinks || !contentStripTechSupport) {
     return;
   }
@@ -1413,6 +1415,13 @@ function syncHeaderTechHelpPlacement() {
       && !rectsOverlap(trackerRect, timeRect);
 
     if (trackerFitsHeader) {
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const visibleWidth = Math.min(trackerRect.right, viewportWidth) - Math.max(trackerRect.left, 0);
+      const visibleHeight = Math.min(trackerRect.bottom, viewportHeight) - Math.max(trackerRect.top, 0);
+      const trackerIsVisible = visibleWidth > 0
+        && visibleHeight >= Math.min(24, trackerRect.height);
+      document.body.classList.toggle("is-header-tech-out-of-view", !trackerIsVisible);
       return;
     }
 
@@ -1469,7 +1478,14 @@ function syncHeaderTechHelpPlacement() {
 }
 
 function queueHeaderTechHelpPlacementSync() {
-  window.requestAnimationFrame(syncHeaderTechHelpPlacement);
+  if (headerTechHelpPlacementFrame !== null) {
+    return;
+  }
+
+  headerTechHelpPlacementFrame = window.requestAnimationFrame(() => {
+    headerTechHelpPlacementFrame = null;
+    syncHeaderTechHelpPlacement();
+  });
 }
 
 function setActiveSection(id) {
@@ -3796,16 +3812,24 @@ async function initializePortal() {
   window.requestAnimationFrame(queueHeaderTechHelpPlacementSync);
   updateActiveSectionFromScroll();
   if (scrollContainer) {
-    scrollContainer.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
+    scrollContainer.addEventListener("scroll", () => {
+      requestActiveSectionUpdate();
+      queueHeaderTechHelpPlacementSync();
+    }, { passive: true });
   }
-  window.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
+  window.addEventListener("scroll", () => {
+    requestActiveSectionUpdate();
+    queueHeaderTechHelpPlacementSync();
+  }, { passive: true });
   window.addEventListener("resize", () => {
     syncSectionScrollOffset();
     requestActiveSectionUpdate();
+    queueHeaderTechHelpPlacementSync();
   });
   window.addEventListener("load", () => {
     syncSectionScrollOffset();
     syncContentStripVisibility();
+    queueHeaderTechHelpPlacementSync();
   }, { once: true });
 
   if (document.fonts?.ready) {

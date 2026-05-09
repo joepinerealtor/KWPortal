@@ -1464,8 +1464,19 @@ img {
 body.is-header-tech-floating .mobile-tech-help-bubble {
   position: fixed;
   right: max(20px, env(safe-area-inset-right));
-  top: max(20px, env(safe-area-inset-top));
-  bottom: auto;
+  top: auto;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: block;
+  color: var(--kw-black);
+  text-decoration: none;
+}
+
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  top: auto;
+  bottom: max(20px, env(safe-area-inset-bottom));
   z-index: 50;
   display: block;
   color: var(--kw-black);
@@ -1477,11 +1488,27 @@ body.is-header-tech-floating .mobile-tech-help-bubble .joe-availability-panel--m
   padding: 12px 14px 12px 12px;
 }
 
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble .joe-availability-panel--mobile-bubble {
+  min-width: min(278px, calc(100vw - 40px));
+  padding: 12px 14px 12px 12px;
+}
+
 body.is-header-tech-floating .mobile-tech-help-bubble .mobile-tech-help-avatar {
   width: 46px;
   height: 46px;
 }
 
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble .mobile-tech-help-avatar {
+  width: 46px;
+  height: 46px;
+}
+
+body.is-header-tech-inline.is-header-tech-out-of-view.is-leadership-tech-visible .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-room-booking-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-calendar-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-handbook-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-lone-wolf-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-docusign-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.is-leadership-tech-visible .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-room-booking-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-calendar-modal .mobile-tech-help-bubble,
@@ -4927,8 +4954,8 @@ body.has-docusign-modal .page-content {
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(20px, env(safe-area-inset-right));
-    top: max(20px, env(safe-area-inset-top));
-    bottom: auto;
+    top: auto;
+    bottom: max(20px, env(safe-area-inset-bottom));
     z-index: 50;
     display: block;
     color: var(--kw-black);
