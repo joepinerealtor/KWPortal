@@ -1419,7 +1419,13 @@ function syncHeaderTechHelpPlacement() {
     && stripRect.height > 0
     && window.getComputedStyle(contentStrip).display !== "none";
 
-  if (!stripIsVisible || mobileMenusAreVisible || contentStrip.classList.contains("is-leadership-tech-visible")) {
+  if ((!stripIsVisible || mobileMenusAreVisible) && !document.body.classList.contains("is-leadership-tech-visible")) {
+    contentStrip.classList.add("is-header-tech-floating");
+    document.body.classList.add("is-header-tech-floating");
+    return;
+  }
+
+  if (contentStrip.classList.contains("is-leadership-tech-visible")) {
     return;
   }
 

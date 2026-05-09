@@ -4927,7 +4927,8 @@ body.has-docusign-modal .page-content {
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(20px, env(safe-area-inset-right));
-    bottom: max(20px, env(safe-area-inset-bottom));
+    top: max(20px, env(safe-area-inset-top));
+    bottom: auto;
     z-index: 50;
     display: block;
     color: var(--kw-black);
