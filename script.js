@@ -2109,11 +2109,12 @@ function initializeRoomBookingModal() {
 
     window.clearTimeout(closeTimer);
     lastTrigger = trigger;
+    modal.classList.toggle("room-booking-modal--joe", isJoeBooking);
     eyebrow.textContent = bookingEyebrow;
     title.textContent = bookingLabel;
     summary.textContent = bookingSummary;
     if (availability) {
-      availability.hidden = !isJoeBooking;
+      availability.hidden = true;
     }
     renderJoeBookingActions(isJoeBooking);
     iframe.hidden = false;

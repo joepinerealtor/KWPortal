@@ -4506,6 +4506,10 @@ body.has-docusign-modal .page-content {
   display: none;
 }
 
+.room-booking-modal--joe .room-booking-availability {
+  display: none;
+}
+
 .joe-availability-panel--modal {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
@@ -5778,6 +5782,40 @@ body.has-docusign-modal .page-content {
 
   .room-booking-modal {
     padding: 16px;
+  }
+
+  .room-booking-modal--joe {
+    padding: 0;
+  }
+
+  .room-booking-modal--joe .room-booking-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    grid-template-rows: auto minmax(0, 1fr);
+    border: 0;
+  }
+
+  .room-booking-modal--joe .room-booking-header {
+    justify-content: flex-end;
+    padding: 8px;
+  }
+
+  .room-booking-modal--joe .room-booking-copy,
+  .room-booking-modal--joe .room-booking-availability,
+  .room-booking-modal--joe .room-booking-quick-actions {
+    display: none;
+  }
+
+  .room-booking-modal--joe .room-booking-close {
+    width: auto;
+    min-height: 36px;
+    padding: 0.52rem 0.9rem;
+  }
+
+  .room-booking-modal--joe .room-booking-frame {
+    height: calc(100dvh - 53px);
+    min-height: calc(100dvh - 53px);
   }
 
   .office-info-list {
