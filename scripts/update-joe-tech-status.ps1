@@ -680,15 +680,77 @@ function Get-AvailabilityFallbackSummary {
   return "$dayLabel $tone, with $openingWord at $slotPhrase. Reserve your slot now."
 }
 
-function Get-OpenAiAvailabilitySummary {
+function Format-AvailabilitySlotLabel {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$UtcTime,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$ReferenceUtc,
+    [Parameter(Mandatory = $true)]
+    [string]$TimeZoneId
+  )
+
+  $timeZoneInfo = Get-TimeZoneInfoFromId -TimeZoneId $TimeZoneId
+  $localTime = [TimeZoneInfo]::ConvertTime($UtcTime.ToUniversalTime(), $timeZoneInfo)
+  $localReference = [TimeZoneInfo]::ConvertTime($ReferenceUtc.ToUniversalTime(), $timeZoneInfo)
+  $timeLabel = Format-AvailabilityTimeLabel -LocalTime $localTime
+
+  if ($localTime.Date -eq $localReference.Date) {
+    return $timeLabel
+  }
+
+  return "$($localTime.ToString("dddd", [Globalization.CultureInfo]::InvariantCulture)) at $timeLabel"
+}
+
+function Get-CurrentAvailabilityFallbackSummary {
+  param(
+    [string]$AvailableNowEndIso,
+    [string]$NextAppointmentAvailableIso,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$ReferenceUtc,
+    [Parameter(Mandatory = $true)]
+    [string]$TimeZoneId
+  )
+
+  if ([string]::IsNullOrWhiteSpace($AvailableNowEndIso)) {
+    return "Joe is available now. Reserve your slot now."
+  }
+
+  try {
+    $availableUntil = [DateTimeOffset]::Parse($AvailableNowEndIso).ToUniversalTime()
+    $availableUntilLabel = Format-AvailabilitySlotLabel -UtcTime $availableUntil -ReferenceUtc $ReferenceUtc -TimeZoneId $TimeZoneId
+    $nextAppointmentLabel = ""
+
+    if (-not [string]::IsNullOrWhiteSpace($NextAppointmentAvailableIso)) {
+      $nextAppointment = [DateTimeOffset]::Parse($NextAppointmentAvailableIso).ToUniversalTime()
+      if ($nextAppointment -ge $availableUntil.AddSeconds(-1)) {
+        $nextAppointmentLabel = Format-AvailabilitySlotLabel -UtcTime $nextAppointment -ReferenceUtc $ReferenceUtc -TimeZoneId $TimeZoneId
+      }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($nextAppointmentLabel)) {
+      return "Joe is available now until $availableUntilLabel. Next appointment after that is $nextAppointmentLabel. Reserve your slot now."
+    }
+
+    return "Joe is available now until $availableUntilLabel. Reserve your slot now."
+  } catch {
+    return "Joe is available now. Reserve your slot now."
+  }
+}
+
+function Invoke-OpenAiAvailabilityText {
   param(
     [string]$ApiKey,
     [string]$Model,
-    $SummaryData,
+    [Parameter(Mandatory = $true)]
+    [hashtable]$InputPayload,
+    [Parameter(Mandatory = $true)]
+    [string]$Instructions,
+    [Parameter(Mandatory = $true)]
     [string]$Fallback
   )
 
-  if ([string]::IsNullOrWhiteSpace($ApiKey) -or -not $SummaryData -or $SummaryData.SlotCount -le 0) {
+  if ([string]::IsNullOrWhiteSpace($ApiKey)) {
     return $Fallback
   }
 
@@ -697,17 +759,11 @@ function Get-OpenAiAvailabilitySummary {
       Authorization = "Bearer $ApiKey"
       "Content-Type" = "application/json"
     }
-    $inputPayload = [ordered]@{
-      next_available_day = $SummaryData.DayLabel
-      available_slot_count = $SummaryData.SlotCount
-      available_slots = @($SummaryData.SlotLabels)
-      fallback_summary = $Fallback
-    }
     $body = [ordered]@{
       model = if ([string]::IsNullOrWhiteSpace($Model)) { "gpt-5.2" } else { $Model.Trim() }
-      instructions = "Write one concise, friendly availability sentence for Keller Williams agents booking tech help with Joe. Do not mention AI, automation, Calendly, data, unavailable, busy, or the system. Mention the day and the available times. If there are more than four times, mention the first few and say there are more openings. End with a short booking nudge such as 'Reserve your slot now.' Keep it under 200 characters."
-      input = ($inputPayload | ConvertTo-Json -Depth 5)
-      max_output_tokens = 80
+      instructions = $Instructions
+      input = ($InputPayload | ConvertTo-Json -Depth 5)
+      max_output_tokens = 90
     } | ConvertTo-Json -Depth 6
     $response = Invoke-RestMethod -Method Post -Uri "https://api.openai.com/v1/responses" -Headers $headers -Body $body
     $summary = ""
@@ -731,6 +787,26 @@ function Get-OpenAiAvailabilitySummary {
   } catch {
     Write-Warning "Could not generate availability summary with OpenAI: $($_.Exception.Message)"
     return $Fallback
+  }
+}
+
+function Get-OpenAiAvailabilitySummary {
+  param(
+    [string]$ApiKey,
+    [string]$Model,
+    $SummaryData,
+    [string]$Fallback
+  )
+
+  if ([string]::IsNullOrWhiteSpace($ApiKey) -or -not $SummaryData -or $SummaryData.SlotCount -le 0) {
+    return $Fallback
+  }
+
+  return Invoke-OpenAiAvailabilityText -ApiKey $ApiKey -Model $Model -Fallback $Fallback -Instructions "Write one concise, friendly availability sentence for Keller Williams agents booking tech help with Joe. Do not mention AI, automation, Calendly, data, unavailable, busy, or the system. Mention the day and the available times. If there are more than four times, mention the first few and say there are more openings. End with a short booking nudge such as 'Reserve your slot now.' Keep it under 200 characters." -InputPayload @{
+    next_available_day = $SummaryData.DayLabel
+    available_slot_count = $SummaryData.SlotCount
+    available_slots = @($SummaryData.SlotLabels)
+    fallback_summary = $Fallback
   }
 }
 
@@ -952,7 +1028,21 @@ if (-not $isBusyNow -and $currentAvailableInterval) {
 
 $nextAvailableDaySummaryData = Get-NextAvailableDaySummaryData -SlotStarts $availableSlotStarts -ReferenceTime $now -TimeZoneId $timeZone -DurationMinutes $durationMinutes
 $availabilityFallbackSummary = Get-AvailabilityFallbackSummary -SummaryData $nextAvailableDaySummaryData
-$availabilitySummary = Get-OpenAiAvailabilitySummary -ApiKey $OpenAiApiKey -Model $OpenAiModel -SummaryData $nextAvailableDaySummaryData -Fallback $availabilityFallbackSummary
+
+if ($status -eq "available_now") {
+  $currentAvailabilityFallbackSummary = Get-CurrentAvailabilityFallbackSummary -AvailableNowEndIso $availableNowEndIso -NextAppointmentAvailableIso $nextAppointmentAvailableIso -ReferenceUtc $now -TimeZoneId $timeZone
+  $availabilitySummary = Invoke-OpenAiAvailabilityText -ApiKey $OpenAiApiKey -Model $OpenAiModel -Fallback $currentAvailabilityFallbackSummary -Instructions "Write one concise, friendly availability sentence for Keller Williams agents booking tech help with Joe. Do not mention AI, automation, Calendly, data, unavailable, busy, or the system. Say that Joe is available now, say when he is available until, and mention the next appointment after that if provided. End with a short booking nudge. Keep it under 200 characters." -InputPayload @{
+    current_status = "available_now"
+    available_until = $availableNowEndIso
+    available_until_label = if ([string]::IsNullOrWhiteSpace($availableNowEndIso)) { "" } else { Format-AvailabilitySlotLabel -UtcTime ([DateTimeOffset]::Parse($availableNowEndIso).ToUniversalTime()) -ReferenceUtc $now -TimeZoneId $timeZone }
+    next_appointment_after_current_window = $nextAppointmentAvailableIso
+    next_appointment_after_current_window_label = if ([string]::IsNullOrWhiteSpace($nextAppointmentAvailableIso)) { "" } else { Format-AvailabilitySlotLabel -UtcTime ([DateTimeOffset]::Parse($nextAppointmentAvailableIso).ToUniversalTime()) -ReferenceUtc $now -TimeZoneId $timeZone }
+    fallback_summary = $currentAvailabilityFallbackSummary
+  }
+} else {
+  $availabilitySummary = Get-OpenAiAvailabilitySummary -ApiKey $OpenAiApiKey -Model $OpenAiModel -SummaryData $nextAvailableDaySummaryData -Fallback $availabilityFallbackSummary
+}
+
 $availabilitySummaryGeneratedAtIso = Format-UtcIsoForPortal -Value ([DateTimeOffset]::UtcNow)
 $nextAvailableDaySlotIsos = if ($nextAvailableDaySummaryData) { @($nextAvailableDaySummaryData.SlotIsos) } else { @() }
 
