@@ -2765,7 +2765,10 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
   const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
-  const compactSummarySuffix = officeHoursLabel ? `\n${officeHoursLabel}` : "";
+  const buildCompactSummary = (...lines) => lines
+    .filter((line) => typeof line === "string" && line.trim())
+    .map((line) => line.trim())
+    .join("\n");
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -2808,12 +2811,6 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
-  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
-    ? rawState.availabilitySummary.trim()
-    : "";
-  const compactAvailabilitySummary = availabilitySummary
-    ? `${availabilitySummary}${compactSummarySuffix}`
-    : "";
 
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
@@ -2829,12 +2826,15 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
       ? formatJoeAvailabilityCompactUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
       : "";
+    const availableNowSummary = endLabel && nextAppointmentLabel
+      ? `Available now until ${endLabel}. Next appointment: ${nextAppointmentLabel}.`
+      : (endLabel
+        ? `Available now until ${endLabel}.`
+        : (nextAppointmentLabel ? `Next appointment: ${nextAppointmentLabel}.` : ""));
 
     return {
       label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
-      summary: compactAvailabilitySummary || (nextAppointmentLabel
-        ? `Next appointment available at ${nextAppointmentLabel}.${compactSummarySuffix}`
-        : officeHoursLabel)
+      summary: buildCompactSummary(availableNowSummary, officeHoursLabel)
     };
   }
 
@@ -2849,33 +2849,25 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
       ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
     const untilLabel = nextAppointmentLabel || nextSlotLabel;
-    const nextAvailabilitySummary = compactAvailabilitySummary || (untilLabel
-      ? `Next appointment available at ${untilLabel}.${compactSummarySuffix}`
-      : officeHoursLabel);
+    const nextAvailabilitySummary = untilLabel
+      ? `Next appointment available at ${untilLabel}.`
+      : "";
 
     return {
       label: "Schedule a time with Joe",
-      summary: nextAvailabilitySummary
+      summary: buildCompactSummary(nextAvailabilitySummary, officeHoursLabel)
     };
   }
 
   return {
     label: normalizedState.label || "Schedule a time with Joe",
-    summary: officeHoursLabel
+    summary: buildCompactSummary(officeHoursLabel)
   };
 }
 
 function getMobileBubbleJoeAvailabilityState(rawState = {}, normalizedState = {}) {
-  const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
-    ? rawState.timezone.trim()
-    : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
-  const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
-  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
-    ? rawState.availabilitySummary.trim()
-    : "";
-  const summary = availabilitySummary
-    ? `${availabilitySummary}${officeHoursLabel ? `\n${officeHoursLabel}` : ""}`
-    : (officeHoursLabel || "Tap to schedule an appointment");
+  const compactState = getCompactJoeAvailabilityState(rawState, normalizedState);
+  const summary = compactState.summary || "Tap to schedule an appointment";
 
   if (normalizedState.status === "available_now") {
     return {
@@ -2896,16 +2888,17 @@ function updateJoeAvailabilityAction(action) {
   }
 
   const isMobileBubbleAction = action.classList.contains("mobile-tech-help-bubble");
+  const isHeaderTrackerAction = action.classList.contains("header-tech-help-tracker");
   action.href = JOE_TECH_BOOKING_URL;
 
-  if (!isMobileBubbleAction) {
+  if (!isMobileBubbleAction && !isHeaderTrackerAction) {
     action.textContent = action.dataset.joeActionLabel || "Schedule an appointment";
   }
 
   action.setAttribute("target", "_blank");
   action.setAttribute("rel", "noreferrer");
 
-  if (isMobileBubbleAction) {
+  if (isMobileBubbleAction || isHeaderTrackerAction) {
     action.setAttribute("aria-label", "Schedule tech help with Joe");
   }
 }
@@ -2925,10 +2918,11 @@ function writeJoeAvailability(rawState = {}) {
 
   joeAvailabilityRefs.forEach((ref) => {
     const isCompactHeaderWidget = ref.panel.classList.contains("joe-availability-panel--compact");
+    const isInlineHeaderWidget = ref.panel.classList.contains("joe-availability-panel--header");
     const isLeadershipSupportWidget = ref.card.classList.contains("leadership-support-card");
     const isModalHeaderWidget = ref.panel.classList.contains("joe-availability-panel--modal");
     const isMobileBubbleWidget = ref.card.classList.contains("mobile-tech-help-bubble");
-    const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
+    const ctaState = isCompactHeaderWidget || isInlineHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
       ? getCompactJoeAvailabilityState(rawState, state)
       : null;
     const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(rawState, state) : null;
