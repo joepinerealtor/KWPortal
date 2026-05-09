@@ -2721,7 +2721,7 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
   const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
-  const compactSummarySuffix = officeHoursLabel ? ` | ${officeHoursLabel}` : "";
+  const compactSummarySuffix = officeHoursLabel ? `\n${officeHoursLabel}` : "";
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -2821,17 +2821,28 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   };
 }
 
-function getMobileBubbleJoeAvailabilityState(normalizedState = {}) {
+function getMobileBubbleJoeAvailabilityState(rawState = {}, normalizedState = {}) {
+  const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
+    ? rawState.timezone.trim()
+    : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
+  const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
+  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
+    ? rawState.availabilitySummary.trim()
+    : "";
+  const summary = availabilitySummary
+    ? `${availabilitySummary}${officeHoursLabel ? `\n${officeHoursLabel}` : ""}`
+    : (officeHoursLabel || "Tap to schedule an appointment");
+
   if (normalizedState.status === "available_now") {
     return {
       label: "Joe is available now",
-      summary: "Tap to schedule an appointment"
+      summary
     };
   }
 
   return {
-    label: "Schedule an appointment",
-    summary: "Tap to schedule an appointment"
+    label: "Schedule a time with Joe",
+    summary
   };
 }
 
@@ -2876,7 +2887,7 @@ function writeJoeAvailability(rawState = {}) {
     const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
       ? getCompactJoeAvailabilityState(rawState, state)
       : null;
-    const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(state) : null;
+    const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(rawState, state) : null;
     const displayState = bubbleState || ctaState;
 
     ref.panel.dataset.status = state.status === "available_now" ? "available_now" : "schedule";

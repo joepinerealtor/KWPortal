@@ -1408,6 +1408,7 @@ img {
 .joe-availability-panel--compact .joe-availability-summary {
   font-size: 0.76rem;
   line-height: 1.25;
+  white-space: pre-line;
 }
 
 .mobile-tech-help-bubble {
@@ -1508,6 +1509,7 @@ body.portal-protected .mobile-tech-help-bubble {
 .joe-availability-panel--mobile-bubble .joe-availability-summary {
   font-size: 0.72rem;
   line-height: 1.16;
+  white-space: pre-line;
 }
 
 .joe-availability-panel--mobile-bubble[data-status="available"] .mobile-tech-help-avatar,
@@ -5070,6 +5072,7 @@ body.has-docusign-modal .page-content {
   .content-strip-tech-support .joe-availability-panel--compact .joe-availability-summary {
     font-size: 0.66rem;
     line-height: 1.1;
+    white-space: pre-line;
   }
 
   .content-strip-tech-support .content-strip-tech-button {
