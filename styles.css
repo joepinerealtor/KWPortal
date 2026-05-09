@@ -1220,18 +1220,17 @@ img {
 @media (min-width: 700px) {
   .content-strip-row--links {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(360px, 420px);
+    grid-template-columns: auto minmax(0, 1fr) minmax(340px, 390px);
     align-items: center;
     justify-content: stretch;
   }
 
   .content-strip-links {
     min-width: 0;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .content-strip-link {
@@ -5217,7 +5216,7 @@ body.has-docusign-modal .page-content {
 
   .content-strip-row--links {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(360px, 420px);
+    grid-template-columns: auto minmax(0, 1fr) minmax(340px, 390px);
     align-items: center;
     justify-content: stretch;
     gap: 10px 12px;
@@ -5232,10 +5231,9 @@ body.has-docusign-modal .page-content {
     min-width: 0;
     gap: 7px;
     justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
+    flex-wrap: wrap;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .content-strip-link {
