@@ -1464,7 +1464,8 @@ img {
 body.is-header-tech-floating .mobile-tech-help-bubble {
   position: fixed;
   right: max(20px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
+  top: max(20px, env(safe-area-inset-top));
+  bottom: auto;
   z-index: 50;
   display: block;
   color: var(--kw-black);
@@ -4764,12 +4765,17 @@ body.has-docusign-modal .page-content {
   }
 
   body.is-header-tech-inline .site-header {
-    grid-template-columns: minmax(190px, max-content) minmax(230px, 1fr) auto;
+    grid-template-columns: minmax(190px, max-content) auto minmax(230px, 360px);
   }
 
   body.is-header-tech-inline .header-tech-help-tracker {
+    grid-column: 3;
     display: block;
     justify-self: stretch;
+  }
+
+  body.is-header-tech-inline .site-header .header-time-card {
+    grid-column: 2;
   }
 
   .brand-link {
@@ -4982,7 +4988,15 @@ body.has-docusign-modal .page-content {
   }
 
   body.is-header-tech-inline .site-header {
-    grid-template-columns: minmax(190px, max-content) minmax(220px, 1fr) auto;
+    grid-template-columns: minmax(190px, max-content) auto minmax(220px, 340px);
+  }
+
+  body.is-header-tech-inline .header-tech-help-tracker {
+    grid-column: 3;
+  }
+
+  body.is-header-tech-inline .site-header .header-time-card {
+    grid-column: 2;
   }
 
   .brand-link {
@@ -5156,6 +5170,7 @@ body.has-docusign-modal .page-content {
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(14px, env(safe-area-inset-right));
+    top: auto;
     bottom: max(14px, env(safe-area-inset-bottom));
     z-index: 50;
     display: block;

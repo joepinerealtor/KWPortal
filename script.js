@@ -1400,8 +1400,8 @@ function syncHeaderTechHelpPlacement() {
     const headerColumnGap = parseFloat(headerStyle.columnGap || headerStyle.gap) || 0;
     const trackerFitsHeader = trackerRect.width > 0
       && trackerRect.height > 0
-      && brandRect.right + headerColumnGap <= trackerRect.left + 2
-      && trackerRect.right + headerColumnGap <= timeRect.left + 2
+      && brandRect.right + headerColumnGap <= timeRect.left + 2
+      && timeRect.right + headerColumnGap <= trackerRect.left + 2
       && Math.abs((brandRect.top + brandRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
       && Math.abs((timeRect.top + timeRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
       && trackerRect.left >= headerRect.left - 1
