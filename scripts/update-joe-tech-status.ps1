@@ -6,14 +6,19 @@ param(
   [string]$CalendlyUserUri = $env:CALENDLY_JOE_USER_URI,
   [string]$CalendlyBookingUrl = $(if ($env:CALENDLY_JOE_BOOKING_URL) { $env:CALENDLY_JOE_BOOKING_URL } else { "https://calendly.com/joepinerealtor/tech-meeting-with-joe" }),
   [string]$CalendlyTimeZone = $env:CALENDLY_JOE_TIMEZONE,
-  [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 })
+  [int]$DefaultDurationMinutes = $(if ($env:CALENDLY_JOE_EVENT_DURATION_MINUTES) { [int]$env:CALENDLY_JOE_EVENT_DURATION_MINUTES } else { 30 }),
+  [string]$OpenAiApiKey = $env:OPENAI_API_KEY,
+  [string]$OpenAiModel = $(if ($env:OPENAI_AVAILABILITY_MODEL) { $env:OPENAI_AVAILABILITY_MODEL } else { "gpt-5.2" })
 )
 
 $ErrorActionPreference = "Stop"
 $JoeWorkingHours = @(
-  [ordered]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00" },
-  [ordered]@{ Day = "Thursday"; Start = "09:00"; End = "17:00" },
-  [ordered]@{ Day = "Friday"; Start = "09:00"; End = "16:00" }
+  [pscustomobject]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00"; EffectiveEndDate = "2026-05-21" }
+  [pscustomobject]@{ Day = "Thursday"; Start = "09:00"; End = "17:00"; EffectiveEndDate = "2026-05-21" }
+  [pscustomobject]@{ Day = "Friday"; Start = "09:00"; End = "16:00"; EffectiveEndDate = "2026-05-21" }
+  [pscustomobject]@{ Day = "Monday"; Start = "09:00"; End = "17:00"; EffectiveStartDate = "2026-05-22" }
+  [pscustomobject]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00"; EffectiveStartDate = "2026-05-22" }
+  [pscustomobject]@{ Day = "Friday"; Start = "09:00"; End = "16:00"; EffectiveStartDate = "2026-05-22" }
 )
 
 function Get-CalendlyHeaders {
@@ -169,6 +174,41 @@ function Get-TimeOfDayMinutes {
   return ($hours * 60) + $minutes
 }
 
+function Test-JoeWorkingHourRuleIsEffective {
+  param(
+    [Parameter(Mandatory = $true)]
+    $Rule,
+    [Parameter(Mandatory = $true)]
+    [DateTime]$LocalDate
+  )
+
+  $localDateOnly = $LocalDate.Date
+
+  if ($Rule.PSObject.Properties.Name -contains "EffectiveStartDate" -and -not [string]::IsNullOrWhiteSpace($Rule.EffectiveStartDate)) {
+    try {
+      $effectiveStartDate = [DateTime]::Parse([string]$Rule.EffectiveStartDate).Date
+      if ($localDateOnly -lt $effectiveStartDate) {
+        return $false
+      }
+    } catch {
+      return $false
+    }
+  }
+
+  if ($Rule.PSObject.Properties.Name -contains "EffectiveEndDate" -and -not [string]::IsNullOrWhiteSpace($Rule.EffectiveEndDate)) {
+    try {
+      $effectiveEndDate = [DateTime]::Parse([string]$Rule.EffectiveEndDate).Date
+      if ($localDateOnly -gt $effectiveEndDate) {
+        return $false
+      }
+    } catch {
+      return $false
+    }
+  }
+
+  return $true
+}
+
 function Test-IsWithinJoeWorkingHours {
   param(
     [Parameter(Mandatory = $true)]
@@ -178,6 +218,7 @@ function Test-IsWithinJoeWorkingHours {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -193,7 +234,7 @@ function Test-IsWithinJoeWorkingHours {
     return $false
   }
 
-  $rule = $WorkingHours | Where-Object { $_.Day -eq $localStart.DayOfWeek.ToString() } | Select-Object -First 1
+  $rule = $WorkingHours | Where-Object { $_.Day -eq $localStart.DayOfWeek.ToString() -and (Test-JoeWorkingHourRuleIsEffective -Rule $_ -LocalDate $localStart.Date) } | Select-Object -First 1
   if (-not $rule) {
     return $false
   }
@@ -217,6 +258,7 @@ function Test-IsWithinJoeWorkingHoursNow {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -226,7 +268,7 @@ function Test-IsWithinJoeWorkingHoursNow {
 
   $timeZoneInfo = Get-TimeZoneInfoFromId -TimeZoneId $TimeZoneId
   $localNow = [TimeZoneInfo]::ConvertTime($UtcNow, $timeZoneInfo)
-  $rule = $WorkingHours | Where-Object { $_.Day -eq $localNow.DayOfWeek.ToString() } | Select-Object -First 1
+  $rule = $WorkingHours | Where-Object { $_.Day -eq $localNow.DayOfWeek.ToString() -and (Test-JoeWorkingHourRuleIsEffective -Rule $_ -LocalDate $localNow.Date) } | Select-Object -First 1
   if (-not $rule) {
     return $false
   }
@@ -248,6 +290,7 @@ function Get-JoeWorkingWindowForUtcTime {
     [Parameter(Mandatory = $true)]
     [string]$TimeZoneId,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -257,7 +300,7 @@ function Get-JoeWorkingWindowForUtcTime {
 
   $timeZoneInfo = Get-TimeZoneInfoFromId -TimeZoneId $TimeZoneId
   $localTime = [TimeZoneInfo]::ConvertTime($UtcTime, $timeZoneInfo)
-  $rule = $WorkingHours | Where-Object { $_.Day -eq $localTime.DayOfWeek.ToString() } | Select-Object -First 1
+  $rule = $WorkingHours | Where-Object { $_.Day -eq $localTime.DayOfWeek.ToString() -and (Test-JoeWorkingHourRuleIsEffective -Rule $_ -LocalDate $localTime.Date) } | Select-Object -First 1
   if (-not $rule) {
     return $null
   }
@@ -305,6 +348,7 @@ function Get-NextPublicCalendlySlot {
     [string]$BookingUrl,
     [int]$FallbackDurationMinutes,
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [array]$WorkingHours
   )
 
@@ -478,6 +522,218 @@ function Get-AvailableIntervalContainingTime {
   return $null
 }
 
+function Format-AvailabilityDayLabel {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$LocalTime
+  )
+
+  return $LocalTime.ToString("dddd, MMMM d", [Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Format-AvailabilityTimeLabel {
+  param(
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$LocalTime
+  )
+
+  return $LocalTime.ToString("h:mm tt", [Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Join-AvailabilityPhrase {
+  param(
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [array]$Values
+  )
+
+  $items = @($Values | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+  if ($items.Count -eq 0) {
+    return ""
+  }
+
+  if ($items.Count -eq 1) {
+    return [string]$items[0]
+  }
+
+  if ($items.Count -eq 2) {
+    return "$($items[0]) and $($items[1])"
+  }
+
+  return "$(($items[0..($items.Count - 2)]) -join ", "), and $($items[-1])"
+}
+
+function Get-NextAvailableDaySummaryData {
+  param(
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [array]$SlotStarts,
+    [Parameter(Mandatory = $true)]
+    [DateTimeOffset]$ReferenceTime,
+    [Parameter(Mandatory = $true)]
+    [string]$TimeZoneId,
+    [Parameter(Mandatory = $true)]
+    [int]$DurationMinutes
+  )
+
+  $upcomingSlots = @($SlotStarts |
+    Where-Object { ([DateTimeOffset]$_).ToUniversalTime() -gt $ReferenceTime } |
+    Sort-Object)
+
+  if (-not $upcomingSlots.Count) {
+    return $null
+  }
+
+  $timeZoneInfo = Get-TimeZoneInfoFromId -TimeZoneId $TimeZoneId
+  $firstLocalSlot = [TimeZoneInfo]::ConvertTime(([DateTimeOffset]$upcomingSlots[0]).ToUniversalTime(), $timeZoneInfo)
+  $dateKey = $firstLocalSlot.ToString("yyyy-MM-dd", [Globalization.CultureInfo]::InvariantCulture)
+  $sameDaySlots = @()
+
+  foreach ($slot in $upcomingSlots) {
+    $localSlot = [TimeZoneInfo]::ConvertTime(([DateTimeOffset]$slot).ToUniversalTime(), $timeZoneInfo)
+    if ($localSlot.ToString("yyyy-MM-dd", [Globalization.CultureInfo]::InvariantCulture) -ne $dateKey) {
+      continue
+    }
+
+    $sameDaySlots += [pscustomobject]@{
+      Utc = ([DateTimeOffset]$slot).ToUniversalTime()
+      Local = $localSlot
+      TimeLabel = Format-AvailabilityTimeLabel -LocalTime $localSlot
+    }
+  }
+
+  $windowLabels = @()
+  $currentWindowStart = $null
+  $currentWindowEnd = $null
+
+  foreach ($slot in $sameDaySlots) {
+    $slotStart = [DateTimeOffset]$slot.Local
+    $slotEnd = $slotStart.AddMinutes($DurationMinutes)
+
+    if ($null -eq $currentWindowStart) {
+      $currentWindowStart = $slotStart
+      $currentWindowEnd = $slotEnd
+      continue
+    }
+
+    if ($slotStart -le $currentWindowEnd.AddSeconds(60)) {
+      if ($slotEnd -gt $currentWindowEnd) {
+        $currentWindowEnd = $slotEnd
+      }
+      continue
+    }
+
+    if ($currentWindowEnd -gt $currentWindowStart.AddMinutes($DurationMinutes)) {
+      $windowLabels += "$(Format-AvailabilityTimeLabel -LocalTime $currentWindowStart)-$(Format-AvailabilityTimeLabel -LocalTime $currentWindowEnd)"
+    } else {
+      $windowLabels += (Format-AvailabilityTimeLabel -LocalTime $currentWindowStart)
+    }
+
+    $currentWindowStart = $slotStart
+    $currentWindowEnd = $slotEnd
+  }
+
+  if ($null -ne $currentWindowStart) {
+    if ($currentWindowEnd -gt $currentWindowStart.AddMinutes($DurationMinutes)) {
+      $windowLabels += "$(Format-AvailabilityTimeLabel -LocalTime $currentWindowStart)-$(Format-AvailabilityTimeLabel -LocalTime $currentWindowEnd)"
+    } else {
+      $windowLabels += (Format-AvailabilityTimeLabel -LocalTime $currentWindowStart)
+    }
+  }
+
+  return [pscustomobject]@{
+    DateKey = $dateKey
+    DayLabel = Format-AvailabilityDayLabel -LocalTime $firstLocalSlot
+    SlotCount = $sameDaySlots.Count
+    SlotLabels = @($windowLabels)
+    SlotIsos = @($sameDaySlots | ForEach-Object { Format-UtcIsoForPortal -Value $_.Utc })
+  }
+}
+
+function Get-AvailabilityFallbackSummary {
+  param(
+    $SummaryData
+  )
+
+  if (-not $SummaryData -or $SummaryData.SlotCount -le 0) {
+    return "No open tech-help times are listed right now."
+  }
+
+  $dayLabel = [string]$SummaryData.DayLabel
+  $slotLabels = @($SummaryData.SlotLabels)
+  $slotCount = [int]$SummaryData.SlotCount
+  $tone = if ($slotCount -le 2) {
+    "looks pretty full"
+  } elseif ($slotCount -le 4) {
+    "has a few openings"
+  } else {
+    "has several openings"
+  }
+  $shownSlots = @($slotLabels | Select-Object -First 4)
+  $slotPhrase = Join-AvailabilityPhrase -Values $shownSlots
+
+  if ($slotCount -gt 4) {
+    return "$dayLabel $tone, including $slotPhrase. Reserve your slot now."
+  }
+
+  $openingWord = if ($slotCount -eq 1) { "an opening" } else { "openings" }
+  return "$dayLabel $tone, with $openingWord at $slotPhrase. Reserve your slot now."
+}
+
+function Get-OpenAiAvailabilitySummary {
+  param(
+    [string]$ApiKey,
+    [string]$Model,
+    $SummaryData,
+    [string]$Fallback
+  )
+
+  if ([string]::IsNullOrWhiteSpace($ApiKey) -or -not $SummaryData -or $SummaryData.SlotCount -le 0) {
+    return $Fallback
+  }
+
+  try {
+    $headers = @{
+      Authorization = "Bearer $ApiKey"
+      "Content-Type" = "application/json"
+    }
+    $inputPayload = [ordered]@{
+      next_available_day = $SummaryData.DayLabel
+      available_slot_count = $SummaryData.SlotCount
+      available_slots = @($SummaryData.SlotLabels)
+      fallback_summary = $Fallback
+    }
+    $body = [ordered]@{
+      model = if ([string]::IsNullOrWhiteSpace($Model)) { "gpt-5.2" } else { $Model.Trim() }
+      instructions = "Write one concise, friendly availability sentence for Keller Williams agents booking tech help with Joe. Do not mention AI, automation, Calendly, data, unavailable, busy, or the system. Mention the day and the available times. If there are more than four times, mention the first few and say there are more openings. End with a short booking nudge such as 'Reserve your slot now.' Keep it under 200 characters."
+      input = ($inputPayload | ConvertTo-Json -Depth 5)
+      max_output_tokens = 80
+    } | ConvertTo-Json -Depth 6
+    $response = Invoke-RestMethod -Method Post -Uri "https://api.openai.com/v1/responses" -Headers $headers -Body $body
+    $summary = ""
+
+    if ($response.PSObject.Properties.Name -contains "output_text" -and -not [string]::IsNullOrWhiteSpace([string]$response.output_text)) {
+      $summary = [string]$response.output_text
+    } elseif ($response.output) {
+      $summary = @($response.output |
+        ForEach-Object { $_.content } |
+        ForEach-Object { $_ } |
+        Where-Object { $_.type -eq "output_text" -and -not [string]::IsNullOrWhiteSpace([string]$_.text) } |
+        Select-Object -First 1).text
+    }
+
+    $summary = ([string]$summary).Trim()
+    if ([string]::IsNullOrWhiteSpace($summary)) {
+      return $Fallback
+    }
+
+    return $summary.Trim('"').Trim()
+  } catch {
+    Write-Warning "Could not generate availability summary with OpenAI: $($_.Exception.Message)"
+    return $Fallback
+  }
+}
+
 $resolvedOutputPath = Join-Path $RepositoryRoot $OutputPath
 $resolvedOutputDirectory = Split-Path $resolvedOutputPath -Parent
 if (-not (Test-Path $resolvedOutputDirectory)) {
@@ -506,7 +762,6 @@ $availableNowEndIso = ""
 $currentUtcNow = [DateTimeOffset]::UtcNow
 $resolvedCalendlyHeaders = $null
 $didResolveAvailabilityFromApi = $false
-$didResolveBusyRangesFromApi = $false
 $busyRanges = @()
 $availableSlotStarts = @()
 
@@ -581,7 +836,6 @@ if ($resolvedCalendlyHeaders) {
   try {
     $resolvedCalendlyUserUri = Resolve-CalendlyUserUri -ConfiguredUserUri $CalendlyUserUri -Headers $resolvedCalendlyHeaders
     $busyRanges = @(Get-CalendlyBusyRanges -UserUri $resolvedCalendlyUserUri -Headers $resolvedCalendlyHeaders -ReferenceTime $currentUtcNow)
-    $didResolveBusyRangesFromApi = $true
     $activeBusyRange = $busyRanges |
       Where-Object { $_.Start -le $currentUtcNow -and $_.End -gt $currentUtcNow } |
       Sort-Object Start |
@@ -614,7 +868,7 @@ if ($previousState -and -not [string]::IsNullOrWhiteSpace($previousState.nextOpe
     $nowForPreviousSlot = [DateTimeOffset]::UtcNow
     $nextSlotStart = if ([string]::IsNullOrWhiteSpace($nextOpenSlotIso)) { $null } else { [DateTimeOffset]::Parse($nextOpenSlotIso).ToUniversalTime() }
 
-    if ($nowForPreviousSlot -ge $previousSlotStart -and $nowForPreviousSlot -lt $previousSlotEnd -and (-not $nextSlotStart -or $nextSlotStart -gt $previousSlotStart)) {
+    if ($nowForPreviousSlot -ge $previousSlotStart -and $nowForPreviousSlot -lt $previousSlotEnd -and (-not $nextSlotStart -or $nextSlotStart -gt $previousSlotStart) -and (Test-IsWithinJoeWorkingHours -UtcStart $previousSlotStart -DurationMinutes $previousDurationMinutes -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours)) {
       $durationMinutes = $previousDurationMinutes
       $availableSlotStarts = @($availableSlotStarts + $previousSlotStart | Sort-Object)
       $nextOpenSlotIso = Format-UtcIsoForPortal -Value $previousSlotStart
@@ -637,7 +891,6 @@ if (-not [string]::IsNullOrWhiteSpace($nextOpenSlotIso)) {
 
 $status = "unavailable"
 $now = [DateTimeOffset]::UtcNow
-$isWithinWorkingHoursNow = Test-IsWithinJoeWorkingHoursNow -UtcNow $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
 $isBusyNow = $false
 
 if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
@@ -653,23 +906,19 @@ if (-not [string]::IsNullOrWhiteSpace($busyNowEndIso)) {
   }
 }
 
-$currentWorkingWindow = if ($isWithinWorkingHoursNow) {
-  Get-JoeWorkingWindowForUtcTime -UtcTime $now -TimeZoneId $timeZone -WorkingHours $JoeWorkingHours
-} else {
-  $null
-}
+$currentAvailableInterval = Get-AvailableIntervalContainingTime -SlotStarts $availableSlotStarts -ReferenceTime $now -DurationMinutes $durationMinutes -AllowNearFutureStart $false
 
-if (-not $isBusyNow -and $didResolveBusyRangesFromApi -and $isWithinWorkingHoursNow -and $currentWorkingWindow) {
+if (-not $isBusyNow -and $currentAvailableInterval) {
   $status = "available_now"
   $nextBusyRangeDuringCurrentWindow = $busyRanges |
-    Where-Object { $_.Start -gt $now -and $_.Start -lt $currentWorkingWindow.End } |
+    Where-Object { $_.Start -gt $now -and $_.Start -lt $currentAvailableInterval.End } |
     Sort-Object Start |
     Select-Object -First 1
 
   $availableNowEnd = if ($nextBusyRangeDuringCurrentWindow) {
     $nextBusyRangeDuringCurrentWindow.Start
   } else {
-    $currentWorkingWindow.End
+    $currentAvailableInterval.End
   }
   $availableNowEndIso = Format-UtcIsoForPortal -Value $availableNowEnd
 
@@ -701,6 +950,12 @@ if (-not $isBusyNow -and $didResolveBusyRangesFromApi -and $isWithinWorkingHours
   }
 }
 
+$nextAvailableDaySummaryData = Get-NextAvailableDaySummaryData -SlotStarts $availableSlotStarts -ReferenceTime $now -TimeZoneId $timeZone -DurationMinutes $durationMinutes
+$availabilityFallbackSummary = Get-AvailabilityFallbackSummary -SummaryData $nextAvailableDaySummaryData
+$availabilitySummary = Get-OpenAiAvailabilitySummary -ApiKey $OpenAiApiKey -Model $OpenAiModel -SummaryData $nextAvailableDaySummaryData -Fallback $availabilityFallbackSummary
+$availabilitySummaryGeneratedAtIso = Format-UtcIsoForPortal -Value ([DateTimeOffset]::UtcNow)
+$nextAvailableDaySlotIsos = if ($nextAvailableDaySummaryData) { @($nextAvailableDaySummaryData.SlotIsos) } else { @() }
+
 $payload = [ordered]@{
   status = $status
   timezone = $timeZone
@@ -713,20 +968,25 @@ $payload = [ordered]@{
   nextBusyStartIso = $nextBusyStartIso
   nextBusyEndIso = $nextBusyEndIso
   nextAppointmentAvailableIso = $nextAppointmentAvailableIso
+  availabilitySummary = $availabilitySummary
+  availabilitySummaryGeneratedAtIso = $availabilitySummaryGeneratedAtIso
+  nextAvailableDaySlotIsos = $nextAvailableDaySlotIsos
   workingHours = @(
     $JoeWorkingHours | ForEach-Object {
       [ordered]@{
         day = $_.Day
         start = $_.Start
         end = $_.End
+        effectiveStartDate = if ($_.PSObject.Properties.Name -contains "EffectiveStartDate") { [string]$_.EffectiveStartDate } else { "" }
+        effectiveEndDate = if ($_.PSObject.Properties.Name -contains "EffectiveEndDate") { [string]$_.EffectiveEndDate } else { "" }
       }
     }
   )
-  availableNowLabel = "Joe is available to chat"
+  availableNowLabel = "Joe is available now"
   availableNowSummary = "Schedule an appointment with Joe."
-  busyNowLabel = "Joe is in another appointment"
-  unavailableLabel = "Joe is unavailable"
-  noSlotsSummary = "No open tech-help slots are listed right now."
+  busyNowLabel = "Schedule a time with Joe"
+  unavailableLabel = "Schedule a time with Joe"
+  noSlotsSummary = "Reserve a tech-help time with Joe in Calendly."
 }
 
 $nextContent = ($payload | ConvertTo-Json -Depth 5) + "`n"

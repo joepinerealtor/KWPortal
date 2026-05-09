@@ -2,11 +2,15 @@ name: Refresh Joe Tech Status
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: refresh-joe-tech-status
+  cancel-in-progress: true
 
 jobs:
   refresh-joe-tech-status:
@@ -25,7 +29,18 @@ jobs:
           CALENDLY_JOE_BOOKING_URL: ${{ vars.CALENDLY_JOE_BOOKING_URL }}
           CALENDLY_JOE_TIMEZONE: ${{ vars.CALENDLY_JOE_TIMEZONE }}
           CALENDLY_JOE_EVENT_DURATION_MINUTES: ${{ vars.CALENDLY_JOE_EVENT_DURATION_MINUTES }}
-        run: .\scripts\update-joe-tech-status.ps1 -RepositoryRoot $PWD.Path
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_AVAILABILITY_MODEL: ${{ vars.OPENAI_AVAILABILITY_MODEL }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CALENDLY_PERSONAL_ACCESS_TOKEN)) {
+            throw "Missing CALENDLY_PERSONAL_ACCESS_TOKEN repository secret."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:CALENDLY_JOE_EVENT_TYPE_URI)) {
+            throw "Missing CALENDLY_JOE_EVENT_TYPE_URI repository variable."
+          }
+
+          .\scripts\update-joe-tech-status.ps1 -RepositoryRoot $PWD.Path
 
       - name: Commit refreshed status feed when needed
         shell: pwsh

@@ -2,34 +2,79 @@
   "status": "unavailable",
   "timezone": "America/New_York",
   "eventDurationMinutes": 30,
-  "nextOpenSlotIso": "2026-05-06T13:00:00.000Z",
-  "nextOpenSlotWorkingWindowEndIso": "2026-05-06T21:00:00.000Z",
+  "nextOpenSlotIso": "2026-05-13T13:30:00.000Z",
+  "nextOpenSlotWorkingWindowEndIso": "2026-05-13T21:00:00.000Z",
   "availableNowEndIso": "",
   "busyNowStartIso": "",
   "busyNowEndIso": "",
   "nextBusyStartIso": "",
   "nextBusyEndIso": "",
-  "nextAppointmentAvailableIso": "2026-05-06T13:00:00.000Z",
+  "nextAppointmentAvailableIso": "2026-05-13T13:30:00.000Z",
+  "availabilitySummary": "Wednesday, May 13 has several openings, including 9:30 AM, 11:00 AM, 1:00 PM-3:00 PM, and 3:30 PM-5:00 PM. Reserve your slot now.",
+  "availabilitySummaryGeneratedAtIso": "2026-05-09T15:40:18.427Z",
+  "nextAvailableDaySlotIsos": [
+    "2026-05-13T13:30:00.000Z",
+    "2026-05-13T15:00:00.000Z",
+    "2026-05-13T17:00:00.000Z",
+    "2026-05-13T17:15:00.000Z",
+    "2026-05-13T17:30:00.000Z",
+    "2026-05-13T17:45:00.000Z",
+    "2026-05-13T18:00:00.000Z",
+    "2026-05-13T18:15:00.000Z",
+    "2026-05-13T18:30:00.000Z",
+    "2026-05-13T19:30:00.000Z",
+    "2026-05-13T19:45:00.000Z",
+    "2026-05-13T20:00:00.000Z",
+    "2026-05-13T20:15:00.000Z",
+    "2026-05-13T20:30:00.000Z"
+  ],
   "workingHours": [
     {
       "day": "Wednesday",
       "start": "09:00",
-      "end": "17:00"
+      "end": "17:00",
+      "effectiveStartDate": "",
+      "effectiveEndDate": "2026-05-21"
     },
     {
       "day": "Thursday",
       "start": "09:00",
-      "end": "17:00"
+      "end": "17:00",
+      "effectiveStartDate": "",
+      "effectiveEndDate": "2026-05-21"
     },
     {
       "day": "Friday",
       "start": "09:00",
-      "end": "16:00"
+      "end": "16:00",
+      "effectiveStartDate": "",
+      "effectiveEndDate": "2026-05-21"
+    },
+    {
+      "day": "Monday",
+      "start": "09:00",
+      "end": "17:00",
+      "effectiveStartDate": "2026-05-22",
+      "effectiveEndDate": ""
+    },
+    {
+      "day": "Wednesday",
+      "start": "09:00",
+      "end": "17:00",
+      "effectiveStartDate": "2026-05-22",
+      "effectiveEndDate": ""
+    },
+    {
+      "day": "Friday",
+      "start": "09:00",
+      "end": "16:00",
+      "effectiveStartDate": "2026-05-22",
+      "effectiveEndDate": ""
     }
   ],
-  "availableNowLabel": "Joe is available to chat",
+  "availableNowLabel": "Joe is available now",
   "availableNowSummary": "Schedule an appointment with Joe.",
-  "busyNowLabel": "Joe is in another appointment",
-  "unavailableLabel": "Joe is unavailable",
-  "noSlotsSummary": "No open tech-help slots are listed right now."
+  "busyNowLabel": "Schedule a time with Joe",
+  "unavailableLabel": "Schedule a time with Joe",
+  "noSlotsSummary": "Reserve a tech-help time with Joe in Calendly."
 }
