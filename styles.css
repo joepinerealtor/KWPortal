@@ -4795,14 +4795,25 @@ body.has-docusign-modal .page-content {
     grid-template-columns: minmax(190px, max-content) auto minmax(230px, 360px);
   }
 
+  body.is-header-tech-inline .brand-link {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
   body.is-header-tech-inline .header-tech-help-tracker {
     grid-column: 3;
+    grid-row: 1;
     display: block;
     justify-self: stretch;
   }
 
   body.is-header-tech-inline .site-header .header-time-card {
     grid-column: 2;
+    grid-row: 1;
+  }
+
+  body.is-header-tech-inline .site-header .docusign-countdown-card {
+    grid-row: 2;
   }
 
   .brand-link {
@@ -5025,10 +5036,12 @@ body.has-docusign-modal .page-content {
 
   body.is-header-tech-inline .header-tech-help-tracker {
     grid-column: 3;
+    grid-row: 1;
   }
 
   body.is-header-tech-inline .site-header .header-time-card {
     grid-column: 2;
+    grid-row: 1;
   }
 
   .brand-link {
