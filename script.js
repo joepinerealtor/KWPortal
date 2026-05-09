@@ -15,6 +15,10 @@ const contentStripHeadingLinks = document.querySelector(".content-strip-heading-
 const contentStripHeaderLinks = document.querySelector(".content-strip-links");
 const contentStripTechSupport = document.querySelector(".content-strip-tech-support");
 const featuredTechAvailabilityPanel = document.querySelector("#tech-help-joe .joe-availability-panel");
+const siteHeader = document.querySelector(".site-header");
+const headerBrandLink = siteHeader?.querySelector(".brand-link");
+const headerTimeCard = siteHeader?.querySelector(".header-time-card");
+const headerTechHelpTracker = siteHeader?.querySelector(".header-tech-help-tracker");
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
@@ -1367,6 +1371,7 @@ function syncLeadershipTechHelpVisibility() {
 }
 
 function syncHeaderTechHelpPlacement() {
+  document.body.classList.remove("is-header-tech-inline");
   if (!contentStrip || !contentStripLinksRow || !contentStripHeaderLinks || !contentStripTechSupport) {
     return;
   }
@@ -1376,6 +1381,39 @@ function syncHeaderTechHelpPlacement() {
 
   const mobileMenusAreVisible = mobileSidebarMenus
     && window.getComputedStyle(mobileSidebarMenus).display !== "none";
+  const canUseHeaderTracker = siteHeader
+    && headerBrandLink
+    && headerTimeCard
+    && headerTechHelpTracker
+    && window.getComputedStyle(siteHeader).display !== "none"
+    && !document.body.classList.contains("portal-protected")
+    && !document.body.classList.contains("is-leadership-tech-visible");
+
+  if (canUseHeaderTracker) {
+    document.body.classList.add("is-header-tech-inline");
+
+    const headerRect = siteHeader.getBoundingClientRect();
+    const brandRect = headerBrandLink.getBoundingClientRect();
+    const trackerRect = headerTechHelpTracker.getBoundingClientRect();
+    const timeRect = headerTimeCard.getBoundingClientRect();
+    const headerStyle = window.getComputedStyle(siteHeader);
+    const headerColumnGap = parseFloat(headerStyle.columnGap || headerStyle.gap) || 0;
+    const trackerFitsHeader = trackerRect.width > 0
+      && trackerRect.height > 0
+      && brandRect.right + headerColumnGap <= trackerRect.left + 2
+      && trackerRect.right + headerColumnGap <= timeRect.left + 2
+      && Math.abs((brandRect.top + brandRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
+      && Math.abs((timeRect.top + timeRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
+      && trackerRect.left >= headerRect.left - 1
+      && trackerRect.right <= headerRect.right + 1;
+
+    if (trackerFitsHeader) {
+      return;
+    }
+
+    document.body.classList.remove("is-header-tech-inline");
+  }
+
   const stripRect = contentStrip.getBoundingClientRect();
   const stripIsVisible = stripRect.width > 0
     && stripRect.height > 0

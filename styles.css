@@ -837,6 +837,52 @@ img {
   text-align: center;
 }
 
+.header-tech-help-tracker {
+  display: none;
+  min-width: 0;
+  color: var(--kw-black);
+  text-decoration: none;
+}
+
+.joe-availability-panel--header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 0;
+}
+
+.joe-availability-panel--header .joe-availability-light {
+  width: 10px;
+  height: 10px;
+}
+
+.joe-availability-panel--header .joe-availability-copy {
+  gap: 2px;
+}
+
+.joe-availability-panel--header .mobile-tech-help-kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.joe-availability-panel--header .joe-availability-label {
+  font-size: 0.72rem;
+  line-height: 1.08;
+}
+
+.joe-availability-panel--header .joe-availability-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.64rem;
+  line-height: 1.12;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: pre-line;
+}
+
 .site-header .header-time-card {
   display: grid;
 }
@@ -4717,6 +4763,15 @@ body.has-docusign-modal .page-content {
     padding: 12px 14px;
   }
 
+  body.is-header-tech-inline .site-header {
+    grid-template-columns: minmax(190px, max-content) minmax(230px, 1fr) auto;
+  }
+
+  body.is-header-tech-inline .header-tech-help-tracker {
+    display: block;
+    justify-self: stretch;
+  }
+
   .brand-link {
     display: grid;
     grid-template-columns: minmax(128px, 182px) auto;
@@ -4926,6 +4981,10 @@ body.has-docusign-modal .page-content {
     padding: 8px 10px;
   }
 
+  body.is-header-tech-inline .site-header {
+    grid-template-columns: minmax(190px, max-content) minmax(220px, 1fr) auto;
+  }
+
   .brand-link {
     grid-template-columns: minmax(126px, 150px) auto;
     gap: 10px;
@@ -5073,6 +5132,10 @@ body.has-docusign-modal .page-content {
     font-size: 0.66rem;
     line-height: 1.1;
     white-space: pre-line;
+  }
+
+  body.is-header-tech-inline .mobile-tech-help-bubble {
+    display: none;
   }
 
   .content-strip-tech-support .content-strip-tech-button {
