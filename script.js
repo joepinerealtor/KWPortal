@@ -1397,15 +1397,20 @@ function syncHeaderTechHelpPlacement() {
     const trackerRect = headerTechHelpTracker.getBoundingClientRect();
     const timeRect = headerTimeCard.getBoundingClientRect();
     const headerStyle = window.getComputedStyle(siteHeader);
-    const headerColumnGap = parseFloat(headerStyle.columnGap || headerStyle.gap) || 0;
+    const headerContentRight = headerRect.right - (parseFloat(headerStyle.paddingRight) || 0);
+    const rectsOverlap = (firstRect, secondRect, tolerance = 2) => firstRect.left < secondRect.right - tolerance
+      && firstRect.right > secondRect.left + tolerance
+      && firstRect.top < secondRect.bottom - tolerance
+      && firstRect.bottom > secondRect.top + tolerance;
     const trackerFitsHeader = trackerRect.width > 0
       && trackerRect.height > 0
-      && brandRect.right + headerColumnGap <= timeRect.left + 2
-      && timeRect.right + headerColumnGap <= trackerRect.left + 2
-      && Math.abs((brandRect.top + brandRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
-      && Math.abs((timeRect.top + timeRect.bottom) / 2 - (trackerRect.top + trackerRect.bottom) / 2) < Math.max(20, trackerRect.height * 0.5)
       && trackerRect.left >= headerRect.left - 1
-      && trackerRect.right <= headerRect.right + 1;
+      && trackerRect.right <= headerRect.right + 1
+      && trackerRect.top >= headerRect.top - 1
+      && trackerRect.bottom <= headerRect.bottom + 1
+      && trackerRect.right >= headerContentRight - 3
+      && !rectsOverlap(trackerRect, brandRect)
+      && !rectsOverlap(trackerRect, timeRect);
 
     if (trackerFitsHeader) {
       return;
