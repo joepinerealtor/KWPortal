@@ -2364,6 +2364,105 @@ body.portal-protected .mobile-tech-help-bubble {
   gap: 14px;
 }
 
+.office-tech-help-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 22px;
+  align-items: stretch;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(180, 1, 1, 0.07), transparent 38%),
+    linear-gradient(180deg, #fffefe, #fbf7f2);
+}
+
+.office-tech-help-main,
+.office-tech-help-actions {
+  min-width: 0;
+}
+
+.office-tech-help-layout {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  width: 100%;
+}
+
+.office-tech-help-photo {
+  width: 112px;
+  height: 112px;
+  border: 1px solid var(--kw-border);
+  border-radius: 10px;
+  background: #f1ece4;
+  object-fit: cover;
+}
+
+.office-tech-help-copy {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.office-tech-help-copy h3 {
+  max-width: 34ch;
+  font-size: 1.36rem;
+  line-height: 1.02;
+}
+
+.office-tech-help-copy p {
+  max-width: 82ch;
+}
+
+.office-tech-help-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-left: 130px;
+}
+
+.office-tech-help-tools span {
+  padding: 0.48rem 0.62rem;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background: rgba(255, 255, 255, 0.74);
+  color: #5f5750;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.office-tech-help-actions {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.office-tech-help-action-label {
+  margin: 0;
+  color: var(--kw-gray);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.office-tech-help-actions .joe-availability-panel {
+  width: 100%;
+}
+
+.office-tech-help-actions .button {
+  width: 100%;
+}
+
 .office-card-wide {
   grid-column: 1 / -1;
 }
@@ -2372,45 +2471,159 @@ body.portal-protected .mobile-tech-help-bubble {
   gap: 18px;
 }
 
-.office-info-card {
+.office-reference-card {
   gap: 18px;
+  align-content: start;
+}
+
+.office-reference-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(132px, 158px);
+  align-items: start;
+  gap: 16px;
+}
+
+.office-reference-copy {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.office-reference-actions {
+  margin-top: 2px;
+}
+
+.handbook-preview-card {
+  display: grid;
+  gap: 9px;
+  width: min(100%, 158px);
+  justify-self: end;
+  padding: 10px;
+  border: 1px solid var(--kw-border);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--kw-black);
+  text-decoration: none;
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.handbook-preview-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--kw-red);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 34px -28px rgba(180, 1, 1, 0.32);
+}
+
+.handbook-preview-card__media {
+  display: block;
+  aspect-ratio: 0.76;
+  overflow: hidden;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background: var(--kw-white);
+}
+
+.handbook-preview-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.handbook-preview-card__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.handbook-preview-card__copy span,
+.handbook-preview-card__copy strong {
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  line-height: 1.12;
+  text-transform: uppercase;
+}
+
+.handbook-preview-card__copy span {
+  color: var(--kw-gray);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+.handbook-preview-card__copy strong {
+  color: var(--kw-red);
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+}
+
+.office-reference-info {
+  display: grid;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(221, 212, 200, 0.92);
 }
 
 .office-info-head {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+}
+
+.office-info-kicker {
+  color: var(--kw-red);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.office-info-head h4 {
+  margin: 0;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 1.04rem;
+  line-height: 1.05;
+  text-transform: uppercase;
 }
 
 .office-info-address {
   margin: 0;
   color: var(--kw-gray);
+  font-size: 0.95rem;
   font-style: normal;
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .office-info-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
   margin: 0;
+  border-top: 1px solid var(--kw-border);
+  border-left: 1px solid var(--kw-border);
 }
 
 .office-info-list div {
   display: grid;
-  align-content: start;
-  gap: 6px;
-  min-height: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--kw-border);
-  background: linear-gradient(180deg, #ffffff, var(--kw-paper-soft));
+  align-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-right: 1px solid var(--kw-border);
+  border-bottom: 1px solid var(--kw-border);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.office-info-list div:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .office-info-list dt {
   color: var(--kw-gray);
   font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   line-height: 1.25;
   text-transform: uppercase;
 }
@@ -2418,7 +2631,7 @@ body.portal-protected .mobile-tech-help-bubble {
 .office-info-list dd {
   margin: 0;
   color: var(--kw-black);
-  font-size: 1.03rem;
+  font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.25;
   overflow-wrap: anywhere;
@@ -2474,6 +2687,7 @@ body.portal-protected .mobile-tech-help-bubble {
 
 .office-holiday-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -4357,6 +4571,7 @@ body.has-docusign-modal .page-content {
 .overview-link:focus-visible,
 .card-tag-link:focus-visible,
 .chip-link:focus-visible,
+.handbook-preview-card:focus-visible,
 .section-nav-link:focus-visible,
 .content-strip-link:focus-visible,
 .content-rate-pill:focus-visible,
@@ -4396,6 +4611,7 @@ body.has-docusign-modal .page-content {
   .dashboard-head,
   .overview-grid,
   .office-grid,
+  .office-tech-help-card,
   .content-split,
   .kw-connect-resource,
   .launch-grid,
@@ -5206,6 +5422,34 @@ body.has-docusign-modal .page-content {
     width: 100%;
   }
 
+  .office-tech-help-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .office-tech-help-photo {
+    width: 112px;
+    height: 112px;
+  }
+
+  .office-tech-help-tools {
+    padding-left: 0;
+  }
+
+  .office-reference-main {
+    grid-template-columns: 1fr;
+  }
+
+  .handbook-preview-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .handbook-preview-card__media {
+    width: 96px;
+  }
+
   .content-strip-links,
   .content-strip-heading,
   .content-strip-tech-support,
@@ -5294,6 +5538,10 @@ body.has-docusign-modal .page-content {
   }
 
   .office-info-list {
+    grid-template-columns: 1fr;
+  }
+
+  .office-holiday-list {
     grid-template-columns: 1fr;
   }
 

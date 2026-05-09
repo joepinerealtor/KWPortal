@@ -14,7 +14,7 @@ const contentStripLinksRow = document.querySelector(".content-strip-row--links")
 const contentStripHeadingLinks = document.querySelector(".content-strip-heading--links");
 const contentStripHeaderLinks = document.querySelector(".content-strip-links");
 const contentStripTechSupport = document.querySelector(".content-strip-tech-support");
-const leadershipAvailabilityPanel = document.querySelector("#leadership-support .joe-availability-panel");
+const featuredTechAvailabilityPanel = document.querySelector("#tech-help-joe .joe-availability-panel");
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
@@ -229,9 +229,12 @@ const JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS = 60 * 1000;
 const JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES = 30;
 const JOE_AVAILABILITY_FALLBACK_TIMEZONE = "America/New_York";
 const JOE_AVAILABILITY_DEFAULT_WORKING_HOURS = Object.freeze([
-  Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00" }),
-  Object.freeze({ day: "Thursday", start: "09:00", end: "17:00" }),
-  Object.freeze({ day: "Friday", start: "09:00", end: "16:00" })
+  Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00", effectiveEndDate: "2026-05-21" }),
+  Object.freeze({ day: "Thursday", start: "09:00", end: "17:00", effectiveEndDate: "2026-05-21" }),
+  Object.freeze({ day: "Friday", start: "09:00", end: "16:00", effectiveEndDate: "2026-05-21" }),
+  Object.freeze({ day: "Monday", start: "09:00", end: "17:00", effectiveStartDate: "2026-05-22" }),
+  Object.freeze({ day: "Wednesday", start: "09:00", end: "17:00", effectiveStartDate: "2026-05-22" }),
+  Object.freeze({ day: "Friday", start: "09:00", end: "16:00", effectiveStartDate: "2026-05-22" })
 ]);
 const JOE_AVAILABILITY_WEEKDAY_INDEX = Object.freeze({
   sunday: 0,
@@ -278,13 +281,247 @@ const RATE_PROGRAMS = {
   }
 };
 
-let portalContent = {
+const PORTAL_CONTENT_FALLBACK = {
   settings: {
     viewerPasscode: "0715"
   },
-  leadership: [],
-  vendors: []
+  leadership: [
+    {
+      id: "lou-barrows",
+      group: "office",
+      role: "Operating Principal",
+      name: "Lou Barrows",
+      photo: "team/lou-barrows.jpg",
+      email: "louisbarrows@kw.com",
+      phone: "401-640-3520",
+      notes: "",
+      featured: false,
+      active: true
+    },
+    {
+      id: "matt-brown",
+      group: "office",
+      role: "Team Leader",
+      name: "Matt Brown",
+      photo: "team/matt-brown.png",
+      email: "mbrown715@kw.com",
+      phone: "401-499-2978",
+      notes: "",
+      featured: true,
+      active: true
+    },
+    {
+      id: "kim-barrows",
+      group: "office",
+      role: "Market Center Operations",
+      name: "Kim Barrows",
+      photo: "team/kim-barrows.jpg",
+      email: "klrw715@kw.com",
+      phone: "401-333-4900",
+      notes: "",
+      featured: false,
+      active: true
+    },
+    {
+      id: "alc-board",
+      group: "alc",
+      role: "Board of Directors",
+      name: "2026 ALC Board",
+      photo: "images/alc/alc-2026-board-of-directors.jpg",
+      email: "",
+      phone: "",
+      notes: "Board of Directors",
+      featured: false,
+      active: true
+    },
+    {
+      id: "holly-bellucci",
+      group: "alc",
+      role: "Culture Committee",
+      name: "Holly Bellucci",
+      photo: "images/alc/holly-bellucci-culture-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "Culture Committee",
+      featured: false,
+      active: true
+    },
+    {
+      id: "pete-dufresne",
+      group: "alc",
+      role: "Financial Planning Committee",
+      name: "Pete Dufresne",
+      photo: "images/alc/pete-dufresne-financial-planning-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "Financial Planning Committee",
+      featured: false,
+      active: true
+    },
+    {
+      id: "melanie-ruiz",
+      group: "alc",
+      role: "Career Development Committee",
+      name: "Melanie Ruiz",
+      photo: "images/alc/melanie-ruiz-career-development-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "Career Development Committee",
+      featured: false,
+      active: true
+    },
+    {
+      id: "michael-leboeuf",
+      group: "alc",
+      role: "Agent Advocate + Safety Committee",
+      name: "Michael LeBoeuf",
+      photo: "images/alc/michael-leboeuf-agent-advocate-safety-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "Agent Advocate + Safety Committee",
+      featured: false,
+      active: true
+    },
+    {
+      id: "alessa-alvarez",
+      group: "alc",
+      role: "Technology Committee",
+      name: "Alessa Alvarez",
+      photo: "images/alc/alessa-alvarez-technology-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "Technology Committee",
+      featured: false,
+      active: true
+    },
+    {
+      id: "liz-jimenez",
+      group: "alc",
+      role: "CHISPA / Inclusion Committee",
+      name: "Liz Jimenez",
+      photo: "images/alc/liz-jimenez-chispa-inclusion-committee.jpg",
+      email: "",
+      phone: "",
+      notes: "CHISPA / Inclusion Committee",
+      featured: false,
+      active: true
+    }
+  ],
+  vendors: [
+    {
+      id: "ferranti-loandepot",
+      section: "core",
+      business: "The Ferranti Group of loanDepot",
+      logo: "images/vendors/ferranti-loandepot.png",
+      name: "Aaron Kloss",
+      phone: "401-275-3149",
+      email: "akloss@loandepot.com",
+      notes: "Lender",
+      active: true
+    },
+    {
+      id: "percy-law-group",
+      section: "core",
+      business: "Percy Law Group, PC",
+      logo: "images/vendors/percy-law-group.png",
+      name: "Tom Percy",
+      phone: "401-237-5350",
+      email: "tpercy@percylawgroup.com",
+      notes: "Attorney and Title",
+      active: true
+    },
+    {
+      id: "comparion-insurance",
+      section: "core",
+      business: "Comparion Insurance Agency",
+      logo: "images/vendors/comparion-insurance.png",
+      name: "Chris Chappell",
+      phone: "401-824-1114",
+      email: "Christopher.Chappell@Comparioninsurance.com",
+      notes: "Insurance",
+      active: true
+    },
+    {
+      id: "koala-home-inspections",
+      section: "services",
+      business: "Koala Home Inspections LLC",
+      logo: "images/vendors/koala-home-inspections.png",
+      name: "Ryan Colby",
+      phone: "401-332-8387",
+      email: "ryan@koalainspections.com",
+      notes: "Home Inspections",
+      active: true
+    },
+    {
+      id: "b-roll-productions",
+      section: "services",
+      business: "B-Roll Productions",
+      logo: "images/vendors/b-roll-productions.png",
+      name: "Brandon Barrayo",
+      phone: "401-327-8661",
+      email: "brollproductionsri@gmail.com",
+      notes: "Videography and Photography",
+      active: true
+    },
+    {
+      id: "true-living-home-services",
+      section: "services",
+      business: "True Living Home Services",
+      logo: "images/vendors/true-living-home-services.png",
+      name: "Damian Ruiz",
+      phone: "774-328-6149",
+      email: "truelivinghandyman@gmail.com",
+      notes: "Construction & Restoration",
+      active: true
+    },
+    {
+      id: "chopy-media",
+      section: "services",
+      business: "Chopy Media",
+      logo: "images/vendors/chopy-media.png",
+      name: "Joshua Chopy",
+      phone: "401-426-7530",
+      email: "Josh@chopymedia.com",
+      notes: "Videography and Photography",
+      active: true
+    },
+    {
+      id: "maid-believable",
+      section: "services",
+      business: "Maid Believable",
+      logo: "images/vendors/maid-believable.png",
+      name: "Crystal Girard",
+      phone: "401-309-7440",
+      email: "maidbelievable@gmail.com",
+      notes: "Cleaning Services",
+      active: true
+    },
+    {
+      id: "crum-relocation",
+      section: "services",
+      business: "Crum Relocation",
+      logo: "images/vendors/crum-relocation.png",
+      name: "Carmine Deluca",
+      phone: "401-450-4659",
+      email: "Carmine@crumrelo.com",
+      notes: "Moving Company",
+      active: true
+    },
+    {
+      id: "air-guardian",
+      section: "services",
+      business: "Air Guardian Inc.",
+      logo: "images/vendors/air-guardian.png",
+      name: "Tanner Guimond",
+      phone: "",
+      email: "Tanner@airguardianinc.com",
+      notes: "Mold Remediation",
+      active: true
+    }
+  ]
 };
+
+let portalContent = { ...PORTAL_CONTENT_FALLBACK };
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -1124,7 +1361,7 @@ function isElementVisibleInActiveViewport(element, minVisiblePx = 24) {
 }
 
 function syncLeadershipTechHelpVisibility() {
-  const isLeadershipTechVisible = isElementVisibleInActiveViewport(leadershipAvailabilityPanel);
+  const isLeadershipTechVisible = isElementVisibleInActiveViewport(featuredTechAvailabilityPanel);
   contentStrip?.classList.toggle("is-leadership-tech-visible", isLeadershipTechVisible);
   document.body.classList.toggle("is-leadership-tech-visible", isLeadershipTechVisible);
 }
@@ -1714,11 +1951,11 @@ function createRoomBookingModal() {
           <p class="room-booking-summary">Choose an available time and complete the reservation without leaving the portal.</p>
         </div>
         <div class="room-booking-availability" data-room-booking-availability data-joe-availability-card data-joe-availability-src="data/joe-tech-status.json" hidden>
-          <div class="joe-availability-panel joe-availability-panel--modal" data-status="unavailable" aria-live="polite">
+          <div class="joe-availability-panel joe-availability-panel--modal" data-status="schedule" aria-live="polite">
             <span class="joe-availability-light" data-joe-availability-light aria-hidden="true"></span>
             <div class="joe-availability-copy">
-              <p class="joe-availability-label" data-joe-availability-label>Joe is unavailable</p>
-              <p class="joe-availability-summary" data-joe-availability-summary>No open tech-help slots are listed right now.</p>
+              <p class="joe-availability-label" data-joe-availability-label>Schedule a time with Joe</p>
+              <p class="joe-availability-summary" data-joe-availability-summary>Reserve a tech-help time with Joe in Calendly.</p>
             </div>
           </div>
         </div>
@@ -1970,6 +2207,53 @@ function formatJoeAvailabilityNextSlotLabel(iso, timezone = JOE_AVAILABILITY_FAL
   }
 }
 
+function joinJoeAvailabilityList(labels) {
+  const items = [...labels].filter(Boolean);
+  if (!items.length) {
+    return "";
+  }
+
+  if (items.length === 1) {
+    return items[0];
+  }
+
+  if (items.length === 2) {
+    return `${items[0]} and ${items[1]}`;
+  }
+
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function getJoeFutureAppointmentLabels(rawState = {}, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE, referenceMs = Date.now(), afterMs = referenceMs, limit = 3) {
+  const candidateIsos = [
+    ...(Array.isArray(rawState?.nextAvailableDaySlotIsos) ? rawState.nextAvailableDaySlotIsos : []),
+    rawState?.nextAppointmentAvailableIso,
+    rawState?.nextOpenSlotIso
+  ];
+  const seen = new Set();
+  const referenceDate = new Date(referenceMs);
+
+  return candidateIsos
+    .map((iso) => {
+      const ms = getJoeAvailabilityIsoMs(iso);
+      return Number.isFinite(ms) ? { iso, ms } : null;
+    })
+    .filter(Boolean)
+    .filter((slot) => slot.ms > referenceMs && slot.ms >= afterMs - 60 * 1000)
+    .sort((left, right) => left.ms - right.ms)
+    .filter((slot) => {
+      const key = Math.round(slot.ms / 60000);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit)
+    .map((slot) => formatJoeAvailabilityNextSlotLabel(slot.iso, timezone, referenceDate))
+    .filter(Boolean);
+}
+
 function getJoeAvailabilityLocalYear(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return "";
@@ -2121,12 +2405,25 @@ function parseJoeAvailabilityTimeToMinutes(value) {
   return (hours * 60) + minutes;
 }
 
-function normalizeJoeWorkingHours(rawHours) {
-  const source = Array.isArray(rawHours)
+function isJoeWorkingHourEntryEffective(entry, dateKey) {
+  if (!dateKey) {
+    return true;
+  }
+
+  const startDate = String(entry?.effectiveStartDate || "").trim();
+  const endDate = String(entry?.effectiveEndDate || "").trim();
+
+  return (!startDate || dateKey >= startDate) && (!endDate || dateKey <= endDate);
+}
+
+function normalizeJoeWorkingHours(rawHours, referenceDate = new Date(), timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  const source = Array.isArray(rawHours) && rawHours.length
     ? rawHours
     : JOE_AVAILABILITY_DEFAULT_WORKING_HOURS;
+  const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
 
   return source
+    .filter((entry) => isJoeWorkingHourEntryEffective(entry, referenceDateKey))
     .map((entry) => {
       const dayKey = String(entry?.day || "").trim().toLowerCase();
       const dayIndex = JOE_AVAILABILITY_WEEKDAY_INDEX[dayKey];
@@ -2160,12 +2457,8 @@ function formatJoeAvailabilityMinutes(minutes) {
   return `${hours12}${minuteLabel} ${period}`;
 }
 
-function formatJoeAvailabilityOfficeHours(rawHours) {
-  if (Array.isArray(rawHours) && rawHours.length === 0) {
-    return "Availability from Calendly";
-  }
-
-  const workingHours = normalizeJoeWorkingHours(rawHours);
+function formatJoeAvailabilityOfficeHours(rawHours, referenceDate = new Date(), timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  const workingHours = normalizeJoeWorkingHours(rawHours, referenceDate, timezone);
   if (!workingHours.length) {
     return "Availability from Calendly";
   }
@@ -2320,16 +2613,23 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     ? nextOpenSlotMs + (eventDurationMinutes * 60 * 1000)
     : Number.NaN;
   const nowMs = Date.now();
-  const workingHours = normalizeJoeWorkingHours(rawState?.workingHours);
-  const isWithinWorkingHoursNow = isWithinJoeWorkingHours(new Date(nowMs), timezone, workingHours);
+  const nowDate = new Date(nowMs);
+  const workingHoursNow = normalizeJoeWorkingHours(rawState?.workingHours, nowDate, timezone);
+  const workingHoursForNextSlot = nextOpenSlotDate
+    ? normalizeJoeWorkingHours(rawState?.workingHours, nextOpenSlotDate, timezone)
+    : workingHoursNow;
+  const isWithinWorkingHoursNow = isWithinJoeWorkingHours(nowDate, timezone, workingHoursNow);
   const isNextSlotWithinWorkingHours = Number.isFinite(nextOpenSlotMs)
-    && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHours, eventDurationMinutes);
+    && isWithinJoeWorkingHours(nextOpenSlotDate, timezone, workingHoursForNextSlot, eventDurationMinutes);
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
-  const availableNowLabel = rawState?.availableNowLabel || "Joe is available to chat";
-  const busyNowLabel = rawState?.busyNowLabel || "Joe is in another appointment";
-  const unavailableLabel = rawState?.unavailableLabel || "Joe is unavailable";
+  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
+    ? rawState.availabilitySummary.trim()
+    : "";
+  const availableNowLabel = "Joe is available now";
+  const busyNowLabel = "Schedule a time with Joe";
+  const unavailableLabel = "Schedule a time with Joe";
   const baseStatus = [
     "available",
     "available_now",
@@ -2388,18 +2688,20 @@ function normalizeJoeAvailabilityState(rawState = {}) {
     return {
       status,
       label: isBusyNow ? busyNowLabel : unavailableLabel,
-      summary: busyUntilLabel
+      summary: availabilitySummary
+        ? availabilitySummary
+        : (busyUntilLabel
         ? `Next available time is ${busyUntilLabel}.`
         : (nextLabel
         ? `Next available time is ${nextLabel}.`
-        : (rawState?.noSlotsSummary || "No open tech-help slots are listed right now."))
+        : (rawState?.noSlotsSummary || "Reserve a tech-help time with Joe in Calendly.")))
     };
   }
 
   return {
     status: "unavailable",
     label: unavailableLabel,
-    summary: rawState?.noSlotsSummary || "No open tech-help slots are listed right now."
+    summary: "Reserve a tech-help time with Joe in Calendly."
   };
 }
 
@@ -2407,7 +2709,7 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const timezone = typeof rawState?.timezone === "string" && rawState.timezone.trim()
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
-  const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours);
+  const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -2487,15 +2789,13 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     const untilLabel = nextAppointmentLabel || nextSlotLabel;
 
     return {
-      label: busyUntilLabel
-        ? `Unavailable until ${busyUntilLabel}`
-        : (untilLabel ? `Unavailable until ${untilLabel}` : "Joe is unavailable"),
+      label: "Schedule a time with Joe",
       summary: officeHoursLabel
     };
   }
 
   return {
-    label: normalizedState.label || "Joe is unavailable",
+    label: normalizedState.label || "Schedule a time with Joe",
     summary: officeHoursLabel
   };
 }
@@ -2523,7 +2823,7 @@ function updateJoeAvailabilityAction(action) {
   action.href = JOE_TECH_BOOKING_URL;
 
   if (!isMobileBubbleAction) {
-    action.textContent = "Schedule an appointment";
+    action.textContent = action.dataset.joeActionLabel || "Schedule an appointment";
   }
 
   action.setAttribute("target", "_blank");
@@ -2558,7 +2858,7 @@ function writeJoeAvailability(rawState = {}) {
     const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(state) : null;
     const displayState = bubbleState || ctaState;
 
-    ref.panel.dataset.status = state.status;
+    ref.panel.dataset.status = state.status === "available_now" ? "available_now" : "schedule";
     ref.panel.hidden = false;
     ref.label.textContent = displayState ? displayState.label : state.label;
     const summaryText = displayState ? displayState.summary : state.summary;
