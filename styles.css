@@ -1488,7 +1488,7 @@ img {
 }
 
 .mobile-tech-help-bubble {
-  display: none;
+  display: none !important;
 }
 
 body.is-header-tech-floating .mobile-tech-help-bubble {

@@ -1372,13 +1372,9 @@ function syncLeadershipTechHelpVisibility() {
 
 function syncHeaderTechHelpPlacement() {
   document.body.classList.remove("is-header-tech-inline");
-  document.body.classList.remove("is-header-tech-out-of-view");
   if (!contentStrip || !contentStripLinksRow || !contentStripHeaderLinks || !contentStripTechSupport) {
     return;
   }
-
-  contentStrip.classList.remove("is-header-tech-floating");
-  document.body.classList.remove("is-header-tech-floating");
 
   const mobileMenusAreVisible = mobileSidebarMenus
     && window.getComputedStyle(mobileSidebarMenus).display !== "none";
@@ -1415,13 +1411,6 @@ function syncHeaderTechHelpPlacement() {
       && !rectsOverlap(trackerRect, timeRect);
 
     if (trackerFitsHeader) {
-      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-      const visibleWidth = Math.min(trackerRect.right, viewportWidth) - Math.max(trackerRect.left, 0);
-      const visibleHeight = Math.min(trackerRect.bottom, viewportHeight) - Math.max(trackerRect.top, 0);
-      const trackerIsVisible = visibleWidth > 0
-        && visibleHeight >= Math.min(24, trackerRect.height);
-      document.body.classList.toggle("is-header-tech-out-of-view", !trackerIsVisible);
       return;
     }
 
@@ -1433,9 +1422,7 @@ function syncHeaderTechHelpPlacement() {
     && stripRect.height > 0
     && window.getComputedStyle(contentStrip).display !== "none";
 
-  if ((!stripIsVisible || mobileMenusAreVisible) && !document.body.classList.contains("is-leadership-tech-visible")) {
-    contentStrip.classList.add("is-header-tech-floating");
-    document.body.classList.add("is-header-tech-floating");
+  if (!stripIsVisible || mobileMenusAreVisible) {
     return;
   }
 
@@ -1443,18 +1430,7 @@ function syncHeaderTechHelpPlacement() {
     return;
   }
 
-  const supportRect = contentStripTechSupport.getBoundingClientRect();
-  const linksRect = contentStripHeaderLinks.getBoundingClientRect();
-
-  if (supportRect.width <= 0 || supportRect.height <= 0 || linksRect.width <= 0 || linksRect.height <= 0) {
-    return;
-  }
-
-  const supportOverflowsStrip = supportRect.right > stripRect.right + 1 || supportRect.left < stripRect.left - 1;
-  const shouldFloatHeaderTech = supportOverflowsStrip;
-
-  contentStrip.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
-  document.body.classList.toggle("is-header-tech-floating", shouldFloatHeaderTech);
+  contentStripTechSupport.hidden = false;
 }
 
 function queueHeaderTechHelpPlacementSync() {
