@@ -2654,22 +2654,33 @@ function normalizeJoeAvailabilityState(rawState = {}) {
       nowMs
     );
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
-      ? formatJoeAvailabilityTime(new Date(effectiveAvailableNowEndMs).toISOString(), timezone)
+      ? formatJoeAvailabilityUntilLabel(new Date(effectiveAvailableNowEndMs).toISOString(), timezone, new Date(nowMs))
       : "";
+    const futureAppointmentLabels = Number.isFinite(effectiveAvailableNowEndMs)
+      ? getJoeFutureAppointmentLabels(rawState, timezone, nowMs, effectiveAvailableNowEndMs, 3)
+      : [];
+    const futureAppointmentText = joinJoeAvailabilityList(futureAppointmentLabels);
     const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
       ? formatJoeAvailabilityUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
       : "";
+    let summary = availabilitySummary;
+
+    if (!summary && endLabel && futureAppointmentText) {
+      summary = `Joe is available now until ${endLabel}, with future appointments at ${futureAppointmentText}.`;
+    } else if (!summary && nextAppointmentLabel && endLabel) {
+      summary = `Joe is available now until ${endLabel}. Next appointment after that is ${nextAppointmentLabel}.`;
+    } else if (!summary && nextAppointmentLabel) {
+      summary = `Joe is available now. Next appointment after that is ${nextAppointmentLabel}.`;
+    } else if (!summary && endLabel) {
+      summary = `Joe is available now until ${endLabel}.`;
+    } else if (!summary) {
+      summary = "Joe is available now. Reserve your slot now.";
+    }
 
     return {
       status,
       label: availableNowLabel,
-      summary: nextAppointmentLabel && endLabel
-        ? `Current availability runs until ${endLabel}. Next appointment available at ${nextAppointmentLabel}.`
-        : (nextAppointmentLabel
-        ? `Next appointment available at ${nextAppointmentLabel}.`
-        : (rawState?.availableNowSummary || (endLabel
-        ? `Schedule an appointment with Joe. Current availability runs until ${endLabel}.`
-        : "Schedule an appointment with Joe.")))
+      summary
     };
   }
 
@@ -2752,6 +2763,9 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
+  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
+    ? rawState.availabilitySummary.trim()
+    : "";
 
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
@@ -2770,9 +2784,9 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
 
     return {
       label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
-      summary: nextAppointmentLabel
+      summary: availabilitySummary || (nextAppointmentLabel
         ? `Next appointment available at ${nextAppointmentLabel}`
-        : officeHoursLabel
+        : officeHoursLabel)
     };
   }
 
