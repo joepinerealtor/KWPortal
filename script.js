@@ -15,6 +15,11 @@ const contentStripHeadingLinks = document.querySelector(".content-strip-heading-
 const contentStripHeaderLinks = document.querySelector(".content-strip-links");
 const contentStripTechSupport = document.querySelector(".content-strip-tech-support");
 const featuredTechAvailabilityPanel = document.querySelector("#tech-help-joe .joe-availability-panel");
+const siteHeader = document.querySelector(".site-header");
+const headerBrandLink = siteHeader?.querySelector(".brand-link");
+const headerTimeCard = siteHeader?.querySelector(".header-time-card");
+const headerTechHelpTracker = siteHeader?.querySelector(".header-tech-help-tracker");
+let headerTechHelpPlacementFrame = null;
 const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
@@ -1367,6 +1372,8 @@ function syncLeadershipTechHelpVisibility() {
 }
 
 function syncHeaderTechHelpPlacement() {
+  document.body.classList.remove("is-header-tech-inline");
+  document.body.classList.remove("is-header-tech-out-of-view");
   if (!contentStrip || !contentStripLinksRow || !contentStripHeaderLinks || !contentStripTechSupport) {
     return;
   }
@@ -1376,12 +1383,63 @@ function syncHeaderTechHelpPlacement() {
 
   const mobileMenusAreVisible = mobileSidebarMenus
     && window.getComputedStyle(mobileSidebarMenus).display !== "none";
+  const canUseHeaderTracker = siteHeader
+    && headerBrandLink
+    && headerTimeCard
+    && headerTechHelpTracker
+    && window.getComputedStyle(siteHeader).display !== "none"
+    && !document.body.classList.contains("portal-protected")
+    && !document.body.classList.contains("is-leadership-tech-visible");
+
+  if (canUseHeaderTracker) {
+    document.body.classList.add("is-header-tech-inline");
+
+    const headerRect = siteHeader.getBoundingClientRect();
+    const brandRect = headerBrandLink.getBoundingClientRect();
+    const trackerRect = headerTechHelpTracker.getBoundingClientRect();
+    const timeRect = headerTimeCard.getBoundingClientRect();
+    const headerStyle = window.getComputedStyle(siteHeader);
+    const headerContentRight = headerRect.right - (parseFloat(headerStyle.paddingRight) || 0);
+    const rectsOverlap = (firstRect, secondRect, tolerance = 2) => firstRect.left < secondRect.right - tolerance
+      && firstRect.right > secondRect.left + tolerance
+      && firstRect.top < secondRect.bottom - tolerance
+      && firstRect.bottom > secondRect.top + tolerance;
+    const trackerFitsHeader = trackerRect.width > 0
+      && trackerRect.height > 0
+      && trackerRect.left >= headerRect.left - 1
+      && trackerRect.right <= headerRect.right + 1
+      && trackerRect.top >= headerRect.top - 1
+      && trackerRect.bottom <= headerRect.bottom + 1
+      && trackerRect.right >= headerContentRight - 3
+      && !rectsOverlap(trackerRect, brandRect)
+      && !rectsOverlap(trackerRect, timeRect);
+
+    if (trackerFitsHeader) {
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const visibleWidth = Math.min(trackerRect.right, viewportWidth) - Math.max(trackerRect.left, 0);
+      const visibleHeight = Math.min(trackerRect.bottom, viewportHeight) - Math.max(trackerRect.top, 0);
+      const trackerIsVisible = visibleWidth > 0
+        && visibleHeight >= Math.min(24, trackerRect.height);
+      document.body.classList.toggle("is-header-tech-out-of-view", !trackerIsVisible);
+      return;
+    }
+
+    document.body.classList.remove("is-header-tech-inline");
+  }
+
   const stripRect = contentStrip.getBoundingClientRect();
   const stripIsVisible = stripRect.width > 0
     && stripRect.height > 0
     && window.getComputedStyle(contentStrip).display !== "none";
 
-  if (!stripIsVisible || mobileMenusAreVisible || contentStrip.classList.contains("is-leadership-tech-visible")) {
+  if ((!stripIsVisible || mobileMenusAreVisible) && !document.body.classList.contains("is-leadership-tech-visible")) {
+    contentStrip.classList.add("is-header-tech-floating");
+    document.body.classList.add("is-header-tech-floating");
+    return;
+  }
+
+  if (contentStrip.classList.contains("is-leadership-tech-visible")) {
     return;
   }
 
@@ -1420,7 +1478,14 @@ function syncHeaderTechHelpPlacement() {
 }
 
 function queueHeaderTechHelpPlacementSync() {
-  window.requestAnimationFrame(syncHeaderTechHelpPlacement);
+  if (headerTechHelpPlacementFrame !== null) {
+    return;
+  }
+
+  headerTechHelpPlacementFrame = window.requestAnimationFrame(() => {
+    headerTechHelpPlacementFrame = null;
+    syncHeaderTechHelpPlacement();
+  });
 }
 
 function setActiveSection(id) {
@@ -2721,6 +2786,10 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     ? rawState.timezone.trim()
     : JOE_AVAILABILITY_FALLBACK_TIMEZONE;
   const officeHoursLabel = formatJoeAvailabilityOfficeHours(rawState?.workingHours, new Date(), timezone);
+  const buildCompactSummary = (...lines) => lines
+    .filter((line) => typeof line === "string" && line.trim())
+    .map((line) => line.trim())
+    .join("\n");
   const parsedDuration = Number.parseInt(rawState?.eventDurationMinutes, 10);
   const eventDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
     ? parsedDuration
@@ -2763,9 +2832,6 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
-  const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
-    ? rawState.availabilitySummary.trim()
-    : "";
 
   if (normalizedState.status === "available_now") {
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
@@ -2781,12 +2847,15 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
     const nextAppointmentLabel = Number.isFinite(nextAppointmentAvailableMs) && nextAppointmentAvailableMs > nowMs
       ? formatJoeAvailabilityCompactUntilLabel(nextAppointmentAvailableIso, timezone, new Date(nowMs))
       : "";
+    const availableNowSummary = endLabel && nextAppointmentLabel
+      ? `Available now until ${endLabel}. Next appointment: ${nextAppointmentLabel}.`
+      : (endLabel
+        ? `Available now until ${endLabel}.`
+        : (nextAppointmentLabel ? `Next appointment: ${nextAppointmentLabel}.` : ""));
 
     return {
       label: endLabel ? `Available until ${endLabel}` : "Joe is available now",
-      summary: availabilitySummary || (nextAppointmentLabel
-        ? `Next appointment available at ${nextAppointmentLabel}`
-        : officeHoursLabel)
+      summary: buildCompactSummary(availableNowSummary, officeHoursLabel)
     };
   }
 
@@ -2801,30 +2870,36 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
       ? formatJoeAvailabilityCompactUntilLabel(nextOpenSlotIso, timezone, new Date(nowMs))
       : "";
     const untilLabel = nextAppointmentLabel || nextSlotLabel;
+    const nextAvailabilitySummary = untilLabel
+      ? `Next appointment available at ${untilLabel}.`
+      : "";
 
     return {
       label: "Schedule a time with Joe",
-      summary: officeHoursLabel
+      summary: buildCompactSummary(nextAvailabilitySummary, officeHoursLabel)
     };
   }
 
   return {
     label: normalizedState.label || "Schedule a time with Joe",
-    summary: officeHoursLabel
+    summary: buildCompactSummary(officeHoursLabel)
   };
 }
 
-function getMobileBubbleJoeAvailabilityState(normalizedState = {}) {
+function getMobileBubbleJoeAvailabilityState(rawState = {}, normalizedState = {}) {
+  const compactState = getCompactJoeAvailabilityState(rawState, normalizedState);
+  const summary = compactState.summary || "Tap to schedule an appointment";
+
   if (normalizedState.status === "available_now") {
     return {
       label: "Joe is available now",
-      summary: "Tap to schedule an appointment"
+      summary
     };
   }
 
   return {
-    label: "Schedule an appointment",
-    summary: "Tap to schedule an appointment"
+    label: "Schedule a time with Joe",
+    summary
   };
 }
 
@@ -2834,16 +2909,17 @@ function updateJoeAvailabilityAction(action) {
   }
 
   const isMobileBubbleAction = action.classList.contains("mobile-tech-help-bubble");
+  const isHeaderTrackerAction = action.classList.contains("header-tech-help-tracker");
   action.href = JOE_TECH_BOOKING_URL;
 
-  if (!isMobileBubbleAction) {
+  if (!isMobileBubbleAction && !isHeaderTrackerAction) {
     action.textContent = action.dataset.joeActionLabel || "Schedule an appointment";
   }
 
   action.setAttribute("target", "_blank");
   action.setAttribute("rel", "noreferrer");
 
-  if (isMobileBubbleAction) {
+  if (isMobileBubbleAction || isHeaderTrackerAction) {
     action.setAttribute("aria-label", "Schedule tech help with Joe");
   }
 }
@@ -2863,13 +2939,14 @@ function writeJoeAvailability(rawState = {}) {
 
   joeAvailabilityRefs.forEach((ref) => {
     const isCompactHeaderWidget = ref.panel.classList.contains("joe-availability-panel--compact");
+    const isInlineHeaderWidget = ref.panel.classList.contains("joe-availability-panel--header");
     const isLeadershipSupportWidget = ref.card.classList.contains("leadership-support-card");
     const isModalHeaderWidget = ref.panel.classList.contains("joe-availability-panel--modal");
     const isMobileBubbleWidget = ref.card.classList.contains("mobile-tech-help-bubble");
-    const ctaState = isCompactHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
+    const ctaState = isCompactHeaderWidget || isInlineHeaderWidget || isLeadershipSupportWidget || isModalHeaderWidget
       ? getCompactJoeAvailabilityState(rawState, state)
       : null;
-    const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(state) : null;
+    const bubbleState = isMobileBubbleWidget ? getMobileBubbleJoeAvailabilityState(rawState, state) : null;
     const displayState = bubbleState || ctaState;
 
     ref.panel.dataset.status = state.status === "available_now" ? "available_now" : "schedule";
@@ -3735,16 +3812,24 @@ async function initializePortal() {
   window.requestAnimationFrame(queueHeaderTechHelpPlacementSync);
   updateActiveSectionFromScroll();
   if (scrollContainer) {
-    scrollContainer.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
+    scrollContainer.addEventListener("scroll", () => {
+      requestActiveSectionUpdate();
+      queueHeaderTechHelpPlacementSync();
+    }, { passive: true });
   }
-  window.addEventListener("scroll", requestActiveSectionUpdate, { passive: true });
+  window.addEventListener("scroll", () => {
+    requestActiveSectionUpdate();
+    queueHeaderTechHelpPlacementSync();
+  }, { passive: true });
   window.addEventListener("resize", () => {
     syncSectionScrollOffset();
     requestActiveSectionUpdate();
+    queueHeaderTechHelpPlacementSync();
   });
   window.addEventListener("load", () => {
     syncSectionScrollOffset();
     syncContentStripVisibility();
+    queueHeaderTechHelpPlacementSync();
   }, { once: true });
 
   if (document.fonts?.ready) {

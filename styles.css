@@ -837,6 +837,52 @@ img {
   text-align: center;
 }
 
+.header-tech-help-tracker {
+  display: none;
+  min-width: 0;
+  color: var(--kw-black);
+  text-decoration: none;
+}
+
+.joe-availability-panel--header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 0;
+}
+
+.joe-availability-panel--header .joe-availability-light {
+  width: 10px;
+  height: 10px;
+}
+
+.joe-availability-panel--header .joe-availability-copy {
+  gap: 2px;
+}
+
+.joe-availability-panel--header .mobile-tech-help-kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.joe-availability-panel--header .joe-availability-label {
+  font-size: 0.72rem;
+  line-height: 1.08;
+}
+
+.joe-availability-panel--header .joe-availability-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.64rem;
+  line-height: 1.12;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  white-space: pre-line;
+}
+
 .site-header .header-time-card {
   display: grid;
 }
@@ -1408,6 +1454,7 @@ img {
 .joe-availability-panel--compact .joe-availability-summary {
   font-size: 0.76rem;
   line-height: 1.25;
+  white-space: pre-line;
 }
 
 .mobile-tech-help-bubble {
@@ -1417,6 +1464,18 @@ img {
 body.is-header-tech-floating .mobile-tech-help-bubble {
   position: fixed;
   right: max(20px, env(safe-area-inset-right));
+  top: auto;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: block;
+  color: var(--kw-black);
+  text-decoration: none;
+}
+
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  top: auto;
   bottom: max(20px, env(safe-area-inset-bottom));
   z-index: 50;
   display: block;
@@ -1429,11 +1488,27 @@ body.is-header-tech-floating .mobile-tech-help-bubble .joe-availability-panel--m
   padding: 12px 14px 12px 12px;
 }
 
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble .joe-availability-panel--mobile-bubble {
+  min-width: min(278px, calc(100vw - 40px));
+  padding: 12px 14px 12px 12px;
+}
+
 body.is-header-tech-floating .mobile-tech-help-bubble .mobile-tech-help-avatar {
   width: 46px;
   height: 46px;
 }
 
+body.is-header-tech-inline.is-header-tech-out-of-view .mobile-tech-help-bubble .mobile-tech-help-avatar {
+  width: 46px;
+  height: 46px;
+}
+
+body.is-header-tech-inline.is-header-tech-out-of-view.is-leadership-tech-visible .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-room-booking-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-calendar-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-handbook-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-lone-wolf-modal .mobile-tech-help-bubble,
+body.is-header-tech-inline.is-header-tech-out-of-view.has-docusign-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.is-leadership-tech-visible .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-room-booking-modal .mobile-tech-help-bubble,
 body.is-header-tech-floating.has-calendar-modal .mobile-tech-help-bubble,
@@ -1508,6 +1583,7 @@ body.portal-protected .mobile-tech-help-bubble {
 .joe-availability-panel--mobile-bubble .joe-availability-summary {
   font-size: 0.72rem;
   line-height: 1.16;
+  white-space: pre-line;
 }
 
 .joe-availability-panel--mobile-bubble[data-status="available"] .mobile-tech-help-avatar,
@@ -4715,6 +4791,20 @@ body.has-docusign-modal .page-content {
     padding: 12px 14px;
   }
 
+  body.is-header-tech-inline .site-header {
+    grid-template-columns: minmax(190px, max-content) auto minmax(230px, 360px);
+  }
+
+  body.is-header-tech-inline .header-tech-help-tracker {
+    grid-column: 3;
+    display: block;
+    justify-self: stretch;
+  }
+
+  body.is-header-tech-inline .site-header .header-time-card {
+    grid-column: 2;
+  }
+
   .brand-link {
     display: grid;
     grid-template-columns: minmax(128px, 182px) auto;
@@ -4864,6 +4954,7 @@ body.has-docusign-modal .page-content {
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(20px, env(safe-area-inset-right));
+    top: auto;
     bottom: max(20px, env(safe-area-inset-bottom));
     z-index: 50;
     display: block;
@@ -4879,6 +4970,10 @@ body.has-docusign-modal .page-content {
   .mobile-tech-help-bubble .mobile-tech-help-avatar {
     width: 46px;
     height: 46px;
+  }
+
+  body.is-header-tech-inline .mobile-tech-help-bubble {
+    display: none;
   }
 
   body.is-leadership-tech-visible .mobile-tech-help-bubble,
@@ -4922,6 +5017,18 @@ body.has-docusign-modal .page-content {
     min-height: 64px;
     gap: 10px;
     padding: 8px 10px;
+  }
+
+  body.is-header-tech-inline .site-header {
+    grid-template-columns: minmax(190px, max-content) auto minmax(220px, 340px);
+  }
+
+  body.is-header-tech-inline .header-tech-help-tracker {
+    grid-column: 3;
+  }
+
+  body.is-header-tech-inline .site-header .header-time-card {
+    grid-column: 2;
   }
 
   .brand-link {
@@ -5070,6 +5177,11 @@ body.has-docusign-modal .page-content {
   .content-strip-tech-support .joe-availability-panel--compact .joe-availability-summary {
     font-size: 0.66rem;
     line-height: 1.1;
+    white-space: pre-line;
+  }
+
+  body.is-header-tech-inline .mobile-tech-help-bubble {
+    display: none;
   }
 
   .content-strip-tech-support .content-strip-tech-button {
@@ -5087,14 +5199,81 @@ body.has-docusign-modal .page-content {
 }
 
 @media (max-aspect-ratio: 5/4) and (max-width: 699px) {
+  body.is-header-tech-inline .site-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(138px, 42vw);
+    align-items: center;
+    gap: 8px 10px;
+  }
+
+  body.is-header-tech-inline .brand-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-items: center;
+    text-align: center;
+  }
+
+  body.is-header-tech-inline .brand-lockup {
+    min-width: 0;
+    width: min(100%, 220px);
+  }
+
+  body.is-header-tech-inline .brand-copy strong {
+    font-size: 0.94rem;
+  }
+
+  body.is-header-tech-inline .site-header .header-time-card {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+  }
+
+  body.is-header-tech-inline .header-tech-help-tracker {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: block;
+    align-self: center;
+    justify-self: stretch;
+  }
+
+  body.is-header-tech-inline .joe-availability-panel--header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 8px;
+  }
+
+  body.is-header-tech-inline .joe-availability-panel--header .joe-availability-light {
+    display: none;
+  }
+
+  body.is-header-tech-inline .joe-availability-panel--header .mobile-tech-help-kicker {
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  body.is-header-tech-inline .joe-availability-panel--header .joe-availability-label {
+    font-size: 0.66rem;
+  }
+
+  body.is-header-tech-inline .joe-availability-panel--header .joe-availability-summary {
+    font-size: 0.58rem;
+    line-height: 1.1;
+    -webkit-line-clamp: 3;
+  }
+
   .mobile-tech-help-bubble {
     position: fixed;
     right: max(14px, env(safe-area-inset-right));
+    top: auto;
     bottom: max(14px, env(safe-area-inset-bottom));
     z-index: 50;
     display: block;
     color: var(--kw-black);
     text-decoration: none;
+  }
+
+  body.is-header-tech-inline .mobile-tech-help-bubble {
+    display: none;
   }
 
   body.is-leadership-tech-visible .mobile-tech-help-bubble,
