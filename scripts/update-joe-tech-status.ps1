@@ -12,14 +12,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$JoeWorkingHours = @(
-  [pscustomobject]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00"; EffectiveEndDate = "2026-05-21" }
-  [pscustomobject]@{ Day = "Thursday"; Start = "09:00"; End = "17:00"; EffectiveEndDate = "2026-05-21" }
-  [pscustomobject]@{ Day = "Friday"; Start = "09:00"; End = "16:00"; EffectiveEndDate = "2026-05-21" }
-  [pscustomobject]@{ Day = "Monday"; Start = "09:00"; End = "17:00"; EffectiveStartDate = "2026-05-22" }
-  [pscustomobject]@{ Day = "Wednesday"; Start = "09:00"; End = "17:00"; EffectiveStartDate = "2026-05-22" }
-  [pscustomobject]@{ Day = "Friday"; Start = "09:00"; End = "16:00"; EffectiveStartDate = "2026-05-22" }
-)
+$JoeWorkingHours = @()
 
 function Get-CalendlyHeaders {
   param(
