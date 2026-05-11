@@ -226,7 +226,8 @@ const RATE_STORAGE_KEY = "kw-leading-edge-portal.rates.v1";
 const RATE_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 const RI_MARKET_STORAGE_KEY = "kw-leading-edge-portal.ri-market.v1";
 const RI_MARKET_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000;
-const RI_MARKET_SOURCE_URL = "https://www.rirealtors.org/";
+const RI_MARKET_FEED_URL = "data/ri-market.json";
+const RI_MARKET_CACHE_BUST_WINDOW_MS = 15 * 60 * 1000;
 const JOE_AVAILABILITY_STORAGE_KEY = "kw-leading-edge-portal.joe-tech-status.v1";
 const JOE_AVAILABILITY_REFRESH_INTERVAL_MS = 60 * 1000;
 const JOE_AVAILABILITY_CACHE_BUST_WINDOW_MS = 60 * 1000;
@@ -3249,23 +3250,6 @@ function detectTrendTone(value) {
   return "neutral";
 }
 
-function normalizeRiComparison(value) {
-  const normalized = String(value || "").replace(/\s+/g, " ").trim();
-  if (!normalized) {
-    return "";
-  }
-
-  if (normalized.startsWith("\u2191")) {
-    return `+${normalized.slice(1).trim()}`;
-  }
-
-  if (normalized.startsWith("\u2193")) {
-    return `-${normalized.slice(1).trim()}`;
-  }
-
-  return normalized;
-}
-
 function writeRiMarketValue(metricKey, value) {
   const refs = riMarketRefs.values[metricKey] || [];
   refs.forEach((ref) => {
@@ -3296,98 +3280,15 @@ function writeRiMarket(state) {
   writeRiMarketTrend("inventory", state.activeInventoryTrend);
 }
 
-function formatRiMarketPeriod(rawPeriod) {
-  const normalized = String(rawPeriod || "").trim();
-  if (!normalized) {
-    return "";
-  }
-
-  const parts = normalized.split(/\s*-\s*/);
-  const segment = parts.length > 1 ? parts.shift() : "";
-  const periodPart = parts.length ? parts.join(" - ") : normalized;
-  const parsed = Date.parse(`${periodPart} 12:00:00`);
-  const formattedPeriod = Number.isFinite(parsed)
-    ? new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      year: "numeric",
-      timeZone: "America/New_York"
-    }).format(new Date(parsed))
-    : periodPart;
-
-  if (segment) {
-    return `${segment} - ${formattedPeriod}`;
-  }
-
-  return formattedPeriod;
-}
-
-function buildRiStatValue(prefix, number, suffix) {
-  const normalizedPrefix = String(prefix || "").trim();
-  const normalizedNumber = String(number || "").trim();
-  const normalizedSuffix = String(suffix || "").trim();
-
-  let value = `${normalizedPrefix}${normalizedNumber}`.trim();
-  if (normalizedSuffix) {
-    value += `${normalizedPrefix ? "" : " "}${normalizedSuffix}`;
-  }
-
-  return value.trim();
-}
-
-function normalizeRiStatTitle(value) {
-  return String(value || "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-function parseRiRealtorsMarketTrends(html) {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const targetSection = [...doc.querySelectorAll(".quickStatsComponent")].find((section) => {
-    return /Recent Market Trends/i.test(section.textContent || "");
-  });
-
-  if (!targetSection) {
-    return null;
-  }
-
-  const periodRaw = targetSection.querySelector(".moduleHeader .eyebrow, .eyebrow")?.textContent.trim() || "";
-  const metrics = {};
-
-  [...targetSection.querySelectorAll(".quickStat")].forEach((statEl) => {
-    const title = normalizeRiStatTitle(statEl.querySelector(".statTitle")?.textContent);
-    const prefix = statEl.querySelector(".stat .prefix")?.textContent || "";
-    const number = statEl.querySelector(".stat .number")?.textContent || "";
-    const suffix = statEl.querySelector(".stat .suffix")?.textContent || "";
-    const comparison = normalizeRiComparison(statEl.querySelector(".statComparison")?.textContent);
-
-    metrics[title] = {
-      value: buildRiStatValue(prefix, number, suffix),
-      comparison
-    };
-  });
-
-  const median = metrics["median sales price"];
-  const sold = metrics["no. of homes sold"];
-  const pending = metrics["no. of pending sales"];
-  const inventory = metrics["active inventory"];
-
-  if (!periodRaw || !median || !sold || !pending || !inventory) {
-    return null;
-  }
-
-  return {
-    periodLabel: formatRiMarketPeriod(periodRaw),
-    medianSalesPrice: median.value,
-    medianSalesPriceTrend: median.comparison,
-    homesSold: sold.value,
-    homesSoldTrend: sold.comparison,
-    pendingSales: pending.value,
-    pendingSalesTrend: pending.comparison,
-    activeInventory: inventory.value,
-    activeInventoryTrend: inventory.comparison,
-    fetchedAt: new Date().toISOString()
-  };
+function isValidRiMarketState(state) {
+  return Boolean(
+    state
+    && state.periodLabel
+    && state.medianSalesPrice
+    && state.homesSold
+    && state.pendingSales
+    && state.activeInventory
+  );
 }
 
 async function fetchTextViaProxy(sourceUrl) {
@@ -3713,11 +3614,19 @@ async function refreshRiMarket() {
   riMarketRefreshInFlight = true;
 
   try {
-    const html = await fetchTextViaProxy(RI_MARKET_SOURCE_URL);
-    const nextState = parseRiRealtorsMarketTrends(html);
+    const cacheBust = Math.floor(Date.now() / RI_MARKET_CACHE_BUST_WINDOW_MS);
+    const separator = RI_MARKET_FEED_URL.includes("?") ? "&" : "?";
+    const response = await fetch(`${RI_MARKET_FEED_URL}${separator}v=${cacheBust}`, {
+      cache: "no-store"
+    });
 
-    if (!nextState) {
-      throw new Error("Could not parse RI market trends");
+    if (!response.ok) {
+      throw new Error(`Request failed for ${RI_MARKET_FEED_URL}`);
+    }
+
+    const nextState = await response.json();
+    if (!isValidRiMarketState(nextState)) {
+      throw new Error("Could not parse RI market data feed");
     }
 
     writeRiMarket(nextState);
