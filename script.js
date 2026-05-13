@@ -2277,6 +2277,60 @@ function getJoeFutureAppointmentLabels(rawState = {}, timezone = JOE_AVAILABILIT
     .filter(Boolean);
 }
 
+function getJoeAvailabilitySlotStarts(rawState = {}) {
+  const candidateIsos = [
+    ...(Array.isArray(rawState?.nextAvailableDaySlotIsos) ? rawState.nextAvailableDaySlotIsos : []),
+    rawState?.nextAppointmentAvailableIso,
+    rawState?.nextOpenSlotIso
+  ];
+  const seen = new Set();
+
+  return candidateIsos
+    .map((iso) => getJoeAvailabilityIsoMs(iso))
+    .filter(Number.isFinite)
+    .sort((left, right) => left - right)
+    .filter((ms) => {
+      const key = Math.round(ms / 60000);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+}
+
+function getJoeAvailabilityIntervalContainingTime(rawState = {}, referenceMs = Date.now(), durationMinutes = JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES) {
+  const durationMs = Number.isFinite(durationMinutes) && durationMinutes > 0
+    ? durationMinutes * 60 * 1000
+    : JOE_AVAILABILITY_DEFAULT_DURATION_MINUTES * 60 * 1000;
+  const slotStarts = getJoeAvailabilitySlotStarts(rawState);
+  let currentInterval = null;
+
+  slotStarts.forEach((slotStartMs) => {
+    const slotEndMs = slotStartMs + durationMs;
+
+    if (!currentInterval || slotStartMs > currentInterval.endMs + 60 * 1000) {
+      if (currentInterval && currentInterval.startMs <= referenceMs && referenceMs < currentInterval.endMs) {
+        return;
+      }
+
+      currentInterval = {
+        startMs: slotStartMs,
+        endMs: slotEndMs
+      };
+      return;
+    }
+
+    if (slotEndMs > currentInterval.endMs) {
+      currentInterval.endMs = slotEndMs;
+    }
+  });
+
+  return currentInterval && currentInterval.startMs <= referenceMs && referenceMs < currentInterval.endMs
+    ? currentInterval
+    : null;
+}
+
 function getJoeAvailabilityLocalYear(date, timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return "";
@@ -2440,7 +2494,7 @@ function isJoeWorkingHourEntryEffective(entry, dateKey) {
 }
 
 function normalizeJoeWorkingHours(rawHours, referenceDate = new Date(), timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
-  const source = Array.isArray(rawHours) && rawHours.length
+  const source = Array.isArray(rawHours)
     ? rawHours
     : JOE_AVAILABILITY_DEFAULT_WORKING_HOURS;
   const referenceDateKey = getJoeAvailabilityLocalDateKey(referenceDate, timezone);
@@ -2481,6 +2535,10 @@ function formatJoeAvailabilityMinutes(minutes) {
 }
 
 function formatJoeAvailabilityOfficeHours(rawHours, referenceDate = new Date(), timezone = JOE_AVAILABILITY_FALLBACK_TIMEZONE) {
+  if (Array.isArray(rawHours) && rawHours.length === 0) {
+    return "Availability from Calendly";
+  }
+
   const workingHours = normalizeJoeWorkingHours(rawHours, referenceDate, timezone);
   if (!workingHours.length) {
     return "Availability from Calendly";
@@ -2647,6 +2705,8 @@ function normalizeJoeAvailabilityState(rawState = {}) {
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
+  const currentAvailabilityInterval = getJoeAvailabilityIntervalContainingTime(rawState, nowMs, eventDurationMinutes);
+  const currentAvailabilityEndMs = currentAvailabilityInterval?.endMs || Number.NaN;
   const availabilitySummary = typeof rawState?.availabilitySummary === "string" && rawState.availabilitySummary.trim()
     ? rawState.availabilitySummary.trim()
     : "";
@@ -2664,16 +2724,22 @@ function normalizeJoeAvailabilityState(rawState = {}) {
 
   if (isBusyNow) {
     status = "unavailable";
-  } else if (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs) {
+  } else if (
+    (baseStatus === "available_now" && Number.isFinite(availableNowEndMs) && isWithinWorkingHoursNow && nowMs < availableNowEndMs)
+    || Number.isFinite(currentAvailabilityEndMs)
+  ) {
     status = "available_now";
   }
 
   if (status === "available_now") {
+    const fallbackAvailableEndMs = Number.isFinite(currentAvailabilityEndMs)
+      ? currentAvailabilityEndMs
+      : nextOpenSlotEndMs;
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
       availableNowEndMs,
       nextBusyStartMs,
       nextOpenSlotWorkingWindowEndMs,
-      nextOpenSlotEndMs,
+      fallbackAvailableEndMs,
       nowMs
     );
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
@@ -2790,13 +2856,18 @@ function getCompactJoeAvailabilityState(rawState = {}, normalizedState = {}) {
   const isBusyNow = Number.isFinite(busyNowEndMs)
     && busyNowEndMs > nowMs
     && (!Number.isFinite(busyNowStartMs) || busyNowStartMs <= nowMs);
+  const currentAvailabilityInterval = getJoeAvailabilityIntervalContainingTime(rawState, nowMs, eventDurationMinutes);
+  const currentAvailabilityEndMs = currentAvailabilityInterval?.endMs || Number.NaN;
 
   if (normalizedState.status === "available_now") {
+    const fallbackAvailableEndMs = Number.isFinite(currentAvailabilityEndMs)
+      ? currentAvailabilityEndMs
+      : nextOpenSlotEndMs;
     const effectiveAvailableNowEndMs = getJoeAvailabilityEffectiveAvailableEndMs(
       availableNowEndMs,
       nextBusyStartMs,
       nextOpenSlotWorkingWindowEndMs,
-      nextOpenSlotEndMs,
+      fallbackAvailableEndMs,
       nowMs
     );
     const endLabel = Number.isFinite(effectiveAvailableNowEndMs)
