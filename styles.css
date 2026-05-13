@@ -2389,15 +2389,24 @@ body.portal-protected .mobile-tech-help-bubble {
   background: rgba(255, 255, 255, 0.18);
 }
 
+.dashboard-agenda-shell[data-calendar-provider="google"] {
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
 .dashboard-agenda-feed {
   min-height: 270px;
 }
 
-.dashboard-agenda-feed iframe {
+.dashboard-agenda-feed iframe,
+.dashboard-agenda-google-frame {
+  display: block;
   width: 100%;
   min-height: 270px;
+  height: 270px;
   border: 0;
-  background: transparent;
+  background: #fff;
 }
 
 .dashboard-agenda-links {
@@ -2406,10 +2415,95 @@ body.portal-protected .mobile-tech-help-bubble {
   gap: 8px;
 }
 
+.dashboard-agenda-links--calendar {
+  grid-template-columns: 1fr;
+}
+
 .dashboard-agenda-links .dashboard-mini-link {
   min-height: 38px;
   padding: 0.62rem 0.72rem;
   font-size: 0.72rem;
+}
+
+.dashboard-calendar-controls {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-calendar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid rgba(221, 212, 200, 0.92);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.dashboard-calendar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--kw-black);
+  cursor: pointer;
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dashboard-calendar-toggle input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--calendar-color, var(--kw-red));
+}
+
+.dashboard-calendar-swatch {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  background: var(--calendar-color, var(--kw-red));
+}
+
+.dashboard-calendar-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-calendar-subscribe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0.48rem 0.62rem;
+  border: 1px solid rgba(180, 1, 1, 0.22);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--kw-red);
+  font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+}
+
+.dashboard-calendar-subscribe:hover,
+.dashboard-calendar-subscribe:focus-visible {
+  transform: translateY(-1px);
+  background: var(--kw-red);
+  border-color: var(--kw-red);
+  color: #fff;
+  box-shadow: 0 14px 22px -18px rgba(180, 1, 1, 0.34);
 }
 
 .overview-grid {
@@ -4740,6 +4834,7 @@ body.has-docusign-modal .page-content {
 .course-card:focus-visible,
 .portal-action-card:focus-visible,
 .dashboard-mini-link:focus-visible,
+.dashboard-calendar-subscribe:focus-visible,
 .overview-link:focus-visible,
 .card-tag-link:focus-visible,
 .chip-link:focus-visible,
@@ -4869,8 +4964,10 @@ body.has-docusign-modal .page-content {
 
   .dashboard-agenda-shell,
   .dashboard-agenda-feed,
-  .dashboard-agenda-feed iframe {
+  .dashboard-agenda-feed iframe,
+  .dashboard-agenda-google-frame {
     min-height: 246px;
+    height: 246px;
   }
 }
 

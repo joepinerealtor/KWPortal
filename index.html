@@ -180,7 +180,7 @@
               <article class="dashboard-status-card dashboard-status-card--agenda">
                 <span class="card-tag">Office Agenda</span>
                 <strong>What is coming up next in training and office events</strong>
-                <div class="dashboard-agenda-shell">
+                <div class="dashboard-agenda-shell" data-dashboard-agenda-shell>
                   <div
                     class="dashboard-agenda-feed"
                     data-tockify-calendar="leading.edge"
@@ -191,11 +191,10 @@
                     aria-label="Upcoming office training and events"
                   ></div>
                 </div>
-                <div class="dashboard-agenda-links">
-                  <a class="dashboard-mini-link" href="https://tockify.com/leading.edge/pinboard" target="_blank" rel="noreferrer" data-calendar-modal-trigger aria-haspopup="dialog" aria-controls="fullCalendarModal">Full Calendar</a>
-                  <a class="dashboard-mini-link" href="#vendor-row">Vendor Row</a>
-                  <a class="dashboard-mini-link" href="#tech-help-joe">Need Tech Support?</a>
+                <div class="dashboard-agenda-links dashboard-agenda-links--calendar">
+                  <a class="dashboard-mini-link" href="https://tockify.com/leading.edge/pinboard" target="_blank" rel="noreferrer" data-calendar-modal-trigger data-training-calendar-open-link aria-haspopup="dialog" aria-controls="fullCalendarModal">View Full Calendar</a>
                 </div>
+                <div class="dashboard-calendar-controls" data-dashboard-calendar-controls aria-label="Training calendar visibility and subscription links"></div>
               </article>
               <section class="dashboard-head-market" aria-label="Market snapshot">
                 <div class="dashboard-head-market-section" aria-label="Mortgage rate snapshot">
@@ -722,7 +721,7 @@
       <div class="calendar-modal__footer">
         <p class="calendar-modal__note">If the embedded calendar is slow to load, you can open the full page in a new tab.</p>
         <div class="calendar-modal__actions">
-          <a class="button compact" href="https://tockify.com/leading.edge/pinboard" target="_blank" rel="noreferrer">Open In New Tab</a>
+          <a class="button compact" href="https://tockify.com/leading.edge/pinboard" target="_blank" rel="noreferrer" data-training-calendar-open-link>Open In New Tab</a>
         </div>
       </div>
     </div>

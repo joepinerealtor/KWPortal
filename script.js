@@ -23,6 +23,9 @@ const calendarModal = document.querySelector("[data-calendar-modal]");
 const calendarModalShell = calendarModal?.querySelector("[data-calendar-modal-shell]");
 const calendarModalCloseButton = calendarModal?.querySelector(".calendar-modal__close");
 const calendarModalTriggers = [...document.querySelectorAll("[data-calendar-modal-trigger]")];
+const dashboardAgendaShell = document.querySelector("[data-dashboard-agenda-shell]");
+const dashboardCalendarControls = document.querySelector("[data-dashboard-calendar-controls]");
+const trainingCalendarOpenLinks = [...document.querySelectorAll("[data-training-calendar-open-link]")];
 const handbookModal = document.querySelector("[data-handbook-modal]");
 const handbookModalShell = handbookModal?.querySelector("[data-handbook-modal-shell]");
 const handbookModalCloseButton = handbookModal?.querySelector(".calendar-modal__close");
@@ -167,6 +170,7 @@ let currentJoeAvailabilityState = { status: "unavailable" };
 let calendarModalLastTrigger = null;
 let calendarModalCloseTimer = 0;
 let hasLoadedCalendarModalContent = false;
+let selectedGoogleTrainingCalendarIds = new Set();
 let handbookModalLastTrigger = null;
 let handbookModalCloseTimer = 0;
 let hasLoadedHandbookModalContent = false;
@@ -192,6 +196,26 @@ const PORTAL_PASSCODE_HASH = "4030C42B313A82B953D14F04A85FF9DD9739E49A97D90631B7
 const IS_PORTAL_PUBLIC_PAGE = document.body?.dataset.portalPublic === "true";
 const PUBLIC_WEBSITE_URL = "https://www.kwleadingedge.com/";
 const TRAINING_CALENDAR_URL = "https://tockify.com/leading.edge/pinboard";
+// Add Google Calendar entries here; raw string IDs still work for quick tests.
+const GOOGLE_TRAINING_CALENDARS = [
+  {
+    id: "c_e3fdab9c429252dca299a192fe7ca98c95dfd30acb96c1755da8ce52da855c60@group.calendar.google.com",
+    label: "All Agents",
+    color: "#B00101"
+  },
+  {
+    id: "c_e4117d489030ed0a36f1cc002ef04977136e6d2ebb02a3907f49975a457c2384@group.calendar.google.com",
+    label: "Future Agents",
+    color: "#5F5750"
+  },
+  {
+    id: "c_480d0a8dbc1efd74b855288fe931fe5bb8405da215c9cf8dd0a436571913ec36@group.calendar.google.com",
+    label: "Productivity Coaching",
+    color: "#039BE5"
+  }
+];
+const GOOGLE_TRAINING_CALENDAR_TIMEZONE = "America/New_York";
+const GOOGLE_TRAINING_CALENDAR_COLORS = ["#B00101", "#5F5750", "#039BE5"];
 const AGENT_HANDBOOK_URL = "downloads/kwle-agent-handbook-march-2026.pdf";
 const DOCUSIGN_DISCONTINUATION_TARGET_MS = new Date("2026-07-14T00:00:00-04:00").getTime();
 const DOCUSIGN_REMINDER_OPEN_DELAY_MS = 720;
@@ -1577,21 +1601,286 @@ function initializeMobileMenus() {
   });
 }
 
+function normalizeGoogleTrainingCalendarId(calendarId) {
+  const trimmedCalendarId = String(calendarId).trim();
+
+  if (!trimmedCalendarId) {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(trimmedCalendarId);
+  } catch (error) {
+    return trimmedCalendarId;
+  }
+}
+
+function getGoogleTrainingCalendars() {
+  return GOOGLE_TRAINING_CALENDARS
+    .map((calendar, index) => {
+      const calendarId = normalizeGoogleTrainingCalendarId(
+        typeof calendar === "string" ? calendar : calendar.id
+      );
+
+      if (!calendarId) {
+        return null;
+      }
+
+      return {
+        id: calendarId,
+        label: typeof calendar === "string" ? `Calendar ${index + 1}` : (calendar.label || `Calendar ${index + 1}`),
+        color: typeof calendar === "string"
+          ? GOOGLE_TRAINING_CALENDAR_COLORS[index % GOOGLE_TRAINING_CALENDAR_COLORS.length]
+          : (calendar.color || GOOGLE_TRAINING_CALENDAR_COLORS[index % GOOGLE_TRAINING_CALENDAR_COLORS.length])
+      };
+    })
+    .filter(Boolean);
+}
+
+function ensureGoogleTrainingCalendarSelection(calendars) {
+  const calendarIds = new Set(calendars.map((calendar) => calendar.id));
+
+  selectedGoogleTrainingCalendarIds = new Set(
+    [...selectedGoogleTrainingCalendarIds].filter((calendarId) => calendarIds.has(calendarId))
+  );
+
+  if (!selectedGoogleTrainingCalendarIds.size) {
+    selectedGoogleTrainingCalendarIds = new Set(calendarIds);
+  }
+}
+
+function getSelectedGoogleTrainingCalendars() {
+  const calendars = getGoogleTrainingCalendars();
+
+  if (!calendars.length) {
+    return [];
+  }
+
+  ensureGoogleTrainingCalendarSelection(calendars);
+
+  return calendars.filter((calendar) => selectedGoogleTrainingCalendarIds.has(calendar.id));
+}
+
+function buildGoogleTrainingCalendarEmbedUrl({
+  height = 600,
+  mode = "AGENDA",
+  showDate = false,
+  showNav = false
+} = {}) {
+  const calendars = getSelectedGoogleTrainingCalendars();
+
+  if (!calendars.length) {
+    return "";
+  }
+
+  const calendarUrl = new URL("https://calendar.google.com/calendar/embed");
+  calendarUrl.searchParams.set("height", String(height));
+  calendarUrl.searchParams.set("wkst", "1");
+  calendarUrl.searchParams.set("bgcolor", "#ffffff");
+  calendarUrl.searchParams.set("ctz", GOOGLE_TRAINING_CALENDAR_TIMEZONE);
+  calendarUrl.searchParams.set("mode", mode);
+  calendarUrl.searchParams.set("showNav", showNav ? "1" : "0");
+  calendarUrl.searchParams.set("showTitle", "0");
+  calendarUrl.searchParams.set("showDate", showDate ? "1" : "0");
+  calendarUrl.searchParams.set("showPrint", "0");
+  calendarUrl.searchParams.set("showTabs", "0");
+  calendarUrl.searchParams.set("showCalendars", "0");
+  calendarUrl.searchParams.set("showTz", "0");
+
+  calendars.forEach((calendar) => {
+    calendarUrl.searchParams.append("src", calendar.id);
+    calendarUrl.searchParams.append("color", calendar.color);
+  });
+
+  return calendarUrl.toString();
+}
+
+function buildGoogleTrainingCalendarSubscribeUrl(calendarId) {
+  return `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(calendarId)}`;
+}
+
+function createTrainingCalendarIframe({ className, src, title }) {
+  const iframe = document.createElement("iframe");
+  iframe.className = className;
+  iframe.src = src;
+  iframe.title = title;
+  iframe.loading = "lazy";
+  iframe.scrolling = "yes";
+  iframe.referrerPolicy = "strict-origin-when-cross-origin";
+
+  return iframe;
+}
+
+function getHeroGoogleTrainingCalendarUrl() {
+  return buildGoogleTrainingCalendarEmbedUrl({
+    height: 320,
+    mode: "AGENDA"
+  });
+}
+
+function getModalGoogleTrainingCalendarUrl() {
+  return buildGoogleTrainingCalendarEmbedUrl({
+    height: 680,
+    mode: "MONTH",
+    showDate: true,
+    showNav: true
+  });
+}
+
+function updateDashboardGoogleTrainingCalendar() {
+  if (!dashboardAgendaShell) {
+    return;
+  }
+
+  const heroCalendarUrl = getHeroGoogleTrainingCalendarUrl();
+
+  if (!heroCalendarUrl) {
+    return;
+  }
+
+  let calendarFrame = dashboardAgendaShell.querySelector(".dashboard-agenda-google-frame");
+
+  dashboardAgendaShell.dataset.calendarProvider = "google";
+
+  if (!calendarFrame) {
+    calendarFrame = createTrainingCalendarIframe({
+      className: "dashboard-agenda-google-frame",
+      src: heroCalendarUrl,
+      title: "Upcoming KW Leading Edge Google calendar events"
+    });
+    dashboardAgendaShell.replaceChildren(calendarFrame);
+    return;
+  }
+
+  if (calendarFrame.src !== heroCalendarUrl) {
+    calendarFrame.src = heroCalendarUrl;
+  }
+}
+
+function updateTrainingCalendarOpenLinks() {
+  const modalCalendarUrl = getModalGoogleTrainingCalendarUrl();
+
+  trainingCalendarOpenLinks.forEach((link) => {
+    link.href = modalCalendarUrl || TRAINING_CALENDAR_URL;
+  });
+}
+
+function updateLoadedCalendarModalFrame() {
+  if (!calendarModalShell || !hasLoadedCalendarModalContent) {
+    return;
+  }
+
+  const calendarFrame = calendarModalShell.querySelector(".calendar-modal__iframe");
+  const modalCalendarUrl = getModalGoogleTrainingCalendarUrl();
+
+  if (calendarFrame && modalCalendarUrl && calendarFrame.src !== modalCalendarUrl) {
+    calendarFrame.src = modalCalendarUrl;
+  }
+}
+
+function updateGoogleTrainingCalendarViews() {
+  updateDashboardGoogleTrainingCalendar();
+  updateTrainingCalendarOpenLinks();
+  updateLoadedCalendarModalFrame();
+}
+
+function handleTrainingCalendarControlChange(event) {
+  const target = event.target;
+
+  if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") {
+    return;
+  }
+
+  const calendarId = target.dataset.trainingCalendarId || "";
+
+  if (!calendarId) {
+    return;
+  }
+
+  if (target.checked) {
+    selectedGoogleTrainingCalendarIds.add(calendarId);
+  } else if (selectedGoogleTrainingCalendarIds.size > 1) {
+    selectedGoogleTrainingCalendarIds.delete(calendarId);
+  } else {
+    target.checked = true;
+    return;
+  }
+
+  updateGoogleTrainingCalendarViews();
+}
+
+function renderTrainingCalendarControls(calendars) {
+  if (!dashboardCalendarControls) {
+    return;
+  }
+
+  dashboardCalendarControls.replaceChildren();
+
+  calendars.forEach((calendar) => {
+    const row = document.createElement("div");
+    row.className = "dashboard-calendar-row";
+    row.style.setProperty("--calendar-color", calendar.color);
+
+    const toggle = document.createElement("label");
+    toggle.className = "dashboard-calendar-toggle";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = selectedGoogleTrainingCalendarIds.has(calendar.id);
+    checkbox.dataset.trainingCalendarId = calendar.id;
+
+    const swatch = document.createElement("span");
+    swatch.className = "dashboard-calendar-swatch";
+    swatch.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "dashboard-calendar-label";
+    label.textContent = calendar.label;
+
+    const subscribeLink = document.createElement("a");
+    subscribeLink.className = "dashboard-calendar-subscribe";
+    subscribeLink.href = buildGoogleTrainingCalendarSubscribeUrl(calendar.id);
+    subscribeLink.target = "_blank";
+    subscribeLink.rel = "noreferrer";
+    subscribeLink.textContent = "Subscribe";
+    subscribeLink.setAttribute("aria-label", `Subscribe to ${calendar.label}`);
+
+    toggle.append(checkbox, swatch, label);
+    row.append(toggle, subscribeLink);
+    dashboardCalendarControls.append(row);
+  });
+
+  if (!dashboardCalendarControls.dataset.calendarControlsReady) {
+    dashboardCalendarControls.addEventListener("change", handleTrainingCalendarControlChange);
+    dashboardCalendarControls.dataset.calendarControlsReady = "true";
+  }
+}
+
+function initializeTrainingCalendarTestEmbed() {
+  const calendars = getGoogleTrainingCalendars();
+
+  if (!calendars.length) {
+    return;
+  }
+
+  ensureGoogleTrainingCalendarSelection(calendars);
+  renderTrainingCalendarControls(calendars);
+  updateGoogleTrainingCalendarViews();
+}
+
 function ensureCalendarModalContent() {
   if (!calendarModalShell || hasLoadedCalendarModalContent) {
     return;
   }
 
-  calendarModalShell.innerHTML = `
-    <iframe
-      class="calendar-modal__iframe"
-      src="${TRAINING_CALENDAR_URL}"
-      title="KW Leading Edge full training calendar"
-      loading="lazy"
-      scrolling="yes"
-      referrerpolicy="strict-origin-when-cross-origin"
-    ></iframe>
-  `;
+  const googleCalendarUrl = getModalGoogleTrainingCalendarUrl();
+  const calendarFrame = createTrainingCalendarIframe({
+    className: "calendar-modal__iframe",
+    src: googleCalendarUrl || TRAINING_CALENDAR_URL,
+    title: "KW Leading Edge full training calendar"
+  });
+
+  calendarModalShell.replaceChildren(calendarFrame);
 
   hasLoadedCalendarModalContent = true;
 }
@@ -3666,6 +3955,7 @@ async function initializePortal() {
   updateDateTime();
   setInterval(updateDateTime, 30000);
   initializeMobileMenus();
+  initializeTrainingCalendarTestEmbed();
   initializeCalendarModal();
   initializeHandbookModal();
   initializeLoneWolfModal();
