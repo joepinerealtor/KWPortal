@@ -7,17 +7,15 @@
   "availableNowEndIso": "",
   "busyNowStartIso": "",
   "busyNowEndIso": "",
-  "nextBusyStartIso": "2026-05-18T22:00:00.000Z",
-  "nextBusyEndIso": "2026-05-18T23:30:00.000Z",
+  "nextBusyStartIso": "2026-05-18T21:45:00.000Z",
+  "nextBusyEndIso": "2026-05-18T23:15:00.000Z",
   "nextAppointmentAvailableIso": "2026-05-19T17:30:00.000Z",
-  "availabilitySummary": "Tuesday, May 19 has several openings, including 1:30 PM-3:00 PM. Reserve your slot now.",
-  "availabilitySummaryGeneratedAtIso": "2026-05-18T05:47:18.040Z",
+  "availabilitySummary": "Tuesday, May 19 has a few openings, with openings at 1:30 PM-2:30 PM. Reserve your slot now.",
+  "availabilitySummaryGeneratedAtIso": "2026-05-18T09:53:51.369Z",
   "nextAvailableDaySlotIsos": [
     "2026-05-19T17:30:00.000Z",
     "2026-05-19T17:45:00.000Z",
-    "2026-05-19T18:00:00.000Z",
-    "2026-05-19T18:15:00.000Z",
-    "2026-05-19T18:30:00.000Z"
+    "2026-05-19T18:00:00.000Z"
   ],
   "workingHours": [],
   "availableNowLabel": "Joe is available now",
